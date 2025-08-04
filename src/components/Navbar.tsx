@@ -1,11 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, Heart, User, Menu } from "lucide-react";
+import { Home, Search, Heart, User, Menu, LogOut, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, signOut, isLandlord } = useAuth();
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
@@ -45,8 +48,42 @@ const Navbar = () => {
 
           {/* Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline">List Property</Button>
-            <Button>Sign In</Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost">
+                    <User className="h-4 w-4 mr-2" />
+                    {user.email?.split('@')[0]}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {isLandlord && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link to="/dashboard" className="flex items-center">
+                          <LayoutDashboard className="h-4 w-4 mr-2" />
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button variant="outline" asChild>
+                  <Link to="/auth">List Property</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/auth">Sign In</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -83,10 +120,27 @@ const Navbar = () => {
                 );
               })}
               <div className="pt-4 space-y-2">
-                <Button variant="outline" className="w-full">
-                  List Property
-                </Button>
-                <Button className="w-full">Sign In</Button>
+                {user ? (
+                  <>
+                    {isLandlord && (
+                      <Button variant="outline" className="w-full" asChild>
+                        <Link to="/dashboard">Dashboard</Link>
+                      </Button>
+                    )}
+                    <Button className="w-full" onClick={signOut}>
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link to="/auth">List Property</Link>
+                    </Button>
+                    <Button className="w-full" asChild>
+                      <Link to="/auth">Sign In</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
