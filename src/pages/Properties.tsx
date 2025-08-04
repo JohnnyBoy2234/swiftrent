@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,11 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Filter, MapPin, Bed, Bath, Car, Home } from 'lucide-react';
+import { Search, Filter, Home } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import PropertyCard from '@/components/PropertyCard';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { usePropertySearch } from '@/hooks/usePropertySearch';
 
 interface Property {
   id: string;
@@ -41,32 +41,16 @@ const amenitiesList = [
 ];
 
 export default function Properties() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
-  const [propertyType, setPropertyType] = useState(searchParams.get('type') || 'All');
-  const [priceRange, setPriceRange] = useState([
-    parseInt(searchParams.get('minPrice') || '0'),
-    parseInt(searchParams.get('maxPrice') || '50000')
-  ]);
-  const [bedrooms, setBedrooms] = useState(searchParams.get('bedrooms') || 'Any');
-  const [bathrooms, setBathrooms] = useState(searchParams.get('bathrooms') || 'Any');
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(
-    searchParams.get('amenities')?.split(',').filter(Boolean) || []
-  );
-  const [furnished, setFurnished] = useState(searchParams.get('furnished') === 'true');
-  const [petsAllowed, setPetsAllowed] = useState(searchParams.get('pets') === 'true');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const { toast } = useToast();
+  
+  const { filters, filteredProperties, updateFilters, clearFilters } = usePropertySearch(properties);
 
   useEffect(() => {
     fetchProperties();
   }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [searchTerm, propertyType, priceRange, bedrooms, bathrooms, selectedAmenities, furnished, petsAllowed]);
 
   const fetchProperties = async () => {
     try {
@@ -90,74 +74,12 @@ export default function Properties() {
     }
   };
 
-  const applyFilters = () => {
-    // Update URL params
-    const params = new URLSearchParams();
-    if (searchTerm) params.set('search', searchTerm);
-    if (propertyType !== 'All') params.set('type', propertyType);
-    if (priceRange[0] > 0) params.set('minPrice', priceRange[0].toString());
-    if (priceRange[1] < 50000) params.set('maxPrice', priceRange[1].toString());
-    if (bedrooms !== 'Any') params.set('bedrooms', bedrooms);
-    if (bathrooms !== 'Any') params.set('bathrooms', bathrooms);
-    if (selectedAmenities.length > 0) params.set('amenities', selectedAmenities.join(','));
-    if (furnished) params.set('furnished', 'true');
-    if (petsAllowed) params.set('pets', 'true');
-    
-    setSearchParams(params);
-  };
-
-  const filteredProperties = properties.filter(property => {
-    // Search term filter
-    if (searchTerm && !property.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !property.location.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
-    }
-
-    // Property type filter
-    if (propertyType !== 'All' && property.property_type !== propertyType) {
-      return false;
-    }
-
-    // Price range filter
-    if (property.price < priceRange[0] || property.price > priceRange[1]) {
-      return false;
-    }
-
-    // Bedrooms filter
-    if (bedrooms !== 'Any' && property.bedrooms !== parseInt(bedrooms)) {
-      return false;
-    }
-
-    // Bathrooms filter
-    if (bathrooms !== 'Any' && property.bathrooms !== parseInt(bathrooms)) {
-      return false;
-    }
-
-    // Amenities filter
-    if (selectedAmenities.length > 0 && 
-        !selectedAmenities.every(amenity => property.amenities?.includes(amenity))) {
-      return false;
-    }
-
-    // Furnished filter
-    if (furnished && !property.furnished) {
-      return false;
-    }
-
-    // Pets allowed filter
-    if (petsAllowed && !property.pets_allowed) {
-      return false;
-    }
-
-    return true;
-  });
-
   const toggleAmenity = (amenity: string) => {
-    setSelectedAmenities(prev =>
-      prev.includes(amenity)
-        ? prev.filter(a => a !== amenity)
-        : [...prev, amenity]
-    );
+    const newAmenities = filters.selectedAmenities.includes(amenity)
+      ? filters.selectedAmenities.filter(a => a !== amenity)
+      : [...filters.selectedAmenities, amenity];
+    
+    updateFilters({ selectedAmenities: newAmenities });
   };
 
   if (loading) {
@@ -187,12 +109,12 @@ export default function Properties() {
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by location or property name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={filters.searchTerm}
+                  onChange={(e) => updateFilters({ searchTerm: e.target.value })}
                   className="pl-10"
                 />
               </div>
-              <Select value={propertyType} onValueChange={setPropertyType}>
+              <Select value={filters.propertyType} onValueChange={(value) => updateFilters({ propertyType: value })}>
                 <SelectTrigger className="lg:w-48">
                   <SelectValue placeholder="Property Type" />
                 </SelectTrigger>
@@ -224,10 +146,10 @@ export default function Properties() {
               <CardContent className="space-y-6">
                 {/* Price Range */}
                 <div className="space-y-3">
-                  <Label>Price Range: R{priceRange[0].toLocaleString()} - R{priceRange[1].toLocaleString()}</Label>
+                  <Label>Price Range: R{filters.priceRange[0].toLocaleString()} - R{filters.priceRange[1].toLocaleString()}</Label>
                   <Slider
-                    value={priceRange}
-                    onValueChange={setPriceRange}
+                    value={filters.priceRange}
+                    onValueChange={(value) => updateFilters({ priceRange: value as [number, number] })}
                     max={50000}
                     step={1000}
                     className="w-full"
@@ -238,7 +160,7 @@ export default function Properties() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Bedrooms</Label>
-                    <Select value={bedrooms} onValueChange={setBedrooms}>
+                    <Select value={filters.bedrooms} onValueChange={(value) => updateFilters({ bedrooms: value })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -251,7 +173,7 @@ export default function Properties() {
                   </div>
                   <div className="space-y-2">
                     <Label>Bathrooms</Label>
-                    <Select value={bathrooms} onValueChange={setBathrooms}>
+                    <Select value={filters.bathrooms} onValueChange={(value) => updateFilters({ bathrooms: value })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -269,16 +191,16 @@ export default function Properties() {
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="furnished"
-                      checked={furnished}
-                      onCheckedChange={(checked) => setFurnished(!!checked)}
+                      checked={filters.furnished}
+                      onCheckedChange={(checked) => updateFilters({ furnished: !!checked })}
                     />
                     <Label htmlFor="furnished">Furnished Only</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="pets"
-                      checked={petsAllowed}
-                      onCheckedChange={(checked) => setPetsAllowed(!!checked)}
+                      checked={filters.petsAllowed}
+                      onCheckedChange={(checked) => updateFilters({ petsAllowed: !!checked })}
                     />
                     <Label htmlFor="pets">Pet Friendly</Label>
                   </div>
@@ -291,7 +213,7 @@ export default function Properties() {
                     {amenitiesList.map(amenity => (
                       <Badge
                         key={amenity}
-                        variant={selectedAmenities.includes(amenity) ? "default" : "outline"}
+                        variant={filters.selectedAmenities.includes(amenity) ? "default" : "outline"}
                         className="cursor-pointer justify-center p-2 text-xs"
                         onClick={() => toggleAmenity(amenity)}
                       >
@@ -310,20 +232,10 @@ export default function Properties() {
           <p className="text-muted-foreground">
             {filteredProperties.length} properties found
           </p>
-          {(searchTerm || propertyType !== 'All' || selectedAmenities.length > 0 || furnished || petsAllowed) && (
+          {(filters.searchTerm || filters.propertyType !== 'All' || filters.selectedAmenities.length > 0 || filters.furnished || filters.petsAllowed) && (
             <Button
               variant="outline"
-              onClick={() => {
-                setSearchTerm('');
-                setPropertyType('All');
-                setPriceRange([0, 50000]);
-                setBedrooms('Any');
-                setBathrooms('Any');
-                setSelectedAmenities([]);
-                setFurnished(false);
-                setPetsAllowed(false);
-                setSearchParams(new URLSearchParams());
-              }}
+              onClick={clearFilters}
             >
               Clear Filters
             </Button>
@@ -338,13 +250,7 @@ export default function Properties() {
             <p className="text-muted-foreground mb-4">
               Try adjusting your search criteria or browse all available properties.
             </p>
-            <Button onClick={() => {
-              setSearchTerm('');
-              setPropertyType('All');
-              setSelectedAmenities([]);
-              setFurnished(false);
-              setPetsAllowed(false);
-            }}>
+            <Button onClick={clearFilters}>
               Show All Properties
             </Button>
           </Card>

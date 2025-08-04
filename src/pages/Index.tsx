@@ -4,11 +4,26 @@ import { Input } from "@/components/ui/input";
 import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 import PropertyCard from "@/components/PropertyCard";
 import { Search, Home, Shield, Users, Star, ArrowRight, CheckCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 const Index = () => {
   const [searchLocation, setSearchLocation] = useState("");
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    if (searchLocation.trim()) {
+      navigate(`/properties?search=${encodeURIComponent(searchLocation.trim())}`);
+    } else {
+      navigate('/properties');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
   
   // Featured properties for the homepage
   const featuredProperties = [
@@ -69,7 +84,7 @@ const Index = () => {
             {/* Search Bar */}
             <div className="bg-white rounded-lg p-4 shadow-xl max-w-2xl mx-auto">
               <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1">
+                <div className="flex-1" onKeyDown={handleKeyPress}>
                    <AddressAutocomplete
                      value={searchLocation}
                      onChange={setSearchLocation}
@@ -77,7 +92,7 @@ const Index = () => {
                      className="h-12 text-lg border-0 focus-visible:ring-2 focus-visible:ring-primary text-black"
                    />
                 </div>
-                <Button size="lg" className="h-12 px-8">
+                <Button size="lg" className="h-12 px-8" onClick={handleSearch}>
                   <Search className="h-5 w-5 mr-2" />
                   Search Properties
                 </Button>
@@ -214,12 +229,16 @@ const Index = () => {
             Join thousands of satisfied customers who found their perfect rental through EasyRent
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary">
-              Browse Properties
-            </Button>
-            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-primary">
-              List Your Property
-            </Button>
+            <Link to="/properties">
+              <Button size="lg" variant="secondary">
+                Browse Properties
+              </Button>
+            </Link>
+            <Link to="/list-property">
+              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-primary">
+                List Your Property
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
