@@ -13,7 +13,7 @@ interface Message {
   read_by_landlord: boolean;
   read_by_tenant: boolean;
   created_at: string;
-  profiles: {
+  profiles?: {
     display_name: string;
   } | null;
 }
@@ -24,7 +24,7 @@ interface Conversation {
   landlord_id: string;
   tenant_id: string;
   status: string;
-  last_message_at: string;
+  last_message_at: string | null;
   properties: {
     title: string;
     images: string[];
@@ -160,7 +160,7 @@ export function useMessaging() {
         })
       );
 
-      setConversations(conversationsWithUnread as Conversation[]);
+      setConversations(conversationsWithUnread as any);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -186,7 +186,7 @@ export function useMessaging() {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages((data || []) as Message[]);
+      setMessages((data || []) as any);
 
       // Mark messages as read
       await markMessagesAsRead(conversationId);
