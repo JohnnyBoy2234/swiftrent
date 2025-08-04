@@ -73,7 +73,7 @@ export default function AddProperty() {
     }
   });
 
-  if (!user || !isLandlord) {
+  if (!user) {
     navigate('/auth');
     return null;
   }
@@ -119,6 +119,15 @@ export default function AddProperty() {
     setUploading(true);
 
     try {
+      // Ensure user has landlord role before creating property
+      if (!isLandlord) {
+        const { error: roleError } = await supabase.rpc('promote_to_landlord');
+        if (roleError) {
+          console.error('Error promoting to landlord:', roleError);
+          // Continue anyway - the RLS policy allows users without roles to create properties
+        }
+      }
+
       // Upload images first
       const imageUrls = images.length > 0 ? await uploadImages() : [];
 
