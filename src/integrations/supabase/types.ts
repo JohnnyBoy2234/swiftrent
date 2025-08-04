@@ -319,6 +319,10 @@ export type Database = {
         Args: { conversation_uuid: string; user_role: string }
         Returns: undefined
       }
+      promote_to_landlord: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       user_role: "tenant" | "landlord" | "admin"
