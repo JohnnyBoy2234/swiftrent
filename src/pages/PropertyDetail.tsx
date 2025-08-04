@@ -1,0 +1,489 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { 
+  ArrowLeft, 
+  MapPin, 
+  Bed, 
+  Bath, 
+  Car, 
+  Home, 
+  Heart,
+  Share2,
+  Calendar,
+  User,
+  Phone,
+  Mail,
+  FileText,
+  CheckCircle
+} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { useForm } from 'react-hook-form';
+
+interface Property {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  price: number;
+  property_type: string;
+  bedrooms: number;
+  bathrooms: number;
+  parking_spaces: number;
+  size_sqm: number | null;
+  furnished: boolean;
+  pets_allowed: boolean;
+  available_from: string | null;
+  images: string[];
+  amenities: string[];
+  status: string;
+  featured: boolean;
+  created_at: string;
+  landlord_id: string;
+  profiles: {
+    display_name: string;
+    phone: string | null;
+  } | null;
+}
+
+interface InquiryFormData {
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+}
+
+export default function PropertyDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [property, setProperty] = useState<Property | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [inquiryLoading, setInquiryLoading] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+  
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<InquiryFormData>();
+
+  useEffect(() => {
+    if (id) {
+      fetchProperty();
+    }
+  }, [id]);
+
+  const fetchProperty = async () => {
+    if (!id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select(`
+          *,
+          profiles!properties_landlord_id_fkey (
+            display_name,
+            phone
+          )
+        `)
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      setProperty(data as unknown as Property);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error loading property",
+        description: error.message
+      });
+      navigate('/properties');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSubmitInquiry = async (data: InquiryFormData) => {
+    if (!property) return;
+    
+    setInquiryLoading(true);
+    
+    try {
+      const { error } = await supabase
+        .from('inquiries')
+        .insert({
+          property_id: property.id,
+          tenant_id: user?.id || null,
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          message: data.message
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Inquiry sent successfully!",
+        description: "The landlord will get back to you soon."
+      });
+
+      setInquiryOpen(false);
+      reset();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error sending inquiry",
+        description: error.message
+      });
+    } finally {
+      setInquiryLoading(false);
+    }
+  };
+
+  const toggleLike = () => {
+    setIsLiked(!isLiked);
+    toast({
+      title: isLiked ? "Removed from favorites" : "Added to favorites",
+      description: isLiked ? "Property removed from your favorites" : "Property saved to your favorites"
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!property) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <Home className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+          <h2 className="text-2xl font-bold mb-2">Property not found</h2>
+          <p className="text-muted-foreground mb-4">The property you're looking for doesn't exist.</p>
+          <Button asChild>
+            <Link to="/properties">Browse Properties</Link>
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="container mx-auto p-6 max-w-6xl">
+        {/* Navigation */}
+        <div className="flex items-center gap-4 mb-6">
+          <Button variant="outline" onClick={() => navigate('/properties')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Properties
+          </Button>
+          <div className="flex-1" />
+          <Button variant="outline" size="sm" onClick={toggleLike}>
+            <Heart className={`h-4 w-4 mr-2 ${isLiked ? 'fill-current text-red-500' : ''}`} />
+            {isLiked ? 'Saved' : 'Save'}
+          </Button>
+          <Button variant="outline" size="sm">
+            <Share2 className="h-4 w-4 mr-2" />
+            Share
+          </Button>
+        </div>
+
+        {/* Property Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            {property.featured && <Badge variant="secondary">Featured</Badge>}
+            <Badge>{property.status}</Badge>
+          </div>
+          <h1 className="text-3xl font-bold text-primary mb-2">{property.title}</h1>
+          <div className="flex items-center text-muted-foreground mb-4">
+            <MapPin className="h-4 w-4 mr-1" />
+            {property.location}
+          </div>
+          <div className="text-3xl font-bold text-accent">
+            R{property.price.toLocaleString()}/month
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Image Gallery */}
+            <Card>
+              <CardContent className="p-0">
+                {property.images && property.images.length > 0 ? (
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {property.images.map((image, index) => (
+                        <CarouselItem key={index}>
+                          <div className="relative h-96 rounded-lg overflow-hidden">
+                            <img
+                              src={image}
+                              alt={`${property.title} - Image ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-4" />
+                    <CarouselNext className="right-4" />
+                  </Carousel>
+                ) : (
+                  <div className="h-96 bg-muted rounded-lg flex items-center justify-center">
+                    <Home className="h-16 w-16 text-muted-foreground" />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Property Details */}
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="features">Features</TabsTrigger>
+                <TabsTrigger value="location">Location</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Property Description</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground leading-relaxed">{property.description}</p>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                      <div className="text-center p-4 bg-muted rounded-lg">
+                        <Bed className="h-8 w-8 mx-auto mb-2 text-primary" />
+                        <div className="font-semibold">{property.bedrooms}</div>
+                        <div className="text-sm text-muted-foreground">Bedrooms</div>
+                      </div>
+                      <div className="text-center p-4 bg-muted rounded-lg">
+                        <Bath className="h-8 w-8 mx-auto mb-2 text-primary" />
+                        <div className="font-semibold">{property.bathrooms}</div>
+                        <div className="text-sm text-muted-foreground">Bathrooms</div>
+                      </div>
+                      <div className="text-center p-4 bg-muted rounded-lg">
+                        <Car className="h-8 w-8 mx-auto mb-2 text-primary" />
+                        <div className="font-semibold">{property.parking_spaces}</div>
+                        <div className="text-sm text-muted-foreground">Parking</div>
+                      </div>
+                      <div className="text-center p-4 bg-muted rounded-lg">
+                        <Home className="h-8 w-8 mx-auto mb-2 text-primary" />
+                        <div className="font-semibold">{property.size_sqm || 'N/A'}</div>
+                        <div className="text-sm text-muted-foreground">Size (sqm)</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="features">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Property Features</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <Badge variant={property.furnished ? "default" : "outline"}>
+                          {property.furnished ? "Furnished" : "Unfurnished"}
+                        </Badge>
+                        <Badge variant={property.pets_allowed ? "default" : "outline"}>
+                          {property.pets_allowed ? "Pet Friendly" : "No Pets"}
+                        </Badge>
+                      </div>
+                      
+                      {property.amenities && property.amenities.length > 0 && (
+                        <div>
+                          <h4 className="font-semibold mb-3">Amenities</h4>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {property.amenities.map((amenity, index) => (
+                              <div key={index} className="flex items-center gap-2">
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                <span className="text-sm">{amenity}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {property.available_from && (
+                        <div>
+                          <h4 className="font-semibold mb-2">Available From</h4>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-primary" />
+                            <span>{new Date(property.available_from).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="location">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Location</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2 mb-4">
+                      <MapPin className="h-5 w-5 text-primary" />
+                      <span className="text-lg">{property.location}</span>
+                    </div>
+                    <div className="h-64 bg-muted rounded-lg flex items-center justify-center">
+                      <p className="text-muted-foreground">Interactive map coming soon</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Contact Landlord */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact Landlord</CardTitle>
+                <CardDescription>Get in touch to arrange a viewing</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {property.profiles && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                      <User className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="font-semibold">{property.profiles.display_name}</div>
+                      {property.profiles.phone && (
+                        <div className="text-sm text-muted-foreground">{property.profiles.phone}</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                <Dialog open={inquiryOpen} onOpenChange={setInquiryOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full">
+                      <Mail className="h-4 w-4 mr-2" />
+                      Send Inquiry
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Send Inquiry</DialogTitle>
+                      <DialogDescription>
+                        Contact the landlord about this property
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit(onSubmitInquiry)} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Full Name *</Label>
+                        <Input
+                          {...register('name', { required: 'Name is required' })}
+                          placeholder="John Doe"
+                        />
+                        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email *</Label>
+                        <Input
+                          type="email"
+                          {...register('email', { required: 'Email is required' })}
+                          placeholder="john@example.com"
+                        />
+                        {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input
+                          {...register('phone')}
+                          placeholder="+27 123 456 7890"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="message">Message *</Label>
+                        <Textarea
+                          {...register('message', { required: 'Message is required' })}
+                          placeholder="I'm interested in viewing this property..."
+                          rows={4}
+                        />
+                        {errors.message && <p className="text-sm text-destructive">{errors.message.message}</p>}
+                      </div>
+                      
+                      <Button type="submit" className="w-full" disabled={inquiryLoading}>
+                        {inquiryLoading ? 'Sending...' : 'Send Inquiry'}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+                
+                <Button variant="outline" className="w-full">
+                  <Phone className="h-4 w-4 mr-2" />
+                  Call Landlord
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Application */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Apply for this Property</CardTitle>
+                <CardDescription>Submit a rental application</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full" size="lg" asChild>
+                  <Link to={`/apply/${property.id}`}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Start Application
+                  </Link>
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Complete application with documents and references
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Property Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Property Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Property Type</span>
+                  <span className="font-medium">{property.property_type}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Listed</span>
+                  <span className="font-medium">{new Date(property.created_at).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Property ID</span>
+                  <span className="font-medium text-xs">{property.id.slice(0, 8)}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
