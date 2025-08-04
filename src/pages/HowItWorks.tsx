@@ -1,4 +1,3 @@
-import Navbar from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Search, Users, Home, Star, Shield, Clock, Phone } from "lucide-react";
@@ -7,7 +6,6 @@ import { Link } from "react-router-dom";
 const HowItWorks = () => {
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Header */}
