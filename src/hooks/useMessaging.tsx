@@ -124,28 +124,52 @@ export function useMessaging() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // First fetch conversations with property data
+      const { data: conversationsData, error: conversationsError } = await supabase
         .from('conversations')
         .select(`
           *,
           properties (
             title,
             images
-          ),
-          landlord_profile:profiles!conversations_landlord_id_fkey (
-            display_name
-          ),
-          tenant_profile:profiles!conversations_tenant_id_fkey (
-            display_name
           )
         `)
+        .or(`landlord_id.eq.${user.id},tenant_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false });
 
-      if (error) throw error;
+      if (conversationsError) throw conversationsError;
 
-      // Calculate unread counts
+      if (!conversationsData || conversationsData.length === 0) {
+        setConversations([]);
+        return;
+      }
+
+      // Get unique user IDs for profile fetching
+      const userIds = new Set<string>();
+      conversationsData.forEach(conv => {
+        userIds.add(conv.landlord_id);
+        userIds.add(conv.tenant_id);
+      });
+
+      // Fetch all profiles at once
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, display_name')
+        .in('user_id', Array.from(userIds));
+
+      if (profilesError) {
+        console.warn('Could not fetch user profiles:', profilesError);
+      }
+
+      // Create a map of user_id to profile for quick lookup
+      const profileMap = new Map();
+      (profilesData || []).forEach(profile => {
+        profileMap.set(profile.user_id, profile);
+      });
+
+      // Calculate unread counts and combine with profile data
       const conversationsWithUnread = await Promise.all(
-        (data || []).map(async (conv) => {
+        conversationsData.map(async (conv) => {
           const { count } = await supabase
             .from('messages')
             .select('*', { count: 'exact', head: true })
@@ -155,6 +179,8 @@ export function useMessaging() {
 
           return {
             ...conv,
+            landlord_profile: profileMap.get(conv.landlord_id) || null,
+            tenant_profile: profileMap.get(conv.tenant_id) || null,
             unread_count: count || 0
           };
         })
@@ -174,19 +200,47 @@ export function useMessaging() {
   const fetchMessages = async (conversationId: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // First fetch messages
+      const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
-        .select(`
-          *,
-          profiles (
-            display_name
-          )
-        `)
+        .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
-      setMessages((data || []) as any);
+      if (messagesError) throw messagesError;
+
+      if (!messagesData || messagesData.length === 0) {
+        setMessages([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get unique sender IDs for profile fetching
+      const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
+
+      // Fetch profiles for senders
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, display_name')
+        .in('user_id', senderIds);
+
+      if (profilesError) {
+        console.warn('Could not fetch sender profiles:', profilesError);
+      }
+
+      // Create a map of user_id to profile for quick lookup
+      const profileMap = new Map();
+      (profilesData || []).forEach(profile => {
+        profileMap.set(profile.user_id, profile);
+      });
+
+      // Combine messages with profile data
+      const messagesWithProfiles = messagesData.map(message => ({
+        ...message,
+        profiles: profileMap.get(message.sender_id) || null
+      }));
+
+      setMessages(messagesWithProfiles as any);
 
       // Mark messages as read
       await markMessagesAsRead(conversationId);
