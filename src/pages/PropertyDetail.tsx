@@ -115,20 +115,33 @@ export default function PropertyDetail() {
     if (!id) return;
 
     try {
-      const { data, error } = await supabase
+      // First, fetch the property
+      const { data: propertyData, error: propertyError } = await supabase
         .from('properties')
-        .select(`
-          *,
-          profiles!properties_landlord_id_fkey (
-            display_name,
-            phone
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .single();
 
-      if (error) throw error;
-      setProperty(data as unknown as Property);
+      if (propertyError) throw propertyError;
+
+      // Then, fetch the landlord profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('display_name, phone')
+        .eq('user_id', propertyData.landlord_id)
+        .single();
+
+      if (profileError) {
+        console.warn('Could not fetch landlord profile:', profileError);
+      }
+
+      // Combine the data
+      const combinedData = {
+        ...propertyData,
+        profiles: profileData || null
+      };
+
+      setProperty(combinedData as unknown as Property);
     } catch (error: any) {
       toast({
         variant: "destructive",
