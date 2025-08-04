@@ -1,14 +1,17 @@
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "react-router-dom";
 import { Home, Search, Heart, User, Menu, LogOut, LayoutDashboard, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, signOut, isLandlord } = useAuth();
+  const { unreadCount } = useUnreadMessages();
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
@@ -55,9 +58,17 @@ const Navbar = () => {
                 </Button>
                 
                 <Button variant="ghost" size="sm" asChild>
-                  <Link to="/messages" className="flex items-center">
+                  <Link to="/messages" className="flex items-center relative">
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Messages
+                    {unreadCount > 0 && (
+                      <Badge 
+                        variant="destructive" 
+                        className="ml-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                      >
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </Badge>
+                    )}
                   </Link>
                 </Button>
                 
@@ -81,9 +92,19 @@ const Navbar = () => {
                       </>
                     )}
                     <DropdownMenuItem asChild>
-                      <Link to="/messages" className="flex items-center">
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Messages
+                      <Link to="/messages" className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Messages
+                        </div>
+                        {unreadCount > 0 && (
+                          <Badge 
+                            variant="destructive" 
+                            className="h-5 w-5 flex items-center justify-center p-0 text-xs"
+                          >
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </Badge>
+                        )}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -146,7 +167,17 @@ const Navbar = () => {
                       <Link to="/list-property">List Property</Link>
                     </Button>
                     <Button variant="outline" className="w-full" asChild>
-                      <Link to="/messages">Messages</Link>
+                      <Link to="/messages" className="flex items-center justify-between">
+                        <span>Messages</span>
+                        {unreadCount > 0 && (
+                          <Badge 
+                            variant="destructive" 
+                            className="h-5 w-5 flex items-center justify-center p-0 text-xs"
+                          >
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </Badge>
+                        )}
+                      </Link>
                     </Button>
                     {isLandlord && (
                       <Button variant="outline" className="w-full" asChild>
