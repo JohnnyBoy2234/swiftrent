@@ -128,7 +128,7 @@ export default function AddProperty() {
       // Upload images first
       const imageUrls = images.length > 0 ? await uploadImages() : [];
 
-      // Insert property
+      // Insert property - use exact values to prevent precision loss
       const { error } = await supabase
         .from('properties')
         .insert({
@@ -136,7 +136,7 @@ export default function AddProperty() {
           landlord_id: user.id,
           images: imageUrls,
           amenities: selectedAmenities,
-          price: Number(data.price),
+          price: data.price, // Use exact price value
           bedrooms: Number(data.bedrooms),
           bathrooms: Number(data.bathrooms),
           parking_spaces: Number(data.parking_spaces),

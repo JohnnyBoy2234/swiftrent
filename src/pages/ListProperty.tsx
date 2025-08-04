@@ -147,10 +147,19 @@ export default function ListProperty() {
     setIsSubmitting(true);
 
     try {
+      // Ensure user has landlord role before creating property
+      if (!isLandlord) {
+        const { error: roleError } = await supabase.rpc('promote_to_landlord');
+        if (roleError) {
+          console.error('Error promoting to landlord:', roleError);
+          // Continue anyway - the RLS policy allows users without roles to create properties
+        }
+      }
+
       // Upload images first
       const imageUrls = data.images.length > 0 ? await uploadImages(data.images) : [];
 
-      // Insert property
+      // Insert property - keep price as the exact number without any conversion that could cause precision loss
       const { error } = await supabase
         .from('properties')
         .insert({
@@ -158,7 +167,7 @@ export default function ListProperty() {
           description: data.description,
           location: data.location,
           property_type: data.property_type,
-          price: Number(data.price) || 0,
+          price: data.price, // Use the exact price value without Number() conversion
           bedrooms: Number(data.bedrooms) || 1,
           bathrooms: Number(data.bathrooms) || 1,
           parking_spaces: Number(data.parking_spaces) || 0,
