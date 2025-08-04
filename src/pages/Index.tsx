@@ -235,7 +235,7 @@ const Index = () => {
               </Button>
             </Link>
             <Link to="/list-property">
-              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-primary">
+              <Button size="lg" variant="outline" className="text-foreground border-white hover:bg-white hover:text-primary">
                 List Your Property
               </Button>
             </Link>
