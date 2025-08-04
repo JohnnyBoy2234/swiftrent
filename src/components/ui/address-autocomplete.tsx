@@ -32,8 +32,10 @@ export function AddressAutocomplete({
     const loadGoogleMapsScript = () => {
       const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
       
+      console.log('Checking for Google Maps API key...', apiKey ? 'Found' : 'Not found');
+      
       if (!apiKey) {
-        console.error('Google Maps API key not found. Please set VITE_GOOGLE_MAPS_API_KEY in your environment.');
+        console.error('Google Maps API key not found. Please restart the application after adding VITE_GOOGLE_MAPS_API_KEY to Supabase environment variables.');
         return;
       }
 
