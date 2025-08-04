@@ -30,14 +30,24 @@ export function AddressAutocomplete({
 
   useEffect(() => {
     const loadGoogleMapsScript = () => {
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      
+      if (!apiKey) {
+        console.error('Google Maps API key not found. Please set VITE_GOOGLE_MAPS_API_KEY in your environment.');
+        return;
+      }
+
       if (window.google && window.google.maps) {
+        console.log('Google Maps already loaded');
         setIsLoaded(true);
         return;
       }
 
       if (document.querySelector('script[src*="maps.googleapis.com"]')) {
+        console.log('Google Maps script already exists, waiting for load...');
         const checkGoogle = setInterval(() => {
           if (window.google && window.google.maps) {
+            console.log('Google Maps loaded successfully');
             setIsLoaded(true);
             clearInterval(checkGoogle);
           }
@@ -45,14 +55,19 @@ export function AddressAutocomplete({
         return;
       }
 
+      console.log('Loading Google Maps script...');
       window.initGoogleMaps = () => {
+        console.log('Google Maps callback triggered');
         setIsLoaded(true);
       };
 
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places&callback=initGoogleMaps`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMaps`;
       script.async = true;
       script.defer = true;
+      script.onerror = () => {
+        console.error('Failed to load Google Maps script. Check your API key and internet connection.');
+      };
       document.head.appendChild(script);
     };
 
