@@ -13,6 +13,7 @@ import About from "./pages/About";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AddProperty from "./pages/AddProperty";
+import ListProperty from "./pages/ListProperty";
 import PropertyDetail from "./pages/PropertyDetail";
 import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
@@ -34,6 +35,8 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/add-property" element={<AddProperty />} />
+            <Route path="/list-property" element={<ListProperty />} />
             <Route path="/property/:id" element={<PropertyDetail />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/apply/:id" element={<PropertyDetail />} />

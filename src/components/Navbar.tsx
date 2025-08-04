@@ -93,7 +93,7 @@ const Navbar = () => {
             ) : (
               <>
                 <Button variant="outline" asChild>
-                  <Link to="/auth">List Property</Link>
+                  <Link to="/list-property">List Property</Link>
                 </Button>
                 <Button asChild>
                   <Link to="/auth">Sign In</Link>
@@ -153,7 +153,7 @@ const Navbar = () => {
                 ) : (
                   <>
                     <Button variant="outline" className="w-full" asChild>
-                      <Link to="/auth">List Property</Link>
+                      <Link to="/list-property">List Property</Link>
                     </Button>
                     <Button className="w-full" asChild>
                       <Link to="/auth">Sign In</Link>
