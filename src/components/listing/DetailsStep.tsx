@@ -18,7 +18,7 @@ interface DetailsStepProps {
 const amenitiesList = [
   'Swimming Pool', 'Garden', 'Security', 'Gym/Fitness Center', 'Braai Area',
   'Air Conditioning', 'WiFi', 'DSTV', 'Backup Power', 'Water Tank',
-  'Fiber Internet', 'Pet Friendly', 'Balcony', 'Parking Bay', 'Storage Space'
+  'Fiber Internet', 'Balcony', 'Parking Bay', 'Storage Space'
 ];
 
 export default function DetailsStep({ control, errors, setValue, watch }: DetailsStepProps) {
