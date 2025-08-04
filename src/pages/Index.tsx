@@ -70,14 +70,14 @@ const Index = () => {
             <div className="bg-white rounded-lg p-4 shadow-xl max-w-2xl mx-auto">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
-                  <AddressAutocomplete
-                    value={searchLocation}
-                    onChange={setSearchLocation}
-                    placeholder="Enter location (e.g., Sandton, Cape Town)"
-                    className="h-12 text-lg border-0 focus-visible:ring-2 focus-visible:ring-primary"
-                  />
+                   <AddressAutocomplete
+                     value={searchLocation}
+                     onChange={setSearchLocation}
+                     placeholder="Enter location (e.g., Sandton, Cape Town)"
+                     className="h-12 text-lg border-0 focus-visible:ring-2 focus-visible:ring-primary text-black"
+                   />
                 </div>
-                <Button size="lg" className="h-12 px-8 bg-white text-black hover:bg-gray-100">
+                <Button size="lg" className="h-12 px-8">
                   <Search className="h-5 w-5 mr-2" />
                   Search Properties
                 </Button>
