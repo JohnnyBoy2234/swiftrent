@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import Navbar from "@/components/Navbar";
 import PropertyCard from "@/components/PropertyCard";
 import { Search, Home, Shield, Users, Star, ArrowRight, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -48,7 +47,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-ocean-blue via-primary to-success-green text-white">
