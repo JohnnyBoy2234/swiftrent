@@ -1,11 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 import PropertyCard from "@/components/PropertyCard";
 import { Search, Home, Shield, Users, Star, ArrowRight, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
 const Index = () => {
+  const [searchLocation, setSearchLocation] = useState("");
+  
   // Featured properties for the homepage
   const featuredProperties = [
     {
@@ -65,11 +69,12 @@ const Index = () => {
             {/* Search Bar */}
             <div className="bg-white rounded-lg p-4 shadow-xl max-w-2xl mx-auto">
               <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                  <Input
+                <div className="flex-1">
+                  <AddressAutocomplete
+                    value={searchLocation}
+                    onChange={setSearchLocation}
                     placeholder="Enter location (e.g., Sandton, Cape Town)"
-                    className="pl-10 h-12 text-lg border-0 focus-visible:ring-2 focus-visible:ring-primary"
+                    className="h-12 text-lg border-0 focus-visible:ring-2 focus-visible:ring-primary"
                   />
                 </div>
                 <Button size="lg" className="h-12 px-8">

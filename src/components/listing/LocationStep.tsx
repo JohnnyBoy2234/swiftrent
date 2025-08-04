@@ -4,6 +4,7 @@ import { Controller } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
 import { MapPin, PenTool, FileText } from 'lucide-react';
 import { ListingFormData } from '@/pages/ListProperty';
 
@@ -32,8 +33,9 @@ export default function LocationStep({ control, errors }: LocationStepProps) {
             control={control}
             rules={{ required: 'Location is required' }}
             render={({ field }) => (
-              <Input
-                {...field}
+              <AddressAutocomplete
+                value={field.value || ''}
+                onChange={field.onChange}
                 placeholder="e.g., Sandton, Johannesburg, Gauteng"
                 className="text-base"
               />
