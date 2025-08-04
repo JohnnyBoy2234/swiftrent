@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInWithGoogle: (role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isLandlord: boolean;
 }
@@ -92,6 +93,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  const signInWithGoogle = async (role: 'tenant' | 'landlord' = 'tenant') => {
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl,
+        queryParams: {
+          role: role
+        }
+      }
+    });
+    return { error };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -102,6 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
     isLandlord
   };
