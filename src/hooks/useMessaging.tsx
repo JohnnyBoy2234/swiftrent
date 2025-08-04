@@ -175,7 +175,7 @@ export function useMessaging() {
             .select('*', { count: 'exact', head: true })
             .eq('conversation_id', conv.id)
             .eq(isLandlord ? 'read_by_landlord' : 'read_by_tenant', false)
-            .neq('sender_id', user.id);
+            .neq('sender_id', user.id); // Don't count messages sent by current user
 
           return {
             ...conv,

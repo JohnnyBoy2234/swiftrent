@@ -30,11 +30,12 @@ export function useUnreadMessages() {
 
       const conversationIds = conversations.map(c => c.id);
 
-      // Count unread messages based on user role
+      // Count unread messages based on user role, excluding messages sent by current user
       let query = supabase
         .from('messages')
         .select('id', { count: 'exact', head: true })
-        .in('conversation_id', conversationIds);
+        .in('conversation_id', conversationIds)
+        .neq('sender_id', user.id); // Don't count messages sent by current user
 
       if (isLandlord) {
         // For landlords, count messages not read by landlord

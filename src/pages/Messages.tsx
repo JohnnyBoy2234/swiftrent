@@ -54,12 +54,14 @@ export default function Messages() {
 
   const getOtherUser = (conversation: any) => {
     if (isLandlord) {
+      // If current user is landlord, show tenant info
       return {
         id: conversation.tenant_id,
         name: conversation.tenant_profile?.display_name || 'Tenant',
         role: 'Tenant'
       };
     } else {
+      // If current user is tenant, show landlord info
       return {
         id: conversation.landlord_id,
         name: conversation.landlord_profile?.display_name || 'Landlord',
