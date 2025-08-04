@@ -66,10 +66,7 @@ export default function AddProperty() {
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<PropertyFormData>({
     defaultValues: {
       furnished: false,
-      pets_allowed: false,
-      bedrooms: 1,
-      bathrooms: 1,
-      parking_spaces: 0
+      pets_allowed: false
     }
   });
 

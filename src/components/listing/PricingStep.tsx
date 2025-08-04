@@ -49,7 +49,7 @@ export default function PricingStep({ control, errors }: PricingStepProps) {
                     max="100000"
                     placeholder="12,000"
                     className="pl-8 text-lg h-12"
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
                   />
                 )}
               />

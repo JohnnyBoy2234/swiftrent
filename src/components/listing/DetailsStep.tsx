@@ -51,14 +51,17 @@ export default function DetailsStep({ control, errors, setValue, watch }: Detail
           <Controller
             name="bedrooms"
             control={control}
-            rules={{ required: 'Bedrooms is required', min: { value: 0, message: 'Minimum 0 bedrooms' } }}
+            rules={{ 
+              required: 'Bedrooms is required', 
+              min: { value: 0, message: 'Minimum 0 bedrooms' }
+            }}
             render={({ field }) => (
               <Input
                 {...field}
                 type="number"
                 min="0"
                 className="text-base"
-                onChange={(e) => field.onChange(Number(e.target.value))}
+                onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
               />
             )}
           />
@@ -75,14 +78,17 @@ export default function DetailsStep({ control, errors, setValue, watch }: Detail
           <Controller
             name="bathrooms"
             control={control}
-            rules={{ required: 'Bathrooms is required', min: { value: 1, message: 'Minimum 1 bathroom' } }}
+            rules={{ 
+              required: 'Bathrooms is required', 
+              min: { value: 1, message: 'Minimum 1 bathroom' }
+            }}
             render={({ field }) => (
               <Input
                 {...field}
                 type="number"
                 min="1"
                 className="text-base"
-                onChange={(e) => field.onChange(Number(e.target.value))}
+                onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
               />
             )}
           />
@@ -105,7 +111,7 @@ export default function DetailsStep({ control, errors, setValue, watch }: Detail
                 type="number"
                 min="0"
                 className="text-base"
-                onChange={(e) => field.onChange(Number(e.target.value))}
+                onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
               />
             )}
           />
@@ -126,7 +132,7 @@ export default function DetailsStep({ control, errors, setValue, watch }: Detail
                 min="1"
                 placeholder="85"
                 className="text-base"
-                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
               />
             )}
           />
