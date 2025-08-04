@@ -50,6 +50,10 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
+                <Button variant="outline" asChild>
+                  <Link to="/list-property">List Property</Link>
+                </Button>
+                
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/messages" className="flex items-center">
                     <MessageCircle className="h-4 w-4 mr-2" />
@@ -138,6 +142,9 @@ const Navbar = () => {
               <div className="pt-4 space-y-2">
                 {user ? (
                   <>
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link to="/list-property">List Property</Link>
+                    </Button>
                     <Button variant="outline" className="w-full" asChild>
                       <Link to="/messages">Messages</Link>
                     </Button>
