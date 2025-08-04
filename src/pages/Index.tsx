@@ -77,7 +77,7 @@ const Index = () => {
                     className="h-12 text-lg border-0 focus-visible:ring-2 focus-visible:ring-primary"
                   />
                 </div>
-                <Button size="lg" className="h-12 px-8">
+                <Button size="lg" className="h-12 px-8 bg-white text-black hover:bg-gray-100">
                   <Search className="h-5 w-5 mr-2" />
                   Search Properties
                 </Button>
