@@ -73,6 +73,8 @@ export default function PropertyDetail() {
   const [inquiryLoading, setInquiryLoading] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [isIdVerified, setIsIdVerified] = useState(false);
+  const [checkingVerification, setCheckingVerification] = useState(false);
   
   const { register, handleSubmit, reset, formState: { errors } } = useForm<InquiryFormData>();
 
@@ -81,6 +83,33 @@ export default function PropertyDetail() {
       fetchProperty();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (user) {
+      checkIdVerification();
+    }
+  }, [user]);
+
+  const checkIdVerification = async () => {
+    if (!user) return;
+
+    setCheckingVerification(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id_verified')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      setIsIdVerified(data.id_verified || false);
+    } catch (error: any) {
+      console.error('Error checking verification status:', error);
+      setIsIdVerified(false);
+    } finally {
+      setCheckingVerification(false);
+    }
+  };
 
   const fetchProperty = async () => {
     if (!id) return;
@@ -146,6 +175,60 @@ export default function PropertyDetail() {
       });
     } finally {
       setInquiryLoading(false);
+    }
+  };
+
+  const handleContactLandlord = () => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Sign in required",
+        description: "Please sign in to contact the landlord."
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (!isIdVerified) {
+      toast({
+        title: "ID verification required",
+        description: "Complete your ID verification to contact landlords."
+      });
+      navigate(`/id-verification?return=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
+    setInquiryOpen(true);
+  };
+
+  const handleCallLandlord = () => {
+    if (!user) {
+      toast({
+        variant: "destructive", 
+        title: "Sign in required",
+        description: "Please sign in to call the landlord."
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (!isIdVerified) {
+      toast({
+        title: "ID verification required",
+        description: "Complete your ID verification to contact landlords."
+      });
+      navigate(`/id-verification?return=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
+    if (property?.profiles?.phone) {
+      window.open(`tel:${property.profiles.phone}`, '_self');
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Phone number not available",
+        description: "The landlord's phone number is not available."
+      });
     }
   };
 
@@ -376,13 +459,36 @@ export default function PropertyDetail() {
                   </div>
                 )}
                 
-                <Dialog open={inquiryOpen} onOpenChange={setInquiryOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="w-full">
+                {user ? (
+                  <div className="space-y-2">
+                    {!isIdVerified && (
+                      <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
+                        <p className="text-sm text-amber-800">
+                          <CheckCircle className="h-4 w-4 inline mr-1" />
+                          Complete ID verification to contact landlords
+                        </p>
+                      </div>
+                    )}
+                    <Button 
+                      className="w-full" 
+                      onClick={handleContactLandlord}
+                      disabled={checkingVerification}
+                    >
                       <Mail className="h-4 w-4 mr-2" />
-                      Send Inquiry
+                      {checkingVerification ? 'Checking...' : 'Send Inquiry'}
                     </Button>
-                  </DialogTrigger>
+                  </div>
+                ) : (
+                  <Button 
+                    className="w-full"
+                    onClick={() => navigate('/auth')}
+                  >
+                    <Mail className="h-4 w-4 mr-2" />
+                    Sign In to Contact Landlord
+                  </Button>
+                )}
+
+                <Dialog open={inquiryOpen} onOpenChange={setInquiryOpen}>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle>Send Inquiry</DialogTitle>
@@ -435,10 +541,26 @@ export default function PropertyDetail() {
                   </DialogContent>
                 </Dialog>
                 
-                <Button variant="outline" className="w-full">
-                  <Phone className="h-4 w-4 mr-2" />
-                  Call Landlord
-                </Button>
+                {user ? (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={handleCallLandlord}
+                    disabled={checkingVerification}
+                  >
+                    <Phone className="h-4 w-4 mr-2" />
+                    Call Landlord
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => navigate('/auth')}
+                  >
+                    <Phone className="h-4 w-4 mr-2" />
+                    Sign In to Call
+                  </Button>
+                )}
               </CardContent>
             </Card>
 

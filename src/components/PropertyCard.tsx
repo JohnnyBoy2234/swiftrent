@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, MapPin, Bed, Bath, Car } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface PropertyCardProps {
   id: string;
@@ -18,6 +19,7 @@ interface PropertyCardProps {
 }
 
 const PropertyCard = ({
+  id,
   title,
   location,
   price,
@@ -29,6 +31,11 @@ const PropertyCard = ({
   featured = false,
 }: PropertyCardProps) => {
   const [isLiked, setIsLiked] = useState(false);
+  const navigate = useNavigate();
+
+  const handleViewDetails = () => {
+    navigate(`/property/${id}`);
+  };
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
@@ -94,7 +101,7 @@ const PropertyCard = ({
       </CardContent>
 
       <CardFooter className="p-4 pt-0">
-        <Button className="w-full">View Details</Button>
+        <Button className="w-full" onClick={handleViewDetails}>View Details</Button>
       </CardFooter>
     </Card>
   );

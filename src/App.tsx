@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import AddProperty from "./pages/AddProperty";
 import ListProperty from "./pages/ListProperty";
 import PropertyDetail from "./pages/PropertyDetail";
+import IdVerification from "./pages/IdVerification";
 import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/add-property" element={<AddProperty />} />
             <Route path="/list-property" element={<ListProperty />} />
             <Route path="/property/:id" element={<PropertyDetail />} />
+            <Route path="/id-verification" element={<IdVerification />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/apply/:id" element={<PropertyDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
