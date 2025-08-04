@@ -56,7 +56,7 @@ interface Property {
   } | null;
 }
 
-interface InquiryFormData {
+interface MessageFormData {
   name: string;
   email: string;
   phone?: string;
@@ -70,13 +70,13 @@ export default function PropertyDetail() {
   const { toast } = useToast();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
-  const [inquiryLoading, setInquiryLoading] = useState(false);
+  const [messageLoading, setMessageLoading] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
-  const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [messageOpen, setMessageOpen] = useState(false);
   const [isIdVerified, setIsIdVerified] = useState(false);
   const [checkingVerification, setCheckingVerification] = useState(false);
   
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<InquiryFormData>();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<MessageFormData>();
 
   useEffect(() => {
     if (id) {
@@ -154,40 +154,86 @@ export default function PropertyDetail() {
     }
   };
 
-  const onSubmitInquiry = async (data: InquiryFormData) => {
-    if (!property) return;
+  const onSubmitMessage = async (data: MessageFormData) => {
+    if (!property || !user) return;
     
-    setInquiryLoading(true);
+    setMessageLoading(true);
     
     try {
-      const { error } = await supabase
+      // First, check if a conversation already exists between this tenant and landlord for this property
+      const { data: existingConversation, error: conversationCheckError } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('property_id', property.id)
+        .eq('tenant_id', user.id)
+        .eq('landlord_id', property.landlord_id)
+        .single();
+
+      let conversationId: string;
+
+      if (existingConversation) {
+        // Use existing conversation
+        conversationId = existingConversation.id;
+      } else {
+        // Create a new conversation
+        const { data: newConversation, error: conversationError } = await supabase
+          .from('conversations')
+          .insert({
+            property_id: property.id,
+            tenant_id: user.id,
+            landlord_id: property.landlord_id,
+            status: 'active'
+          })
+          .select('id')
+          .single();
+
+        if (conversationError) throw conversationError;
+        conversationId = newConversation.id;
+      }
+
+      // Create the message
+      const { error: messageError } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: data.message,
+          message_type: 'text'
+        });
+
+      if (messageError) throw messageError;
+
+      // Also create an inquiry record for backward compatibility
+      const { error: inquiryError } = await supabase
         .from('inquiries')
         .insert({
           property_id: property.id,
-          tenant_id: user?.id || null,
+          tenant_id: user.id,
           name: data.name,
           email: data.email,
           phone: data.phone,
           message: data.message
         });
 
-      if (error) throw error;
+      if (inquiryError) {
+        console.warn('Could not create inquiry record:', inquiryError);
+      }
 
       toast({
-        title: "Inquiry sent successfully!",
-        description: "The landlord will get back to you soon."
+        title: "Message sent successfully!",
+        description: "The landlord will receive your message and can respond in their Messages section."
       });
 
-      setInquiryOpen(false);
+      setMessageOpen(false);
       reset();
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error sending inquiry",
+        title: "Error sending message",
         description: error.message
       });
     } finally {
-      setInquiryLoading(false);
+      setMessageLoading(false);
     }
   };
 
@@ -196,7 +242,7 @@ export default function PropertyDetail() {
       toast({
         variant: "destructive",
         title: "Sign in required",
-        description: "Please sign in to contact the landlord."
+        description: "Please sign in to message the landlord."
       });
       navigate('/auth');
       return;
@@ -205,13 +251,13 @@ export default function PropertyDetail() {
     if (!isIdVerified) {
       toast({
         title: "ID verification required",
-        description: "Complete your ID verification to contact landlords."
+        description: "Complete your ID verification to message landlords."
       });
       navigate(`/id-verification?return=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
 
-    setInquiryOpen(true);
+    setMessageOpen(true);
   };
 
   const handleCallLandlord = () => {
@@ -454,8 +500,8 @@ export default function PropertyDetail() {
             {/* Contact Landlord */}
             <Card>
               <CardHeader>
-                <CardTitle>Contact Landlord</CardTitle>
-                <CardDescription>Get in touch to arrange a viewing</CardDescription>
+                <CardTitle>Message Landlord</CardTitle>
+                <CardDescription>Send a message to arrange a viewing</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {property.profiles && (
@@ -478,7 +524,7 @@ export default function PropertyDetail() {
                       <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
                         <p className="text-sm text-amber-800">
                           <CheckCircle className="h-4 w-4 inline mr-1" />
-                          Complete ID verification to contact landlords
+                          Complete ID verification to message landlords
                         </p>
                       </div>
                     )}
@@ -488,7 +534,7 @@ export default function PropertyDetail() {
                       disabled={checkingVerification}
                     >
                       <Mail className="h-4 w-4 mr-2" />
-                      {checkingVerification ? 'Checking...' : 'Send Inquiry'}
+                      {checkingVerification ? 'Checking...' : 'Send Message'}
                     </Button>
                   </div>
                 ) : (
@@ -497,19 +543,19 @@ export default function PropertyDetail() {
                     onClick={() => navigate('/auth')}
                   >
                     <Mail className="h-4 w-4 mr-2" />
-                    Sign In to Contact Landlord
+                    Sign In to Message Landlord
                   </Button>
                 )}
 
-                <Dialog open={inquiryOpen} onOpenChange={setInquiryOpen}>
+                <Dialog open={messageOpen} onOpenChange={setMessageOpen}>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                      <DialogTitle>Send Inquiry</DialogTitle>
+                      <DialogTitle>Send Message</DialogTitle>
                       <DialogDescription>
-                        Contact the landlord about this property
+                        Send a message to the landlord about this property
                       </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleSubmit(onSubmitInquiry)} className="space-y-4">
+                    <form onSubmit={handleSubmit(onSubmitMessage)} className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="name">Full Name *</Label>
                         <Input
@@ -547,8 +593,8 @@ export default function PropertyDetail() {
                         {errors.message && <p className="text-sm text-destructive">{errors.message.message}</p>}
                       </div>
                       
-                      <Button type="submit" className="w-full" disabled={inquiryLoading}>
-                        {inquiryLoading ? 'Sending...' : 'Send Inquiry'}
+                      <Button type="submit" className="w-full" disabled={messageLoading}>
+                        {messageLoading ? 'Sending...' : 'Send Message'}
                       </Button>
                     </form>
                   </DialogContent>
