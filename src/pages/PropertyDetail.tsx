@@ -29,7 +29,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
-import TenantScreeningForm from '@/components/application/TenantScreeningForm';
+import MultiStepScreeningForm from '@/components/application/MultiStepScreeningForm';
 import { useApplications } from '@/hooks/useApplications';
 
 interface Property {
@@ -815,10 +815,9 @@ export default function PropertyDetail() {
         {/* Screening Form Dialog */}
         {showScreeningForm && property && (
           <Dialog open={showScreeningForm} onOpenChange={setShowScreeningForm}>
-            <DialogContent className="max-w-4xl">
-              <TenantScreeningForm
+            <DialogContent className="max-w-full max-h-full p-0 overflow-hidden">
+              <MultiStepScreeningForm
                 propertyId={property.id}
-                landlordId={property.landlord_id}
                 onComplete={handleScreeningComplete}
                 onCancel={() => setShowScreeningForm(false)}
               />
