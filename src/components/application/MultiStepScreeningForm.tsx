@@ -326,8 +326,8 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   return (
-    <div className="bg-background">
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
+    <div className="bg-background min-h-screen flex flex-col">
+      <div className="container mx-auto py-8 px-4 max-w-4xl flex-1 flex flex-col">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-4">Rental Application</h1>
@@ -365,27 +365,29 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
           </div>
         </div>
 
-        {/* Step Content */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>{STEPS[currentStep].title}</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ScrollArea className="h-[60vh] w-full">
-              <div className="p-6">
-                <CurrentStepComponent
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  onNext={nextStep}
-                  onSave={saveProfile}
-                />
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+        {/* Step Content - Flexible height */}
+        <div className="flex-1 flex flex-col min-h-0">
+          <Card className="flex-1 flex flex-col">
+            <CardHeader className="flex-shrink-0">
+              <CardTitle>{STEPS[currentStep].title}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 p-0 min-h-0">
+              <ScrollArea className="h-full w-full">
+                <div className="p-6">
+                  <CurrentStepComponent
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    onNext={nextStep}
+                    onSave={saveProfile}
+                  />
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
 
-        {/* Navigation */}
-        <div className="flex justify-between">
+        {/* Fixed Navigation at bottom */}
+        <div className="flex justify-between mt-6 pt-4 border-t bg-background">
           <Button
             variant="outline"
             onClick={currentStep === 0 ? onCancel : prevStep}
