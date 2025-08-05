@@ -109,6 +109,36 @@ export type Database = {
           },
         ]
       }
+      lease_templates: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean | null
+          landlord_id: string
+          name: string
+          template_content: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          landlord_id: string
+          name: string
+          template_content: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          landlord_id?: string
+          name?: string
+          template_content?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       maintenance_requests: {
         Row: {
           actual_cost: number | null
@@ -378,7 +408,10 @@ export type Database = {
           end_date: string
           id: string
           landlord_id: string
+          landlord_signature_url: string | null
+          landlord_signed_at: string | null
           lease_document_url: string | null
+          lease_status: string | null
           monthly_rent: number
           notes: string | null
           property_id: string
@@ -386,6 +419,8 @@ export type Database = {
           start_date: string
           status: string
           tenant_id: string
+          tenant_signature_url: string | null
+          tenant_signed_at: string | null
           updated_at: string
         }
         Insert: {
@@ -393,7 +428,10 @@ export type Database = {
           end_date: string
           id?: string
           landlord_id: string
+          landlord_signature_url?: string | null
+          landlord_signed_at?: string | null
           lease_document_url?: string | null
+          lease_status?: string | null
           monthly_rent: number
           notes?: string | null
           property_id: string
@@ -401,6 +439,8 @@ export type Database = {
           start_date: string
           status?: string
           tenant_id: string
+          tenant_signature_url?: string | null
+          tenant_signed_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -408,7 +448,10 @@ export type Database = {
           end_date?: string
           id?: string
           landlord_id?: string
+          landlord_signature_url?: string | null
+          landlord_signed_at?: string | null
           lease_document_url?: string | null
+          lease_status?: string | null
           monthly_rent?: number
           notes?: string | null
           property_id?: string
@@ -416,6 +459,8 @@ export type Database = {
           start_date?: string
           status?: string
           tenant_id?: string
+          tenant_signature_url?: string | null
+          tenant_signed_at?: string | null
           updated_at?: string
         }
         Relationships: [
