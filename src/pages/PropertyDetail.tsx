@@ -518,7 +518,14 @@ export default function PropertyDetail() {
                   </div>
                 )}
                 
-                {user ? (
+                {user && property.landlord_id === user.id ? (
+                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <CheckCircle className="h-4 w-4 inline mr-1" />
+                      This is your property listing
+                    </p>
+                  </div>
+                ) : user ? (
                   <div className="space-y-2">
                     {!isIdVerified && (
                       <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
@@ -600,7 +607,7 @@ export default function PropertyDetail() {
                   </DialogContent>
                 </Dialog>
                 
-                {user ? (
+                {user && property.landlord_id !== user.id ? (
                   <Button 
                     variant="outline" 
                     className="w-full"
@@ -610,7 +617,7 @@ export default function PropertyDetail() {
                     <Phone className="h-4 w-4 mr-2" />
                     Call Landlord
                   </Button>
-                ) : (
+                ) : !user ? (
                   <Button 
                     variant="outline" 
                     className="w-full"
@@ -619,7 +626,7 @@ export default function PropertyDetail() {
                     <Phone className="h-4 w-4 mr-2" />
                     Sign In to Call
                   </Button>
-                )}
+                ) : null}
               </CardContent>
             </Card>
 
