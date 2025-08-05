@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -75,6 +75,9 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isExistingProfile, setIsExistingProfile] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [showSavedMessage, setShowSavedMessage] = useState(false);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
   const [formData, setFormData] = useState<ScreeningProfile>({
     user_id: user?.id || '',
     first_name: '',
@@ -161,9 +164,46 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
     }
   };
 
-  const updateFormData = (updates: Partial<ScreeningProfile>) => {
+  const autoSaveProfile = useCallback(async () => {
+    if (!user || !isExistingProfile) return;
+
+    try {
+      setAutoSaving(true);
+      const profileData = {
+        ...formData,
+        user_id: user.id,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase
+        .from('screening_profiles')
+        .update(profileData)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setShowSavedMessage(true);
+      setTimeout(() => setShowSavedMessage(false), 2000);
+    } catch (error) {
+      console.error('Auto-save error:', error);
+    } finally {
+      setAutoSaving(false);
+    }
+  }, [user, formData, isExistingProfile]);
+
+  const updateFormData = useCallback((updates: Partial<ScreeningProfile>) => {
     setFormData(prev => ({ ...prev, ...updates }));
-  };
+    
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    
+    // Set new timeout for auto-save (debounced)
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      autoSaveProfile();
+    }, 1000);
+  }, [autoSaveProfile]);
 
   const validateCurrentStep = () => {
     const currentStepId = STEPS[currentStep].id;
@@ -186,14 +226,18 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (validateCurrentStep() && currentStep < STEPS.length - 1) {
+      // Auto-save before moving to next step
+      await autoSaveProfile();
       setCurrentStep(currentStep + 1);
     }
   };
 
-  const prevStep = () => {
+  const prevStep = async () => {
     if (currentStep > 0) {
+      // Auto-save before moving to previous step
+      await autoSaveProfile();
       setCurrentStep(currentStep - 1);
     }
   };
@@ -365,15 +409,27 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
           </div>
         </div>
 
-        {/* Step Content - Flexible height */}
-        <div className="flex-1 flex flex-col min-h-0">
+        {/* Step Content - Flexible height with proper scrolling */}
+        <div className="flex-1 flex flex-col min-h-0 relative">
+          {/* Auto-save indicator */}
+          {showSavedMessage && (
+            <div className="absolute top-4 right-4 z-10 bg-green-50 text-green-700 px-3 py-1 rounded-md text-sm border border-green-200 shadow-sm">
+              Progress saved ✓
+            </div>
+          )}
+          
           <Card className="flex-1 flex flex-col">
             <CardHeader className="flex-shrink-0">
-              <CardTitle>{STEPS[currentStep].title}</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                {STEPS[currentStep].title}
+                {autoSaving && (
+                  <span className="text-sm text-muted-foreground">Saving...</span>
+                )}
+              </CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 p-0 min-h-0">
-              <ScrollArea className="h-full w-full">
-                <div className="p-6">
+            <CardContent className="flex-1 overflow-hidden p-0">
+              <div className="h-full overflow-y-auto">
+                <div className="p-6 space-y-6">
                   <CurrentStepComponent
                     formData={formData}
                     updateFormData={updateFormData}
@@ -381,7 +437,7 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
                     onSave={saveProfile}
                   />
                 </div>
-              </ScrollArea>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -398,10 +454,6 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
           </Button>
 
           <div className="flex gap-2">
-            <Button variant="outline" onClick={saveProfile}>
-              Save Progress
-            </Button>
-            
             {currentStep === STEPS.length - 1 ? (
               <Button 
                 onClick={submitApplication}
