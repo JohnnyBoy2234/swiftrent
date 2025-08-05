@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
+  signUp: (email: string, password: string, role?: 'tenant' | 'landlord') => Promise<{ error: any; isNewUser?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithGoogle: (role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -72,9 +72,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, role: 'tenant' | 'landlord' = 'tenant') => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `${window.location.origin}/id-verification`;
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -82,7 +82,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         data: { role }
       }
     });
-    return { error };
+    
+    // Check if this is a new user (not just confirming email)
+    const isNewUser = data.user && !data.session;
+    
+    return { error, isNewUser };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -94,14 +98,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async (role: 'tenant' | 'landlord' = 'tenant') => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `${window.location.origin}/id-verification`;
     
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectUrl,
         queryParams: {
-          role: role
+          role: role,
+          is_signup: 'true'
         }
       }
     });

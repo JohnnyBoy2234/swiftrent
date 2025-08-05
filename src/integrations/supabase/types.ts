@@ -262,6 +262,7 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          id_verification_status: string | null
           id_verified: boolean
           phone: string | null
           updated_at: string
@@ -273,6 +274,7 @@ export type Database = {
           created_at?: string
           display_name: string
           id?: string
+          id_verification_status?: string | null
           id_verified?: boolean
           phone?: string | null
           updated_at?: string
@@ -284,6 +286,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          id_verification_status?: string | null
           id_verified?: boolean
           phone?: string | null
           updated_at?: string

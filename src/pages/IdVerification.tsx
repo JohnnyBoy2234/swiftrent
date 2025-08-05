@@ -40,12 +40,12 @@ export default function IdVerification() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id_verified')
+        .select('id_verification_status')
         .eq('user_id', user.id)
         .single();
 
       if (error) throw error;
-      setIsVerified(data.id_verified);
+      setIsVerified(data.id_verification_status === 'verified' || data.id_verification_status === 'pending');
     } catch (error: any) {
       console.error('Error checking verification status:', error);
     }
@@ -83,18 +83,20 @@ export default function IdVerification() {
 
       if (uploadError) throw uploadError;
 
-      // Update profile to mark as verified
+      // Update profile to mark as pending verification
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ id_verified: true })
+        .update({ 
+          id_verified: false,
+          id_verification_status: 'pending'
+        })
         .eq('user_id', user.id);
 
       if (updateError) throw updateError;
 
-      setIsVerified(true);
       toast({
-        title: "ID Verification Successful!",
-        description: "Your identity has been verified. You can now contact landlords."
+        title: "ID Verification Submitted!",
+        description: "Your documents have been submitted for review. You can now access the platform while we verify your identity."
       });
 
       // Redirect after a short delay

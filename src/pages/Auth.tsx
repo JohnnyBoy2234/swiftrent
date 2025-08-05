@@ -52,7 +52,7 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     
-    const { error } = await signUp(email, password, role);
+    const { error, isNewUser } = await signUp(email, password, role);
     
     if (error) {
       toast({
@@ -61,10 +61,19 @@ export default function Auth() {
         description: error.message
       });
     } else {
-      toast({
-        title: "Account created!",
-        description: "Please check your email to verify your account."
-      });
+      if (isNewUser) {
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account, then complete ID verification."
+        });
+      } else {
+        toast({
+          title: "Welcome back!",
+          description: "Please complete your ID verification."
+        });
+        // For existing users confirming email, redirect to ID verification
+        navigate('/id-verification');
+      }
     }
     
     setLoading(false);
