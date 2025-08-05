@@ -42,10 +42,10 @@ export default function IdVerification() {
         .from('profiles')
         .select('id_verification_status')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      setIsVerified(data.id_verification_status === 'verified' || data.id_verification_status === 'pending');
+      setIsVerified(data && (data.id_verification_status === 'verified' || data.id_verification_status === 'pending'));
     } catch (error: any) {
       console.error('Error checking verification status:', error);
     }

@@ -116,7 +116,7 @@ export default function PropertyDetail() {
         .from('profiles')
         .select('display_name, phone')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setUserProfile(data);
@@ -134,11 +134,19 @@ export default function PropertyDetail() {
         .from('profiles')
         .select('id_verified')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       console.log('ID Verification check result:', data);
-      setIsIdVerified(data.id_verified || false);
+      console.log('User ID:', user.id);
+      
+      // If no profile exists, user is not verified
+      if (!data) {
+        console.log('No profile found for user');
+        setIsIdVerified(false);
+      } else {
+        setIsIdVerified(data.id_verified || false);
+      }
     } catch (error: any) {
       console.error('Error checking verification status:', error);
       setIsIdVerified(false);
