@@ -53,26 +53,35 @@ const Navbar = () => {
 
           {/* Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            {user ? (
-              <>
-                <Button variant="outline" asChild>
-                  <Link to="/list-property">List Property</Link>
-                </Button>
-                
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/messages" className="flex items-center relative">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Messages
-                    {unreadCount > 0 && (
-                      <Badge 
-                        variant="destructive" 
-                        className="ml-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                      >
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                      </Badge>
+                {user ? (
+                  <>
+                    <Button variant="outline" asChild>
+                      <Link to="/list-property">List Property</Link>
+                    </Button>
+                    
+                    {isLandlord && hasProperties ? (
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to="/dashboard" className="flex items-center relative">
+                          <LayoutDashboard className="h-4 w-4 mr-2" />
+                          Rental Manager
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to="/messages" className="flex items-center relative">
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Messages
+                          {unreadCount > 0 && (
+                            <Badge 
+                              variant="destructive" 
+                              className="ml-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                            >
+                              {unreadCount > 99 ? '99+' : unreadCount}
+                            </Badge>
+                          )}
+                        </Link>
+                      </Button>
                     )}
-                  </Link>
-                </Button>
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -82,33 +91,27 @@ const Navbar = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    {isLandlord && hasProperties && (
+                    {!isLandlord || !hasProperties ? (
                       <>
                         <DropdownMenuItem asChild>
-                          <Link to="/dashboard" className="flex items-center">
-                            <LayoutDashboard className="h-4 w-4 mr-2" />
-                            Dashboard
+                          <Link to="/messages" className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <MessageCircle className="h-4 w-4 mr-2" />
+                              Messages
+                            </div>
+                            {unreadCount > 0 && (
+                              <Badge 
+                                variant="destructive" 
+                                className="h-5 w-5 flex items-center justify-center p-0 text-xs"
+                              >
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                              </Badge>
+                            )}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                       </>
-                    )}
-                    <DropdownMenuItem asChild>
-                      <Link to="/messages" className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          Messages
-                        </div>
-                        {unreadCount > 0 && (
-                          <Badge 
-                            variant="destructive" 
-                            className="h-5 w-5 flex items-center justify-center p-0 text-xs"
-                          >
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                          </Badge>
-                        )}
-                      </Link>
-                    </DropdownMenuItem>
+                    ) : null}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut}>
                       <LogOut className="h-4 w-4 mr-2" />
@@ -168,22 +171,23 @@ const Navbar = () => {
                     <Button variant="outline" className="w-full" asChild>
                       <Link to="/list-property">List Property</Link>
                     </Button>
-                    <Button variant="outline" className="w-full" asChild>
-                      <Link to="/messages" className="flex items-center justify-between">
-                        <span>Messages</span>
-                        {unreadCount > 0 && (
-                          <Badge 
-                            variant="destructive" 
-                            className="h-5 w-5 flex items-center justify-center p-0 text-xs"
-                          >
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                          </Badge>
-                        )}
-                      </Link>
-                    </Button>
-                    {isLandlord && hasProperties && (
+                    {isLandlord && hasProperties ? (
                       <Button variant="outline" className="w-full" asChild>
-                        <Link to="/dashboard">Dashboard</Link>
+                        <Link to="/dashboard">Rental Manager</Link>
+                      </Button>
+                    ) : (
+                      <Button variant="outline" className="w-full" asChild>
+                        <Link to="/messages" className="flex items-center justify-between">
+                          <span>Messages</span>
+                          {unreadCount > 0 && (
+                            <Badge 
+                              variant="destructive" 
+                              className="h-5 w-5 flex items-center justify-center p-0 text-xs"
+                            >
+                              {unreadCount > 99 ? '99+' : unreadCount}
+                            </Badge>
+                          )}
+                        </Link>
                       </Button>
                     )}
                     <Button className="w-full" onClick={signOut}>
