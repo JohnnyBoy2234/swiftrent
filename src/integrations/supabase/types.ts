@@ -495,6 +495,60 @@ export type Database = {
         }
         Relationships: []
       }
+      screening_profiles: {
+        Row: {
+          created_at: string
+          first_name: string
+          has_pets: boolean | null
+          id: string
+          income_sources: Json | null
+          is_complete: boolean
+          last_name: string
+          middle_name: string | null
+          occupants: Json | null
+          pet_details: string | null
+          residences: Json | null
+          screening_consent: boolean
+          screening_consent_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_name: string
+          has_pets?: boolean | null
+          id?: string
+          income_sources?: Json | null
+          is_complete?: boolean
+          last_name: string
+          middle_name?: string | null
+          occupants?: Json | null
+          pet_details?: string | null
+          residences?: Json | null
+          screening_consent?: boolean
+          screening_consent_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          has_pets?: boolean | null
+          id?: string
+          income_sources?: Json | null
+          is_complete?: boolean
+          last_name?: string
+          middle_name?: string | null
+          occupants?: Json | null
+          pet_details?: string | null
+          residences?: Json | null
+          screening_consent?: boolean
+          screening_consent_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tenancies: {
         Row: {
           created_at: string
