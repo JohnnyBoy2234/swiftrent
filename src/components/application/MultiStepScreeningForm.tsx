@@ -325,7 +325,7 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-background">
       <div className="container mx-auto py-8 px-4 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
@@ -365,57 +365,54 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
         </div>
 
         {/* Step Content */}
-        <div className="flex flex-col h-[calc(100vh-300px)]">
-          <Card className="flex-1 flex flex-col">
-            <CardHeader className="flex-shrink-0">
-              <CardTitle>{STEPS[currentStep].title}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-y-auto">
-              <CurrentStepComponent
-                formData={formData}
-                updateFormData={updateFormData}
-                onNext={nextStep}
-                onSave={saveProfile}
-              />
-            </CardContent>
-          </Card>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>{STEPS[currentStep].title}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CurrentStepComponent
+              formData={formData}
+              updateFormData={updateFormData}
+              onNext={nextStep}
+              onSave={saveProfile}
+            />
+          </CardContent>
+        </Card>
 
-          
-          {/* Navigation */}
-          <div className="flex justify-between mt-6 flex-shrink-0">
-            <Button
-              variant="outline"
-              onClick={currentStep === 0 ? onCancel : prevStep}
-              className="flex items-center gap-2"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              {currentStep === 0 ? 'Cancel' : 'Previous'}
+        {/* Navigation */}
+        <div className="flex justify-between">
+          <Button
+            variant="outline"
+            onClick={currentStep === 0 ? onCancel : prevStep}
+            className="flex items-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            {currentStep === 0 ? 'Cancel' : 'Previous'}
+          </Button>
+
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={saveProfile}>
+              Save Progress
             </Button>
-
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={saveProfile}>
-                Save Progress
+            
+            {currentStep === STEPS.length - 1 ? (
+              <Button 
+                onClick={submitApplication}
+                disabled={!Object.keys(STEPS).every((_, index) => isStepComplete(index))}
+                className="flex items-center gap-2"
+              >
+                Submit Application
               </Button>
-              
-              {currentStep === STEPS.length - 1 ? (
-                <Button 
-                  onClick={submitApplication}
-                  disabled={!Object.keys(STEPS).every((_, index) => isStepComplete(index))}
-                  className="flex items-center gap-2"
-                >
-                  Submit Application
-                </Button>
-              ) : (
-                <Button 
-                  onClick={nextStep}
-                  disabled={!validateCurrentStep()}
-                  className="flex items-center gap-2"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
+            ) : (
+              <Button 
+                onClick={nextStep}
+                disabled={!validateCurrentStep()}
+                className="flex items-center gap-2"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
