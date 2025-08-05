@@ -102,7 +102,7 @@ export default function IncomeStep({ formData, updateFormData }: IncomeStepProps
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-h-full overflow-y-auto">
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-semibold">Income Sources</h3>
@@ -126,170 +126,179 @@ export default function IncomeStep({ formData, updateFormData }: IncomeStepProps
         </div>
       )}
 
-      {formData.income_sources.map((source, index) => (
-        <div key={index} className="p-6 border rounded-lg bg-card">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-semibold">Income Source {index + 1}</h4>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => removeIncomeSource(index)}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Income Type *</Label>
-                <Select 
-                  value={source.type} 
-                  onValueChange={(value) => updateIncomeSource(index, { type: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select income type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {incomeTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      <div className="space-y-6">
+        {formData.income_sources.map((source, index) => (
+          <div key={index} className="p-6 border rounded-lg bg-card">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold">Income Source {index + 1}</h4>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => removeIncomeSource(index)}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Income Type *</Label>
+                  <Select 
+                    value={source.type} 
+                    onValueChange={(value) => updateIncomeSource(index, { type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select income type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {incomeTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Monthly Income (ZAR) *</Label>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={source.monthly_income === 0 ? '' : source.monthly_income.toString()}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      updateIncomeSource(index, { monthly_income: value ? Number(value) : 0 });
+                    }}
+                    placeholder="Enter monthly income"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Job Title *</Label>
+                  <Input
+                    value={source.job_title}
+                    onChange={(e) => updateIncomeSource(index, { job_title: e.target.value })}
+                    placeholder="Enter your job title"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Employer/Company *</Label>
+                  <Input
+                    value={source.employer}
+                    onChange={(e) => updateIncomeSource(index, { employer: e.target.value })}
+                    placeholder="Enter employer name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Started On *</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !source.started_on && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {source.started_on ? format(new Date(source.started_on), "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={source.started_on ? new Date(source.started_on) : undefined}
+                        onSelect={(date) => updateIncomeSource(index, { started_on: date?.toISOString() })}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
 
+              {/* Income Documents */}
               <div className="space-y-2">
-                <Label>Monthly Income (ZAR) *</Label>
-                <Input
-                  type="number"
-                  value={source.monthly_income}
-                  onChange={(e) => updateIncomeSource(index, { monthly_income: Number(e.target.value) })}
-                  placeholder="0"
-                />
+                <Label>Income Documents</Label>
+                <div className="border-2 border-dashed border-muted rounded-lg p-4">
+                  <input
+                    type="file"
+                    id={`file-${index}`}
+                    multiple
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      files.forEach(file => uploadDocument(index, file));
+                    }}
+                    className="hidden"
+                  />
+                  <label 
+                    htmlFor={`file-${index}`}
+                    className="flex flex-col items-center justify-center cursor-pointer"
+                  >
+                    <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground text-center">
+                      {uploading[index] ? 'Uploading...' : 'Click to upload payslips, bank statements, or other income documents'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      PDF, JPG, PNG, DOC, DOCX (Max 5 files)
+                    </p>
+                  </label>
+                </div>
+                
+                {source.documents && source.documents.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium mb-2">{source.documents.length} document(s) uploaded</p>
+                  </div>
+                )}
               </div>
 
-              <div className="space-y-2">
-                <Label>Job Title *</Label>
-                <Input
-                  value={source.job_title}
-                  onChange={(e) => updateIncomeSource(index, { job_title: e.target.value })}
-                  placeholder="Enter your job title"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Employer/Company *</Label>
-                <Input
-                  value={source.employer}
-                  onChange={(e) => updateIncomeSource(index, { employer: e.target.value })}
-                  placeholder="Enter employer name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Started On *</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !source.started_on && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {source.started_on ? format(new Date(source.started_on), "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={source.started_on ? new Date(source.started_on) : undefined}
-                      onSelect={(date) => updateIncomeSource(index, { started_on: date?.toISOString() })}
-                      initialFocus
-                      className="pointer-events-auto"
+              {/* Employer Contact (Optional) */}
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-4">Employer Contact (Optional)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Contact Name</Label>
+                    <Input
+                      value={source.employer_contact_name || ''}
+                      onChange={(e) => updateIncomeSource(index, { employer_contact_name: e.target.value })}
+                      placeholder="Contact person"
                     />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-
-            {/* Income Documents */}
-            <div className="space-y-2">
-              <Label>Income Documents</Label>
-              <div className="border-2 border-dashed border-muted rounded-lg p-4">
-                <input
-                  type="file"
-                  id={`file-${index}`}
-                  multiple
-                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files || []);
-                    files.forEach(file => uploadDocument(index, file));
-                  }}
-                  className="hidden"
-                />
-                <label 
-                  htmlFor={`file-${index}`}
-                  className="flex flex-col items-center justify-center cursor-pointer"
-                >
-                  <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground text-center">
-                    {uploading[index] ? 'Uploading...' : 'Click to upload payslips, bank statements, or other income documents'}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    PDF, JPG, PNG, DOC, DOCX (Max 5 files)
-                  </p>
-                </label>
-              </div>
-              
-              {source.documents && source.documents.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-sm font-medium mb-2">{source.documents.length} document(s) uploaded</p>
-                </div>
-              )}
-            </div>
-
-            {/* Employer Contact (Optional) */}
-            <div className="border-t pt-4">
-              <h4 className="font-medium mb-4">Employer Contact (Optional)</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Contact Name</Label>
-                  <Input
-                    value={source.employer_contact_name || ''}
-                    onChange={(e) => updateIncomeSource(index, { employer_contact_name: e.target.value })}
-                    placeholder="Contact person"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input
-                    type="email"
-                    value={source.employer_contact_email || ''}
-                    onChange={(e) => updateIncomeSource(index, { employer_contact_email: e.target.value })}
-                    placeholder="email@company.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Phone</Label>
-                  <Input
-                    value={source.employer_contact_phone || ''}
-                    onChange={(e) => updateIncomeSource(index, { employer_contact_phone: e.target.value })}
-                    placeholder="+27 123 456 789"
-                  />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      value={source.employer_contact_email || ''}
+                      onChange={(e) => updateIncomeSource(index, { employer_contact_email: e.target.value })}
+                      placeholder="email@company.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Phone</Label>
+                    <Input
+                      value={source.employer_contact_phone || ''}
+                      onChange={(e) => updateIncomeSource(index, { employer_contact_phone: e.target.value })}
+                      placeholder="+27 123 456 789"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {formData.income_sources.length > 0 && (
-        <p className="text-sm text-muted-foreground">
-          * Required fields must be completed to continue to the next step.
-        </p>
+        <div className="pb-4">
+          <p className="text-sm text-muted-foreground">
+            * Required fields must be completed to continue to the next step.
+          </p>
+        </div>
       )}
     </div>
   );
