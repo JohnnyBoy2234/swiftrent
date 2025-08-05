@@ -96,6 +96,18 @@ export default function PropertyDetail() {
     }
   }, [user]);
 
+  // Add effect to re-check verification status when user returns to page
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user) {
+        checkIdVerification();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user]);
+
   const fetchUserProfile = async () => {
     if (!user) return;
 
