@@ -3,10 +3,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Home, MessageSquare, BarChart3, Eye, Users, Calendar } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Home, MessageSquare, BarChart3, Eye, Users, Calendar, MoreHorizontal } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { PropertyCard } from '@/components/dashboard/PropertyCard';
 import { Property, Tenancy } from '@/types/dashboard';
 
 interface Inquiry {
@@ -38,6 +39,8 @@ interface PropertyWithCounts extends Property {
   activeTenancy?: Tenancy;
 }
 
+type PropertyFilter = 'all' | 'for-rent' | 'off-market';
+
 export default function Dashboard() {
   const { user, isLandlord, signOut } = useAuth();
   const [propertiesWithCounts, setPropertiesWithCounts] = useState<PropertyWithCounts[]>([]);
@@ -45,6 +48,7 @@ export default function Dashboard() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [tenancies, setTenancies] = useState<Tenancy[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<PropertyFilter>('all');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -164,95 +168,110 @@ export default function Dashboard() {
     );
   }
 
-  const stats = {
-    totalProperties: propertiesWithCounts.length,
-    availableProperties: propertiesWithCounts.filter(p => p.status === 'available').length,
-    totalInquiries: inquiries.length,
-    pendingInquiries: inquiries.filter(i => i.status === 'pending').length,
-    activeTenancies: tenancies.filter(t => t.status === 'active').length,
-    totalApplications: applications.length
+  const filteredProperties = propertiesWithCounts.filter(property => {
+    switch (filter) {
+      case 'for-rent':
+        return property.status === 'available';
+      case 'off-market':
+        return property.status === 'rented' || property.status === 'occupied';
+      default:
+        return true;
+    }
+  });
+
+  const getPropertyStatus = (property: PropertyWithCounts) => {
+    if (property.status === 'available') return 'For rent';
+    if (property.status === 'rented' || property.status === 'occupied') return 'Off-market';
+    return property.status;
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'For rent':
+        return 'default';
+      case 'Off-market':
+        return 'secondary';
+      default:
+        return 'outline';
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-primary">Rental Manager</h1>
-            <p className="text-muted-foreground">Manage your properties like a pro</p>
+    <div className="flex min-h-screen bg-background">
+      {/* Sidebar */}
+      <div className="w-64 border-r bg-card">
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-8">
+            <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
+              <Home className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <h1 className="text-xl font-bold">EasyRent</h1>
           </div>
-          <div className="flex gap-3">
-            <Button onClick={() => navigate('/dashboard/add-property')} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add Property
+          
+          <nav className="space-y-2">
+            <Button variant="default" className="w-full justify-start gap-3">
+              <Home className="w-5 h-5" />
+              Properties
             </Button>
-            <Button variant="outline" onClick={signOut}>
-              Sign Out
+            <Button variant="ghost" className="w-full justify-start gap-3" onClick={() => navigate('/messages')}>
+              <MessageSquare className="w-5 h-5" />
+              Messages
+            </Button>
+            <Button variant="ghost" className="w-full justify-start gap-3">
+              <BarChart3 className="w-5 h-5" />
+              Payments
+            </Button>
+            <Button variant="ghost" className="w-full justify-start gap-3">
+              <Eye className="w-5 h-5" />
+              Alerts
+            </Button>
+          </nav>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1">
+        <div className="p-6">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold">Properties</h1>
+            <div className="flex gap-3">
+              <Button onClick={() => navigate('/dashboard/add-property')} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add a property
+              </Button>
+              <Button variant="outline" onClick={signOut}>
+                Sign Out
+              </Button>
+            </div>
+          </div>
+
+          {/* Property Filters */}
+          <div className="flex gap-2 mb-6">
+            <Button
+              variant={filter === 'all' ? 'default' : 'outline'}
+              onClick={() => setFilter('all')}
+              className="rounded-full"
+            >
+              All ({propertiesWithCounts.length})
+            </Button>
+            <Button
+              variant={filter === 'for-rent' ? 'default' : 'outline'}
+              onClick={() => setFilter('for-rent')}
+              className="rounded-full"
+            >
+              For rent ({propertiesWithCounts.filter(p => p.status === 'available').length})
+            </Button>
+            <Button
+              variant={filter === 'off-market' ? 'default' : 'outline'}
+              onClick={() => setFilter('off-market')}
+              className="rounded-full"
+            >
+              Off-market ({propertiesWithCounts.filter(p => p.status === 'rented' || p.status === 'occupied').length})
             </Button>
           </div>
-        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Properties</CardTitle>
-              <Home className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">{stats.totalProperties}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Available</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-accent">{stats.availableProperties}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Tenants</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-secondary">{stats.activeTenancies}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Applications</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-tertiary">{stats.totalApplications}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Inquiries</CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">{stats.totalInquiries}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-accent">{stats.pendingInquiries}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Property Cards */}
-        <div className="space-y-6">
+          {/* Properties Table */}
           {propertiesWithCounts.length === 0 ? (
             <Card>
               <CardHeader>
@@ -267,17 +286,66 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {propertiesWithCounts.map((property) => (
-                <PropertyCard
-                  key={property.id}
-                  property={property}
-                  inquiriesCount={property.inquiriesCount}
-                  applicationsCount={property.applicationsCount}
-                  activeTenancy={property.activeTenancy}
-                />
-              ))}
-            </div>
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Address</TableHead>
+                    <TableHead>August rent</TableHead>
+                    <TableHead>Potential tenants</TableHead>
+                    <TableHead>Lease</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredProperties.map((property) => (
+                    <TableRow key={property.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-blue-500 rounded-lg flex items-center justify-center">
+                            <Home className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-medium">{property.title}</div>
+                            <Badge variant={getStatusBadgeVariant(getPropertyStatus(property))} className="mt-1">
+                              {getPropertyStatus(property)}
+                            </Badge>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {property.status === 'available' ? (
+                          <span className="font-medium">R{property.price.toLocaleString()}</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div>{property.inquiriesCount} inquiries</div>
+                          <div className="text-muted-foreground">{property.applicationsCount} applications</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {property.activeTenancy?.lease_status ? (
+                          <Badge variant="outline">
+                            {property.activeTenancy.lease_status === 'signed' ? 'Active' : 
+                             property.activeTenancy.lease_status === 'pending' ? 'Pending' : 'Draft'}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
           )}
         </div>
       </div>
