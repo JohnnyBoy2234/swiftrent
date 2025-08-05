@@ -29,6 +29,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
+import TenantScreeningForm from '@/components/application/TenantScreeningForm';
+import { useApplications } from '@/hooks/useApplications';
 
 interface Property {
   id: string;
@@ -76,8 +78,10 @@ export default function PropertyDetail() {
   const [isIdVerified, setIsIdVerified] = useState(false);
   const [checkingVerification, setCheckingVerification] = useState(false);
   const [userProfile, setUserProfile] = useState<{display_name: string; phone: string | null} | null>(null);
+  const [showScreeningForm, setShowScreeningForm] = useState(false);
   
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<MessageFormData>();
+  const { isScreened, hasAppliedToProperty, submitApplication, loading: applicationLoading } = useApplications();
 
   useEffect(() => {
     if (id) {
@@ -317,6 +321,63 @@ export default function PropertyDetail() {
         description: "The landlord's phone number is not available."
       });
     }
+  };
+
+  const handleStartApplication = async () => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Sign in required",
+        description: "Please sign in to submit an application."
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (!isIdVerified) {
+      toast({
+        title: "ID verification required",
+        description: "Complete your ID verification to apply for properties."
+      });
+      navigate(`/id-verification?return=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
+    if (property && hasAppliedToProperty(property.id)) {
+      toast({
+        title: "Already applied",
+        description: "You have already submitted an application for this property."
+      });
+      return;
+    }
+
+    if (isScreened && property) {
+      // User is already screened, submit application directly
+      try {
+        await submitApplication(property.id, property.landlord_id);
+        toast({
+          title: "Application submitted successfully",
+          description: "Your application has been sent using your saved details."
+        });
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "Error submitting application",
+          description: error.message
+        });
+      }
+    } else {
+      // Show screening form for first-time applicants
+      setShowScreeningForm(true);
+    }
+  };
+
+  const handleScreeningComplete = () => {
+    setShowScreeningForm(false);
+    toast({
+      title: "Application submitted successfully",
+      description: "Your screening details have been saved and your application has been sent to the landlord."
+    });
   };
 
   const toggleLike = () => {
@@ -662,18 +723,48 @@ export default function PropertyDetail() {
             <Card>
               <CardHeader>
                 <CardTitle>Apply for this Property</CardTitle>
-                <CardDescription>Submit a rental application</CardDescription>
+                <CardDescription>Submit a formal rental application</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Button className="w-full" size="lg" asChild>
-                  <Link to={`/apply/${property.id}`}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Start Application
-                  </Link>
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Complete application with documents and references
-                </p>
+              <CardContent className="space-y-3">
+                {user && property.landlord_id === user.id ? (
+                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <CheckCircle className="h-4 w-4 inline mr-1" />
+                      This is your property listing
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {property && hasAppliedToProperty(property.id) ? (
+                      <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+                        <p className="text-sm text-green-800">
+                          <CheckCircle className="h-4 w-4 inline mr-1" />
+                          Application submitted
+                        </p>
+                      </div>
+                    ) : (
+                      <Button 
+                        className="w-full" 
+                        size="lg" 
+                        onClick={handleStartApplication}
+                        disabled={applicationLoading || checkingVerification}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        {applicationLoading ? 'Submitting...' : 'Start Application'}
+                      </Button>
+                    )}
+                    {isScreened && !hasAppliedToProperty(property?.id || '') && (
+                      <p className="text-xs text-muted-foreground">
+                        Your screening details are saved - application will be submitted instantly
+                      </p>
+                    )}
+                    {!isScreened && (
+                      <p className="text-xs text-muted-foreground">
+                        Complete one-time screening form and submit application
+                      </p>
+                    )}
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -699,6 +790,20 @@ export default function PropertyDetail() {
             </Card>
           </div>
         </div>
+
+        {/* Screening Form Dialog */}
+        {showScreeningForm && property && (
+          <Dialog open={showScreeningForm} onOpenChange={setShowScreeningForm}>
+            <DialogContent className="max-w-4xl">
+              <TenantScreeningForm
+                propertyId={property.id}
+                landlordId={property.landlord_id}
+                onComplete={handleScreeningComplete}
+                onCancel={() => setShowScreeningForm(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </div>
   );

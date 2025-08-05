@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      applications: {
+        Row: {
+          created_at: string
+          id: string
+          landlord_id: string
+          property_id: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          landlord_id: string
+          property_id: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          landlord_id?: string
+          property_id?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
@@ -264,6 +294,7 @@ export type Database = {
           id: string
           id_verification_status: string | null
           id_verified: boolean
+          is_tenant_screened: boolean
           phone: string | null
           updated_at: string
           user_id: string
@@ -276,6 +307,7 @@ export type Database = {
           id?: string
           id_verification_status?: string | null
           id_verified?: boolean
+          is_tenant_screened?: boolean
           phone?: string | null
           updated_at?: string
           user_id: string
@@ -288,6 +320,7 @@ export type Database = {
           id?: string
           id_verification_status?: string | null
           id_verified?: boolean
+          is_tenant_screened?: boolean
           phone?: string | null
           updated_at?: string
           user_id?: string
@@ -402,6 +435,63 @@ export type Database = {
           status?: string
           tenancy_id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      screening_details: {
+        Row: {
+          company_name: string | null
+          consent_given: boolean
+          created_at: string
+          current_address: string | null
+          employment_status: string
+          full_name: string
+          id: string
+          id_number: string
+          job_title: string | null
+          net_monthly_income: number | null
+          phone: string
+          previous_landlord_contact: string | null
+          previous_landlord_name: string | null
+          reason_for_moving: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          consent_given?: boolean
+          created_at?: string
+          current_address?: string | null
+          employment_status: string
+          full_name: string
+          id?: string
+          id_number: string
+          job_title?: string | null
+          net_monthly_income?: number | null
+          phone: string
+          previous_landlord_contact?: string | null
+          previous_landlord_name?: string | null
+          reason_for_moving?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string | null
+          consent_given?: boolean
+          created_at?: string
+          current_address?: string | null
+          employment_status?: string
+          full_name?: string
+          id?: string
+          id_number?: string
+          job_title?: string | null
+          net_monthly_income?: number | null
+          phone?: string
+          previous_landlord_contact?: string | null
+          previous_landlord_name?: string | null
+          reason_for_moving?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
