@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -369,13 +370,17 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
           <CardHeader>
             <CardTitle>{STEPS[currentStep].title}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <CurrentStepComponent
-              formData={formData}
-              updateFormData={updateFormData}
-              onNext={nextStep}
-              onSave={saveProfile}
-            />
+          <CardContent className="p-0">
+            <ScrollArea className="h-[60vh] w-full">
+              <div className="p-6">
+                <CurrentStepComponent
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  onNext={nextStep}
+                  onSave={saveProfile}
+                />
+              </div>
+            </ScrollArea>
           </CardContent>
         </Card>
 
