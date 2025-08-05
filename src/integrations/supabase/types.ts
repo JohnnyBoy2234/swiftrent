@@ -465,7 +465,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_tenancies_landlord_profile"
+            foreignKeyName: "fk_tenancies_landlord"
             columns: ["landlord_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -479,14 +479,7 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_tenancies_property_ref"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_tenancies_tenant_profile"
+            foreignKeyName: "fk_tenancies_tenant"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "profiles"
