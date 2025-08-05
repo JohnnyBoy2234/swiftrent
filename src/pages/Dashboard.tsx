@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Home, MessageSquare, BarChart3, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, Home, MessageSquare, BarChart3, Eye, Edit, Trash2, Users, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { TenancyCard } from '@/components/tenancy/TenancyCard';
+import { TenancyForm } from '@/components/tenancy/TenancyForm';
 
 interface Property {
   id: string;
@@ -36,11 +38,30 @@ interface Inquiry {
   };
 }
 
+interface Tenancy {
+  id: string;
+  property_id: string;
+  tenant_id: string;
+  start_date: string;
+  end_date: string;
+  monthly_rent: number;
+  security_deposit: number;
+  status: string;
+  lease_document_url?: string;
+  notes?: string;
+  property_title: string;
+  tenant_name: string;
+  tenant_email: string;
+}
+
 export default function Dashboard() {
   const { user, isLandlord, signOut } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [tenancies, setTenancies] = useState<Tenancy[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tenancyFormOpen, setTenancyFormOpen] = useState(false);
+  const [editingTenancy, setEditingTenancy] = useState<Tenancy | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -86,6 +107,34 @@ export default function Dashboard() {
 
       if (inquiriesError) throw inquiriesError;
       setInquiries(inquiriesData || []);
+
+      // Fetch tenancies
+      const { data: tenanciesData, error: tenanciesError } = await supabase
+        .from('tenancies')
+        .select(`
+          *,
+          properties!inner (
+            title
+          ),
+          profiles!inner (
+            display_name,
+            user_id
+          )
+        `)
+        .eq('landlord_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (tenanciesError) throw tenanciesError;
+      
+      // Transform the data to match our interface
+      const transformedTenancies = (tenanciesData || []).map((tenancy: any) => ({
+        ...tenancy,
+        property_title: tenancy.properties?.title || 'Unknown Property',
+        tenant_name: tenancy.profiles?.display_name || 'Unknown Tenant',
+        tenant_email: '' // We'll need to get this separately if needed
+      }));
+      
+      setTenancies(transformedTenancies);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -154,11 +203,31 @@ export default function Dashboard() {
     );
   }
 
+  const handleEditTenancy = (tenancy: Tenancy) => {
+    setEditingTenancy(tenancy);
+    setTenancyFormOpen(true);
+  };
+
+  const handleCreateTenancy = () => {
+    setEditingTenancy(null);
+    setTenancyFormOpen(true);
+  };
+
+  const handleTenancyFormSuccess = () => {
+    fetchData();
+  };
+
+  const handleViewLease = (url: string) => {
+    window.open(url, '_blank');
+  };
+
   const stats = {
     totalProperties: properties.length,
     availableProperties: properties.filter(p => p.status === 'available').length,
     totalInquiries: inquiries.length,
-    pendingInquiries: inquiries.filter(i => i.status === 'pending').length
+    pendingInquiries: inquiries.filter(i => i.status === 'pending').length,
+    activeTenancies: tenancies.filter(t => t.status === 'active').length,
+    totalTenancies: tenancies.length
   };
 
   return (
@@ -182,10 +251,10 @@ export default function Dashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
+              <CardTitle className="text-sm font-medium">Properties</CardTitle>
               <Home className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -203,11 +272,29 @@ export default function Dashboard() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Inquiries</CardTitle>
+              <CardTitle className="text-sm font-medium">Active Tenants</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-secondary">{stats.activeTenancies}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Tenancies</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-tertiary">{stats.totalTenancies}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Inquiries</CardTitle>
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-secondary">{stats.totalInquiries}</div>
+              <div className="text-2xl font-bold text-primary">{stats.totalInquiries}</div>
             </CardContent>
           </Card>
           <Card>
@@ -216,7 +303,7 @@ export default function Dashboard() {
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-tertiary">{stats.pendingInquiries}</div>
+              <div className="text-2xl font-bold text-accent">{stats.pendingInquiries}</div>
             </CardContent>
           </Card>
         </div>
@@ -225,6 +312,7 @@ export default function Dashboard() {
         <Tabs defaultValue="properties" className="w-full">
           <TabsList>
             <TabsTrigger value="properties">Properties</TabsTrigger>
+            <TabsTrigger value="tenancies">Tenancies</TabsTrigger>
             <TabsTrigger value="inquiries">Inquiries</TabsTrigger>
           </TabsList>
 
@@ -297,6 +385,45 @@ export default function Dashboard() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="tenancies">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Active Tenancies</CardTitle>
+                    <CardDescription>Manage your current tenants and lease agreements</CardDescription>
+                  </div>
+                  <Button onClick={handleCreateTenancy} className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    New Tenancy
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {tenancies.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">No tenancies created yet</p>
+                    <Button onClick={handleCreateTenancy}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Your First Tenancy
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {tenancies.map((tenancy) => (
+                      <TenancyCard
+                        key={tenancy.id}
+                        tenancy={tenancy}
+                        onEdit={handleEditTenancy}
+                        onViewLease={handleViewLease}
+                      />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="inquiries">
             <Card>
               <CardHeader>
@@ -356,6 +483,17 @@ export default function Dashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Tenancy Form Modal */}
+        <TenancyForm
+          isOpen={tenancyFormOpen}
+          onClose={() => {
+            setTenancyFormOpen(false);
+            setEditingTenancy(null);
+          }}
+          onSuccess={handleTenancyFormSuccess}
+          tenancy={editingTenancy}
+        />
       </div>
     </div>
   );
