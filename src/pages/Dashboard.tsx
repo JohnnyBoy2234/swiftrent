@@ -116,7 +116,7 @@ export default function Dashboard() {
           properties!inner (
             title
           ),
-          profiles!inner (
+          tenant_profile:profiles!fk_tenancies_tenant (
             display_name,
             user_id
           )
@@ -130,7 +130,7 @@ export default function Dashboard() {
       const transformedTenancies = (tenanciesData || []).map((tenancy: any) => ({
         ...tenancy,
         property_title: tenancy.properties?.title || 'Unknown Property',
-        tenant_name: tenancy.profiles?.display_name || 'Unknown Tenant',
+        tenant_name: tenancy.tenant_profile?.display_name || 'Unknown Tenant',
         tenant_email: '' // We'll need to get this separately if needed
       }));
       
