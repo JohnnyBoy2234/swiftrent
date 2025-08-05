@@ -3,27 +3,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Home, MessageSquare, BarChart3, Eye, Edit, Trash2, Users, Calendar, FileText } from 'lucide-react';
+import { Plus, Home, MessageSquare, BarChart3, Eye, Users, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { TenancyCard } from '@/components/tenancy/TenancyCard';
-import { TenancyForm } from '@/components/tenancy/TenancyForm';
-
-interface Property {
-  id: string;
-  title: string;
-  location: string;
-  price: number;
-  property_type: string;
-  bedrooms: number;
-  bathrooms: number;
-  status: string;
-  created_at: string;
-  featured: boolean;
-}
+import { PropertyCard } from '@/components/dashboard/PropertyCard';
+import { Property, Tenancy } from '@/types/dashboard';
 
 interface Inquiry {
   id: string;
@@ -33,35 +17,34 @@ interface Inquiry {
   message: string;
   status: string;
   created_at: string;
+  property_id: string;
   properties: {
     title: string;
   };
 }
 
-interface Tenancy {
+interface Application {
   id: string;
   property_id: string;
   tenant_id: string;
-  start_date: string;
-  end_date: string;
-  monthly_rent: number;
-  security_deposit: number;
+  landlord_id: string;
   status: string;
-  lease_document_url?: string;
-  notes?: string;
-  property_title: string;
-  tenant_name: string;
-  tenant_email: string;
+  created_at: string;
+}
+
+interface PropertyWithCounts extends Property {
+  inquiriesCount: number;
+  applicationsCount: number;
+  activeTenancy?: Tenancy;
 }
 
 export default function Dashboard() {
   const { user, isLandlord, signOut } = useAuth();
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [propertiesWithCounts, setPropertiesWithCounts] = useState<PropertyWithCounts[]>([]);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [tenancies, setTenancies] = useState<Tenancy[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tenancyFormOpen, setTenancyFormOpen] = useState(false);
-  const [editingTenancy, setEditingTenancy] = useState<Tenancy | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -91,7 +74,6 @@ export default function Dashboard() {
         .order('created_at', { ascending: false });
 
       if (propertiesError) throw propertiesError;
-      setProperties(propertiesData || []);
 
       // Fetch inquiries
       const { data: inquiriesData, error: inquiriesError } = await supabase
@@ -107,6 +89,16 @@ export default function Dashboard() {
 
       if (inquiriesError) throw inquiriesError;
       setInquiries(inquiriesData || []);
+
+      // Fetch applications
+      const { data: applicationsData, error: applicationsError } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('landlord_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (applicationsError) throw applicationsError;
+      setApplications(applicationsData || []);
 
       // Fetch tenancies
       const { data: tenanciesData, error: tenanciesError } = await supabase
@@ -135,6 +127,24 @@ export default function Dashboard() {
       }));
       
       setTenancies(transformedTenancies);
+
+      // Combine properties with counts and active tenancies
+      const propertiesWithCountsData = (propertiesData || []).map(property => {
+        const propertyInquiries = (inquiriesData || []).filter(inquiry => inquiry.property_id === property.id);
+        const propertyApplications = (applicationsData || []).filter(app => app.property_id === property.id);
+        const activeTenancy = transformedTenancies.find(tenancy => 
+          tenancy.property_id === property.id && tenancy.status === 'active'
+        );
+
+        return {
+          ...property,
+          inquiriesCount: propertyInquiries.length,
+          applicationsCount: propertyApplications.length,
+          activeTenancy
+        };
+      });
+
+      setPropertiesWithCounts(propertiesWithCountsData);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -146,55 +156,6 @@ export default function Dashboard() {
     }
   };
 
-  const deleteProperty = async (propertyId: string) => {
-    try {
-      const { error } = await supabase
-        .from('properties')
-        .delete()
-        .eq('id', propertyId);
-
-      if (error) throw error;
-
-      setProperties(properties.filter(p => p.id !== propertyId));
-      toast({
-        title: "Property deleted",
-        description: "The property has been successfully deleted."
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message
-      });
-    }
-  };
-
-  const updateInquiryStatus = async (inquiryId: string, status: string) => {
-    try {
-      const { error } = await supabase
-        .from('inquiries')
-        .update({ status })
-        .eq('id', inquiryId);
-
-      if (error) throw error;
-
-      setInquiries(inquiries.map(inquiry => 
-        inquiry.id === inquiryId ? { ...inquiry, status } : inquiry
-      ));
-
-      toast({
-        title: "Inquiry updated",
-        description: `Inquiry marked as ${status}.`
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message
-      });
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -203,35 +164,13 @@ export default function Dashboard() {
     );
   }
 
-  const handleEditTenancy = (tenancy: Tenancy) => {
-    setEditingTenancy(tenancy);
-    setTenancyFormOpen(true);
-  };
-
-  const handleCreateTenancy = () => {
-    setEditingTenancy(null);
-    setTenancyFormOpen(true);
-  };
-
-  const handleTenancyFormSuccess = () => {
-    fetchData();
-  };
-
-  const handleViewLease = (url: string) => {
-    window.open(url, '_blank');
-  };
-
-  const handleGenerateLease = () => {
-    navigate('/dashboard/lease-generator');
-  };
-
   const stats = {
-    totalProperties: properties.length,
-    availableProperties: properties.filter(p => p.status === 'available').length,
+    totalProperties: propertiesWithCounts.length,
+    availableProperties: propertiesWithCounts.filter(p => p.status === 'available').length,
     totalInquiries: inquiries.length,
     pendingInquiries: inquiries.filter(i => i.status === 'pending').length,
     activeTenancies: tenancies.filter(t => t.status === 'active').length,
-    totalTenancies: tenancies.length
+    totalApplications: applications.length
   };
 
   return (
@@ -240,8 +179,8 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-primary">Landlord Dashboard</h1>
-            <p className="text-muted-foreground">Manage your properties and inquiries</p>
+            <h1 className="text-3xl font-bold text-primary">Rental Manager</h1>
+            <p className="text-muted-foreground">Manage your properties like a pro</p>
           </div>
           <div className="flex gap-3">
             <Button onClick={() => navigate('/dashboard/add-property')} className="flex items-center gap-2">
@@ -285,11 +224,11 @@ export default function Dashboard() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Tenancies</CardTitle>
+              <CardTitle className="text-sm font-medium">Applications</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-tertiary">{stats.totalTenancies}</div>
+              <div className="text-2xl font-bold text-tertiary">{stats.totalApplications}</div>
             </CardContent>
           </Card>
           <Card>
@@ -312,202 +251,35 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="properties" className="w-full">
-          <TabsList>
-            <TabsTrigger value="properties">Properties</TabsTrigger>
-            <TabsTrigger value="tenancies">Tenancies</TabsTrigger>
-            <TabsTrigger value="inquiries">Inquiries</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="properties">
+        {/* Property Cards */}
+        <div className="space-y-6">
+          {propertiesWithCounts.length === 0 ? (
             <Card>
               <CardHeader>
-                <CardTitle>Your Properties</CardTitle>
-                <CardDescription>Manage your property listings</CardDescription>
+                <CardTitle>No Properties Yet</CardTitle>
+                <CardDescription>Get started by adding your first property</CardDescription>
               </CardHeader>
-              <CardContent>
-                {properties.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">No properties listed yet</p>
-                    <Button onClick={() => navigate('/dashboard/add-property')}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Your First Property
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {properties.map((property) => (
-                      <div key={property.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold">{property.title}</h3>
-                            {property.featured && <Badge variant="secondary">Featured</Badge>}
-                            <Badge variant={
-                              property.status === 'available' ? 'default' :
-                              property.status === 'rented' ? 'destructive' : 'secondary'
-                            }>
-                              {property.status}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-1">{property.location}</p>
-                          <p className="text-sm">
-                            R{property.price.toLocaleString()}/month • {property.bedrooms} bed • {property.bathrooms} bath
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm" onClick={() => navigate(`/dashboard/edit-property/${property.id}`)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Property</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete "{property.title}"? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => deleteProperty(property.id)}>
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <CardContent className="text-center py-8">
+                <Button onClick={() => navigate('/dashboard/add-property')} className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Your First Property
+                </Button>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="tenancies">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Active Tenancies</CardTitle>
-                    <CardDescription>Manage your current tenants and lease agreements</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      onClick={handleGenerateLease} 
-                      className="flex items-center gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Generate Lease
-                    </Button>
-                    <Button onClick={handleCreateTenancy} className="flex items-center gap-2">
-                      <Plus className="h-4 w-4" />
-                      New Tenancy
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {tenancies.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">No tenancies created yet</p>
-                    <Button onClick={handleCreateTenancy}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Your First Tenancy
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {tenancies.map((tenancy) => (
-                      <TenancyCard
-                        key={tenancy.id}
-                        tenancy={tenancy}
-                        onEdit={handleEditTenancy}
-                        onViewLease={handleViewLease}
-                      />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="inquiries">
-            <Card>
-              <CardHeader>
-                <CardTitle>Property Inquiries</CardTitle>
-                <CardDescription>Manage inquiries from potential tenants</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {inquiries.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No inquiries yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {inquiries.map((inquiry) => (
-                      <div key={inquiry.id} className="p-4 border rounded-lg">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="font-semibold">{inquiry.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {inquiry.properties?.title}
-                            </p>
-                          </div>
-                          <Badge variant={
-                            inquiry.status === 'pending' ? 'default' :
-                            inquiry.status === 'responded' ? 'secondary' : 'outline'
-                          }>
-                            {inquiry.status}
-                          </Badge>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm mb-3">
-                          <p><strong>Email:</strong> {inquiry.email}</p>
-                          {inquiry.phone && <p><strong>Phone:</strong> {inquiry.phone}</p>}
-                        </div>
-                        <p className="text-sm mb-4 p-3 bg-muted rounded">{inquiry.message}</p>
-                        <div className="flex gap-2">
-                          {inquiry.status === 'pending' && (
-                            <Button 
-                              size="sm" 
-                              onClick={() => updateInquiryStatus(inquiry.id, 'responded')}
-                            >
-                              Mark as Responded
-                            </Button>
-                          )}
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => updateInquiryStatus(inquiry.id, 'closed')}
-                          >
-                            Close Inquiry
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        {/* Tenancy Form Modal */}
-        <TenancyForm
-          isOpen={tenancyFormOpen}
-          onClose={() => {
-            setTenancyFormOpen(false);
-            setEditingTenancy(null);
-          }}
-          onSuccess={handleTenancyFormSuccess}
-          tenancy={editingTenancy}
-        />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {propertiesWithCounts.map((property) => (
+                <PropertyCard
+                  key={property.id}
+                  property={property}
+                  inquiriesCount={property.inquiriesCount}
+                  applicationsCount={property.applicationsCount}
+                  activeTenancy={property.activeTenancy}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
