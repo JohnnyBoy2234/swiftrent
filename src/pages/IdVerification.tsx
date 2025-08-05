@@ -83,12 +83,12 @@ export default function IdVerification() {
 
       if (uploadError) throw uploadError;
 
-      // Update profile to mark as pending verification
+      // Update profile to mark as verified (simulating instant verification for demo)
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
-          id_verified: false,
-          id_verification_status: 'pending'
+          id_verified: true,
+          id_verification_status: 'verified'
         })
         .eq('user_id', user.id);
 

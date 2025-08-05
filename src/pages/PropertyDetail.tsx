@@ -137,6 +137,7 @@ export default function PropertyDetail() {
         .single();
 
       if (error) throw error;
+      console.log('ID Verification check result:', data);
       setIsIdVerified(data.id_verified || false);
     } catch (error: any) {
       console.error('Error checking verification status:', error);
