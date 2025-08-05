@@ -96,6 +96,27 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
     if (!user) return;
 
     try {
+      // First check if user has already applied for this property
+      const { data: existingApplication, error: appError } = await supabase
+        .from('applications')
+        .select('id')
+        .eq('tenant_id', user.id)
+        .eq('property_id', propertyId)
+        .maybeSingle();
+
+      if (appError) throw appError;
+
+      // If user already applied, show message and close
+      if (existingApplication) {
+        toast({
+          title: "Already Applied",
+          description: "You have already submitted an application for this property.",
+        });
+        onComplete();
+        return;
+      }
+
+      // Check for existing profile
       const { data: existingProfile, error } = await supabase
         .from('screening_profiles')
         .select('*')
