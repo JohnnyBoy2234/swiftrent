@@ -5,6 +5,7 @@ import { Home, Search, Heart, User, Menu, LogOut, LayoutDashboard, MessageCircle
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { useUserProperties } from "@/hooks/useUserProperties";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
@@ -12,6 +13,7 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, signOut, isLandlord } = useAuth();
   const { unreadCount } = useUnreadMessages();
+  const { hasProperties } = useUserProperties();
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
@@ -80,7 +82,7 @@ const Navbar = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    {isLandlord && (
+                    {isLandlord && hasProperties && (
                       <>
                         <DropdownMenuItem asChild>
                           <Link to="/dashboard" className="flex items-center">
@@ -179,7 +181,7 @@ const Navbar = () => {
                         )}
                       </Link>
                     </Button>
-                    {isLandlord && (
+                    {isLandlord && hasProperties && (
                       <Button variant="outline" className="w-full" asChild>
                         <Link to="/dashboard">Dashboard</Link>
                       </Button>
