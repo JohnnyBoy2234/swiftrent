@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Home, MessageSquare, BarChart3, Eye, Edit, Trash2, Users, Calendar } from 'lucide-react';
+import { Plus, Home, MessageSquare, BarChart3, Eye, Edit, Trash2, Users, Calendar, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -221,6 +221,10 @@ export default function Dashboard() {
     window.open(url, '_blank');
   };
 
+  const handleGenerateLease = () => {
+    navigate('/dashboard/lease-generator');
+  };
+
   const stats = {
     totalProperties: properties.length,
     availableProperties: properties.filter(p => p.status === 'available').length,
@@ -393,10 +397,20 @@ export default function Dashboard() {
                     <CardTitle>Active Tenancies</CardTitle>
                     <CardDescription>Manage your current tenants and lease agreements</CardDescription>
                   </div>
-                  <Button onClick={handleCreateTenancy} className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    New Tenancy
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleGenerateLease} 
+                      className="flex items-center gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Generate Lease
+                    </Button>
+                    <Button onClick={handleCreateTenancy} className="flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      New Tenancy
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
