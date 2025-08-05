@@ -49,30 +49,45 @@ export const useApplications = () => {
     if (!user) return;
 
     try {
-      // Check if user is screened
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('is_tenant_screened')
+      // Check if user has a complete screening profile
+      const { data: screeningProfile, error: screeningError } = await supabase
+        .from('screening_profiles')
+        .select('is_complete')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (profileError) throw profileError;
+      if (screeningError) throw screeningError;
 
-      setIsScreened(profile.is_tenant_screened);
+      // User is screened if they have a complete screening profile
+      const isComplete = screeningProfile?.is_complete || false;
+      setIsScreened(isComplete);
 
-      // If screened, fetch screening details
-      if (profile.is_tenant_screened) {
-        const { data: screening, error: screeningError } = await supabase
-          .from('screening_details')
-          .select('*')
+      // Legacy support: if no screening profile but old screening details exist
+      if (!screeningProfile) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_tenant_screened')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (screeningError) throw screeningError;
-        setScreeningDetails(screening);
+        if (!profileError && profile?.is_tenant_screened) {
+          setIsScreened(true);
+          
+          // Fetch legacy screening details
+          const { data: screening } = await supabase
+            .from('screening_details')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          if (screening) {
+            setScreeningDetails(screening);
+          }
+        }
       }
     } catch (error) {
       console.error('Error checking screening status:', error);
+      setIsScreened(false);
     }
   };
 
