@@ -75,8 +75,9 @@ export default function PropertyDetail() {
   const [messageOpen, setMessageOpen] = useState(false);
   const [isIdVerified, setIsIdVerified] = useState(false);
   const [checkingVerification, setCheckingVerification] = useState(false);
+  const [userProfile, setUserProfile] = useState<{display_name: string; phone: string | null} | null>(null);
   
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<MessageFormData>();
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<MessageFormData>();
 
   useEffect(() => {
     if (id) {
@@ -87,8 +88,26 @@ export default function PropertyDetail() {
   useEffect(() => {
     if (user) {
       checkIdVerification();
+      fetchUserProfile();
     }
   }, [user]);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('display_name, phone')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      setUserProfile(data);
+    } catch (error: any) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const checkIdVerification = async () => {
     if (!user) return;
@@ -255,6 +274,15 @@ export default function PropertyDetail() {
       });
       navigate(`/id-verification?return=${encodeURIComponent(window.location.pathname)}`);
       return;
+    }
+
+    // Auto-fill form with user data
+    if (userProfile) {
+      setValue('name', userProfile.display_name || '');
+      setValue('phone', userProfile.phone || '');
+    }
+    if (user.email) {
+      setValue('email', user.email);
     }
 
     setMessageOpen(true);
