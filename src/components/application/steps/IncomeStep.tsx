@@ -117,21 +117,19 @@ export default function IncomeStep({ formData, updateFormData }: IncomeStepProps
       </div>
 
       {formData.income_sources.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground mb-4">No income sources added yet</p>
-            <Button onClick={addIncomeSource} variant="outline">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Your First Income Source
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="p-8 text-center border rounded-lg bg-card">
+          <p className="text-muted-foreground mb-4">No income sources added yet</p>
+          <Button onClick={addIncomeSource} variant="outline">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Your First Income Source
+          </Button>
+        </div>
       )}
 
       {formData.income_sources.map((source, index) => (
-        <Card key={index}>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Income Source {index + 1}</CardTitle>
+        <div key={index} className="p-6 border rounded-lg bg-card">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-lg font-semibold">Income Source {index + 1}</h4>
             <Button
               variant="outline"
               size="sm"
@@ -139,8 +137,8 @@ export default function IncomeStep({ formData, updateFormData }: IncomeStepProps
             >
               <Trash2 className="w-4 h-4" />
             </Button>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </div>
+          <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Income Type *</Label>
@@ -284,8 +282,8 @@ export default function IncomeStep({ formData, updateFormData }: IncomeStepProps
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ))}
 
       {formData.income_sources.length > 0 && (

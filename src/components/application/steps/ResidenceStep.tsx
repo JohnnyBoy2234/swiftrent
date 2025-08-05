@@ -77,23 +77,21 @@ export default function ResidenceStep({ formData, updateFormData }: ResidenceSte
       </div>
 
       {formData.residences.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground mb-4">No residences added yet</p>
-            <Button onClick={addResidence} variant="outline">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Current Address
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="p-8 text-center border rounded-lg bg-card">
+          <p className="text-muted-foreground mb-4">No residences added yet</p>
+          <Button onClick={addResidence} variant="outline">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Current Address
+          </Button>
+        </div>
       )}
 
       {formData.residences.map((residence, index) => (
-        <Card key={index}>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">
+        <div key={index} className="p-6 border rounded-lg bg-card">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-lg font-semibold">
               {index === 0 ? 'Current Residence' : `Previous Residence ${index}`}
-            </CardTitle>
+            </h4>
             <Button
               variant="outline"
               size="sm"
@@ -101,8 +99,8 @@ export default function ResidenceStep({ formData, updateFormData }: ResidenceSte
             >
               <Trash2 className="w-4 h-4" />
             </Button>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </div>
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label>Residence Type *</Label>
               <Select 
@@ -254,8 +252,8 @@ export default function ResidenceStep({ formData, updateFormData }: ResidenceSte
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ))}
 
       {formData.residences.length > 0 && (

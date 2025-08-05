@@ -46,17 +46,17 @@ export default function HouseholdStep({ formData, updateFormData }: HouseholdSte
   return (
     <div className="space-y-6">
       {/* Other Occupants */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Other Occupants</CardTitle>
+      <div>
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">Other Occupants</h3>
           <p className="text-sm text-muted-foreground">
             List anyone else who will be living in the property
           </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        </div>
+        <div className="space-y-4">
           {/* Existing occupants */}
           {formData.occupants.map((occupant, index) => (
-            <div key={index} className="flex items-center gap-4 p-4 border rounded-lg">
+            <div key={index} className="flex items-center gap-4 p-4 border rounded-lg bg-card">
               <div className="flex-1">
                 <p className="font-medium">{occupant.name}</p>
                 <p className="text-sm text-muted-foreground">{occupant.relationship}</p>
@@ -113,15 +113,15 @@ export default function HouseholdStep({ formData, updateFormData }: HouseholdSte
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Pets */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Pets</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div>
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">Pets</h3>
+        </div>
+        <div className="space-y-4 p-4 border rounded-lg bg-card">
           <div className="space-y-2">
             <Label>Do you have pets?</Label>
             <RadioGroup
@@ -154,8 +154,8 @@ export default function HouseholdStep({ formData, updateFormData }: HouseholdSte
               />
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
