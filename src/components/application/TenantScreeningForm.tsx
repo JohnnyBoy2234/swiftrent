@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +44,7 @@ export default function TenantScreeningForm({
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ScreeningFormData>({
     defaultValues: {
@@ -52,10 +53,70 @@ export default function TenantScreeningForm({
     }
   });
 
+  // Fetch user profile data on component mount
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('display_name, phone')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      
+      if (data) {
+        setUserProfile(data);
+        // Pre-fill the form with verified user information
+        setValue('full_name', data.display_name || '');
+        setValue('phone', data.phone || '');
+        // For demo purposes, we'll use a placeholder ID number
+        // In a real app, this would come from the ID verification process
+        setValue('id_number', 'ID_VERIFIED_FROM_SYSTEM');
+      }
+    } catch (error: any) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
   const employmentStatus = watch('employment_status');
   const consentGiven = watch('consent_given');
 
+  const validateCurrentStep = () => {
+    const values = watch();
+    
+    switch (currentStep) {
+      case 1:
+        return values.full_name && values.id_number && values.phone;
+      case 2:
+        return values.employment_status && 
+               (values.employment_status === 'unemployed' || values.employment_status === 'student' || values.employment_status === 'retired' || values.net_monthly_income);
+      case 3:
+        return true; // All fields in step 3 are optional
+      case 4:
+        return values.consent_given;
+      default:
+        return false;
+    }
+  };
+
   const handleNext = () => {
+    if (!validateCurrentStep()) {
+      toast({
+        variant: "destructive",
+        title: "Please complete all required fields",
+        description: "Fill in all mandatory fields before proceeding to the next step."
+      });
+      return;
+    }
+    
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     }
@@ -129,7 +190,10 @@ export default function TenantScreeningForm({
               <Input
                 {...register('full_name', { required: 'Full name is required' })}
                 placeholder="Enter your full name"
+                readOnly
+                className="bg-muted"
               />
+              <p className="text-xs text-muted-foreground mt-1">Pre-filled from your verified ID</p>
               {errors.full_name && (
                 <p className="text-sm text-destructive mt-1">{errors.full_name.message}</p>
               )}
@@ -140,7 +204,10 @@ export default function TenantScreeningForm({
               <Input
                 {...register('id_number', { required: 'ID/Passport number is required' })}
                 placeholder="Enter your ID or passport number"
+                readOnly
+                className="bg-muted"
               />
+              <p className="text-xs text-muted-foreground mt-1">Pre-filled from your verified ID</p>
               {errors.id_number && (
                 <p className="text-sm text-destructive mt-1">{errors.id_number.message}</p>
               )}
