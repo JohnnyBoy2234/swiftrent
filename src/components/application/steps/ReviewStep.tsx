@@ -66,26 +66,24 @@ export default function ReviewStep({ formData }: ReviewStepProps) {
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <Card>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-sm font-medium">First Name:</span>
-                    <p className="text-sm text-muted-foreground">{formData.first_name || 'Not provided'}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium">Last Name:</span>
-                    <p className="text-sm text-muted-foreground">{formData.last_name || 'Not provided'}</p>
-                  </div>
-                  {formData.middle_name && (
-                    <div>
-                      <span className="text-sm font-medium">Middle Name:</span>
-                      <p className="text-sm text-muted-foreground">{formData.middle_name}</p>
-                    </div>
-                  )}
+            <div className="p-4 border rounded-lg bg-card">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm font-medium">First Name:</span>
+                  <p className="text-sm text-muted-foreground">{formData.first_name || 'Not provided'}</p>
                 </div>
-              </CardContent>
-            </Card>
+                <div>
+                  <span className="text-sm font-medium">Last Name:</span>
+                  <p className="text-sm text-muted-foreground">{formData.last_name || 'Not provided'}</p>
+                </div>
+                {formData.middle_name && (
+                  <div>
+                    <span className="text-sm font-medium">Middle Name:</span>
+                    <p className="text-sm text-muted-foreground">{formData.middle_name}</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </AccordionContent>
         </AccordionItem>
 
@@ -99,32 +97,30 @@ export default function ReviewStep({ formData }: ReviewStepProps) {
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <Card>
-              <CardContent className="p-4 space-y-4">
-                <div>
-                  <span className="text-sm font-medium">Other Occupants:</span>
-                  {formData.occupants.length > 0 ? (
-                    <div className="mt-2 space-y-2">
-                      {formData.occupants.map((occupant, index) => (
-                        <div key={index} className="flex justify-between text-sm">
-                          <span>{occupant.name}</span>
-                          <span className="text-muted-foreground">{occupant.relationship}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground mt-1">No additional occupants</p>
-                  )}
-                </div>
-                <div>
-                  <span className="text-sm font-medium">Pets:</span>
-                  <p className="text-sm text-muted-foreground">
-                    {formData.has_pets ? 'Yes' : 'No'}
-                    {formData.has_pets && formData.pet_details && ` - ${formData.pet_details}`}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="p-4 border rounded-lg bg-card space-y-4">
+              <div>
+                <span className="text-sm font-medium">Other Occupants:</span>
+                {formData.occupants.length > 0 ? (
+                  <div className="mt-2 space-y-2">
+                    {formData.occupants.map((occupant, index) => (
+                      <div key={index} className="flex justify-between text-sm">
+                        <span>{occupant.name}</span>
+                        <span className="text-muted-foreground">{occupant.relationship}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground mt-1">No additional occupants</p>
+                )}
+              </div>
+              <div>
+                <span className="text-sm font-medium">Pets:</span>
+                <p className="text-sm text-muted-foreground">
+                  {formData.has_pets ? 'Yes' : 'No'}
+                  {formData.has_pets && formData.pet_details && ` - ${formData.pet_details}`}
+                </p>
+              </div>
+            </div>
           </AccordionContent>
         </AccordionItem>
 
@@ -140,55 +136,53 @@ export default function ReviewStep({ formData }: ReviewStepProps) {
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <Card>
-              <CardContent className="p-4">
-                {formData.income_sources.length > 0 ? (
-                  <div className="space-y-4">
-                    {formData.income_sources.map((source, index) => (
-                      <div key={index} className="border rounded-lg p-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <span className="text-sm font-medium">Type:</span>
-                            <p className="text-sm text-muted-foreground">{source.type}</p>
-                          </div>
-                          <div>
-                            <span className="text-sm font-medium">Monthly Income:</span>
-                            <p className="text-sm text-muted-foreground">R{source.monthly_income.toLocaleString()}</p>
-                          </div>
-                          <div>
-                            <span className="text-sm font-medium">Job Title:</span>
-                            <p className="text-sm text-muted-foreground">{source.job_title}</p>
-                          </div>
-                          <div>
-                            <span className="text-sm font-medium">Employer:</span>
-                            <p className="text-sm text-muted-foreground">{source.employer}</p>
-                          </div>
-                          <div>
-                            <span className="text-sm font-medium">Started:</span>
-                            <p className="text-sm text-muted-foreground">
-                              {source.started_on ? format(new Date(source.started_on), 'MMM yyyy') : 'Not provided'}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-sm font-medium">Documents:</span>
-                            <p className="text-sm text-muted-foreground">
-                              {source.documents?.length || 0} uploaded
-                            </p>
-                          </div>
+            <div className="p-4 border rounded-lg bg-card">
+              {formData.income_sources.length > 0 ? (
+                <div className="space-y-4">
+                  {formData.income_sources.map((source, index) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-sm font-medium">Type:</span>
+                          <p className="text-sm text-muted-foreground">{source.type}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium">Monthly Income:</span>
+                          <p className="text-sm text-muted-foreground">R{source.monthly_income.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium">Job Title:</span>
+                          <p className="text-sm text-muted-foreground">{source.job_title}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium">Employer:</span>
+                          <p className="text-sm text-muted-foreground">{source.employer}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium">Started:</span>
+                          <p className="text-sm text-muted-foreground">
+                            {source.started_on ? format(new Date(source.started_on), 'MMM yyyy') : 'Not provided'}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium">Documents:</span>
+                          <p className="text-sm text-muted-foreground">
+                            {source.documents?.length || 0} uploaded
+                          </p>
                         </div>
                       </div>
-                    ))}
-                    <div className="text-right">
-                      <span className="text-lg font-semibold">
-                        Total Monthly Income: R{formData.income_sources.reduce((sum, source) => sum + source.monthly_income, 0).toLocaleString()}
-                      </span>
                     </div>
+                  ))}
+                  <div className="text-right">
+                    <span className="text-lg font-semibold">
+                      Total Monthly Income: R{formData.income_sources.reduce((sum, source) => sum + source.monthly_income, 0).toLocaleString()}
+                    </span>
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No income sources provided</p>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No income sources provided</p>
+              )}
+            </div>
           </AccordionContent>
         </AccordionItem>
 
@@ -204,51 +198,49 @@ export default function ReviewStep({ formData }: ReviewStepProps) {
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <Card>
-              <CardContent className="p-4">
-                {formData.residences.length > 0 ? (
-                  <div className="space-y-4">
-                    {formData.residences.map((residence, index) => (
-                      <div key={index} className="border rounded-lg p-4">
-                        <h5 className="font-medium mb-2">
-                          {index === 0 ? 'Current Residence' : `Previous Residence ${index}`}
-                        </h5>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium">Type:</span>
-                            <p className="text-muted-foreground">{residence.type}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium">Monthly Rent:</span>
-                            <p className="text-muted-foreground">R{residence.monthly_rent.toLocaleString()}</p>
-                          </div>
-                          <div className="col-span-2">
-                            <span className="font-medium">Address:</span>
-                            <p className="text-muted-foreground">
-                              {residence.street}, {residence.city}, {residence.province} {residence.postcode}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="font-medium">Moved In:</span>
-                            <p className="text-muted-foreground">
-                              {residence.moved_in ? format(new Date(residence.moved_in), 'MMM yyyy') : 'Not provided'}
-                            </p>
-                          </div>
-                          {residence.reason_for_moving && (
-                            <div>
-                              <span className="font-medium">Reason for Moving:</span>
-                              <p className="text-muted-foreground">{residence.reason_for_moving}</p>
-                            </div>
-                          )}
+            <div className="p-4 border rounded-lg bg-card">
+              {formData.residences.length > 0 ? (
+                <div className="space-y-4">
+                  {formData.residences.map((residence, index) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <h5 className="font-medium mb-2">
+                        {index === 0 ? 'Current Residence' : `Previous Residence ${index}`}
+                      </h5>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="font-medium">Type:</span>
+                          <p className="text-muted-foreground">{residence.type}</p>
                         </div>
+                        <div>
+                          <span className="font-medium">Monthly Rent:</span>
+                          <p className="text-muted-foreground">R{residence.monthly_rent.toLocaleString()}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="font-medium">Address:</span>
+                          <p className="text-muted-foreground">
+                            {residence.street}, {residence.city}, {residence.province} {residence.postcode}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Moved In:</span>
+                          <p className="text-muted-foreground">
+                            {residence.moved_in ? format(new Date(residence.moved_in), 'MMM yyyy') : 'Not provided'}
+                          </p>
+                        </div>
+                        {residence.reason_for_moving && (
+                          <div>
+                            <span className="font-medium">Reason for Moving:</span>
+                            <p className="text-muted-foreground">{residence.reason_for_moving}</p>
+                          </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No residence history provided</p>
-                )}
-              </CardContent>
-            </Card>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No residence history provided</p>
+              )}
+            </div>
           </AccordionContent>
         </AccordionItem>
 
@@ -264,25 +256,23 @@ export default function ReviewStep({ formData }: ReviewStepProps) {
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  {formData.screening_consent ? (
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  ) : (
-                    <XCircle className="w-5 h-5 text-red-600" />
-                  )}
-                  <span className="text-sm">
-                    Background and credit check consent: {formData.screening_consent ? 'Granted' : 'Not granted'}
-                  </span>
-                </div>
-                {formData.screening_consent && formData.screening_consent_date && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Consent granted on {format(new Date(formData.screening_consent_date), 'PPP')}
-                  </p>
+            <div className="p-4 border rounded-lg bg-card">
+              <div className="flex items-center gap-2">
+                {formData.screening_consent ? (
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-red-600" />
                 )}
-              </CardContent>
-            </Card>
+                <span className="text-sm">
+                  Background and credit check consent: {formData.screening_consent ? 'Granted' : 'Not granted'}
+                </span>
+              </div>
+              {formData.screening_consent && formData.screening_consent_date && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Consent granted on {format(new Date(formData.screening_consent_date), 'PPP')}
+                </p>
+              )}
+            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>

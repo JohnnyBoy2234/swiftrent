@@ -25,42 +25,34 @@ export default function ScreeningReportsStep({ formData, updateFormData }: Scree
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <FileCheck className="w-12 h-12 mx-auto mb-4 text-primary" />
-            <h4 className="font-semibold mb-2">Background Check</h4>
-            <p className="text-sm text-muted-foreground">
-              Criminal record and identity verification to ensure safety
-            </p>
-          </CardContent>
-        </Card>
+        <div className="p-6 text-center border rounded-lg bg-card">
+          <FileCheck className="w-12 h-12 mx-auto mb-4 text-primary" />
+          <h4 className="font-semibold mb-2">Background Check</h4>
+          <p className="text-sm text-muted-foreground">
+            Criminal record and identity verification to ensure safety
+          </p>
+        </div>
 
-        <Card>
-          <CardContent className="p-6 text-center">
-            <CreditCard className="w-12 h-12 mx-auto mb-4 text-primary" />
-            <h4 className="font-semibold mb-2">Credit Check</h4>
-            <p className="text-sm text-muted-foreground">
-              Credit history and score to assess financial reliability
-            </p>
-          </CardContent>
-        </Card>
+        <div className="p-6 text-center border rounded-lg bg-card">
+          <CreditCard className="w-12 h-12 mx-auto mb-4 text-primary" />
+          <h4 className="font-semibold mb-2">Credit Check</h4>
+          <p className="text-sm text-muted-foreground">
+            Credit history and score to assess financial reliability
+          </p>
+        </div>
 
-        <Card>
-          <CardContent className="p-6 text-center">
-            <UserCheck className="w-12 h-12 mx-auto mb-4 text-primary" />
-            <h4 className="font-semibold mb-2">Reference Verification</h4>
-            <p className="text-sm text-muted-foreground">
-              Verification of employment and previous rental history
-            </p>
-          </CardContent>
-        </Card>
+        <div className="p-6 text-center border rounded-lg bg-card">
+          <UserCheck className="w-12 h-12 mx-auto mb-4 text-primary" />
+          <h4 className="font-semibold mb-2">Reference Verification</h4>
+          <p className="text-sm text-muted-foreground">
+            Verification of employment and previous rental history
+          </p>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Consent Required</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="p-6 border rounded-lg bg-card">
+        <h4 className="text-lg font-semibold mb-4">Consent Required</h4>
+        <div className="space-y-4">
           <Alert>
             <AlertDescription>
               <strong>Your Privacy:</strong> All checks are conducted by licensed agencies and your information 
@@ -94,8 +86,8 @@ export default function ScreeningReportsStep({ formData, updateFormData }: Scree
             * This consent is required to submit your application and can be withdrawn at any time 
             by contacting us directly.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Alert>
         <AlertDescription>
