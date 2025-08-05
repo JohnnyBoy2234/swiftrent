@@ -95,6 +95,8 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
   const checkExistingProfile = async () => {
     if (!user) return;
 
+    console.log('Checking existing profile for user:', user.id, 'property:', propertyId);
+
     try {
       // First check if user has already applied for this property
       const { data: existingApplication, error: appError } = await supabase
@@ -106,8 +108,11 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
 
       if (appError) throw appError;
 
+      console.log('Existing application check:', existingApplication);
+
       // If user already applied, show message and close
       if (existingApplication) {
+        console.log('User already has application for this property');
         toast({
           title: "Already Applied",
           description: "You have already submitted an application for this property.",
@@ -125,6 +130,8 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
 
       if (error) throw error;
 
+      console.log('Existing profile check:', existingProfile);
+
       if (existingProfile) {
         // Type the JSON data properly
         const typedProfile: ScreeningProfile = {
@@ -138,8 +145,13 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
         setIsExistingProfile(true);
         // If profile is complete, go straight to review
         if (existingProfile.is_complete) {
+          console.log('Profile is complete, going to review step');
           setCurrentStep(5); // Review step
+        } else {
+          console.log('Profile exists but incomplete, starting from beginning');
         }
+      } else {
+        console.log('No existing profile found, starting fresh');
       }
     } catch (error) {
       console.error('Error checking existing profile:', error);
