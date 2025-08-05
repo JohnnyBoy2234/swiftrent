@@ -109,6 +109,72 @@ export type Database = {
           },
         ]
       }
+      maintenance_requests: {
+        Row: {
+          actual_cost: number | null
+          category: string
+          completed_date: string | null
+          contractor_contact: string | null
+          contractor_name: string | null
+          created_at: string
+          description: string
+          estimated_cost: number | null
+          id: string
+          images: string[] | null
+          landlord_id: string
+          notes: string | null
+          priority: string
+          property_id: string
+          scheduled_date: string | null
+          status: string
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          category: string
+          completed_date?: string | null
+          contractor_contact?: string | null
+          contractor_name?: string | null
+          created_at?: string
+          description: string
+          estimated_cost?: number | null
+          id?: string
+          images?: string[] | null
+          landlord_id: string
+          notes?: string | null
+          priority?: string
+          property_id: string
+          scheduled_date?: string | null
+          status?: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_cost?: number | null
+          category?: string
+          completed_date?: string | null
+          contractor_contact?: string | null
+          contractor_name?: string | null
+          created_at?: string
+          description?: string
+          estimated_cost?: number | null
+          id?: string
+          images?: string[] | null
+          landlord_id?: string
+          notes?: string | null
+          priority?: string
+          property_id?: string
+          scheduled_date?: string | null
+          status?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           attachment_url: string | null
@@ -260,6 +326,96 @@ export type Database = {
           size_sqm?: number | null
           status?: string
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rent_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string
+          id: string
+          notes: string | null
+          paid_date: string | null
+          payment_method: string | null
+          reference_number: string | null
+          status: string
+          tenancy_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          reference_number?: string | null
+          status?: string
+          tenancy_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          reference_number?: string | null
+          status?: string
+          tenancy_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tenancies: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          landlord_id: string
+          lease_document_url: string | null
+          monthly_rent: number
+          notes: string | null
+          property_id: string
+          security_deposit: number | null
+          start_date: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          landlord_id: string
+          lease_document_url?: string | null
+          monthly_rent: number
+          notes?: string | null
+          property_id: string
+          security_deposit?: number | null
+          start_date: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          landlord_id?: string
+          lease_document_url?: string | null
+          monthly_rent?: number
+          notes?: string | null
+          property_id?: string
+          security_deposit?: number | null
+          start_date?: string
+          status?: string
+          tenant_id?: string
           updated_at?: string
         }
         Relationships: []
