@@ -78,8 +78,8 @@ export default function IdVerification() {
       const fileName = `${user.id}-id-${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
-        .from('property-images')
-        .upload(`id-documents/${fileName}`, idFile);
+        .from('id-documents')
+        .upload(`${user.id}/${fileName}`, idFile);
 
       if (uploadError) throw uploadError;
 
