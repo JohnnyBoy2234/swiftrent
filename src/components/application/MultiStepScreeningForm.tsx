@@ -299,7 +299,7 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
       case 'personal':
         return formData.first_name && formData.last_name;
       case 'household':
-        return true; // Optional
+        return false; // Not automatically complete
       case 'income':
         return formData.income_sources.length > 0;
       case 'residence':
@@ -325,8 +325,8 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
+    <div className="bg-background">
+      <div className="container mx-auto py-8 px-4 max-w-4xl min-h-screen">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-4">Rental Application</h1>
@@ -365,11 +365,11 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
         </div>
 
         {/* Step Content */}
-        <Card>
+        <Card className="max-h-none">
           <CardHeader>
             <CardTitle>{STEPS[currentStep].title}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="max-h-[60vh] overflow-y-auto">
             <CurrentStepComponent
               formData={formData}
               updateFormData={updateFormData}
