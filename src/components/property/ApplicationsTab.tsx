@@ -334,6 +334,28 @@ export function ApplicationsTab({ propertyId, onStartLease }: ApplicationsTabPro
                                 </Button>
                               </>
                             )}
+                            
+                            {application.status === 'accepted' && (
+                              <Button 
+                                onClick={() => {
+                                  const tenantName = application.screening_profile 
+                                    ? `${application.screening_profile.first_name} ${application.screening_profile.last_name}`
+                                    : application.tenant_profile?.display_name || 'Tenant';
+                                  onStartLease(application.tenant_id, tenantName);
+                                }}
+                                className="bg-blue-600 hover:bg-blue-700"
+                                size="sm"
+                              >
+                                <FileText className="h-4 w-4 mr-2" />
+                                Create Lease
+                              </Button>
+                            )}
+
+                            {application.status === 'declined' && (
+                              <Badge variant="destructive">
+                                Application Declined
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </CardContent>
