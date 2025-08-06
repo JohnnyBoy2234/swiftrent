@@ -337,8 +337,12 @@ export default function Dashboard() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="w-4 h-4" />
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate(`/manage-property/${property.id}`)}
+                        >
+                          <Eye className="w-4 h-4" />
                         </Button>
                       </TableCell>
                     </TableRow>

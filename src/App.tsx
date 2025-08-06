@@ -16,6 +16,7 @@ import Dashboard from "./pages/Dashboard";
 import AddProperty from "./pages/AddProperty";
 import ListProperty from "./pages/ListProperty";
 import PropertyDetail from "./pages/PropertyDetail";
+import PropertyManagement from "./pages/PropertyManagement";
 import IdVerification from "./pages/IdVerification";
 import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/add-property" element={<RouteGuard><AddProperty /></RouteGuard>} />
             <Route path="/list-property" element={<RouteGuard><ListProperty /></RouteGuard>} />
             <Route path="/property/:id" element={<PropertyDetail />} />
+            <Route path="/manage-property/:id" element={<RouteGuard><PropertyManagement /></RouteGuard>} />
             <Route path="/id-verification" element={<IdVerification />} />
             <Route path="/messages" element={<RouteGuard><Messages /></RouteGuard>} />
             <Route path="/apply/:id" element={<PropertyDetail />} />
