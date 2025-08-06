@@ -12,6 +12,7 @@ interface UploadLeaseWorkflowProps {
   propertyId: string;
   onBack: () => void;
   onComplete: () => void;
+  selectedTenant?: { id: string; name: string } | null;
 }
 
 interface SignatureField {
@@ -26,7 +27,8 @@ interface SignatureField {
 export const UploadLeaseWorkflow = ({ 
   propertyId, 
   onBack, 
-  onComplete 
+  onComplete,
+  selectedTenant 
 }: UploadLeaseWorkflowProps) => {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);

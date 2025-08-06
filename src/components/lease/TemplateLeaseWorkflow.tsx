@@ -15,6 +15,7 @@ interface TemplateLeaseWorkflowProps {
   propertyId: string;
   onBack: () => void;
   onComplete: () => void;
+  selectedTenant?: { id: string; name: string } | null;
 }
 
 interface LeaseData {
@@ -40,7 +41,8 @@ const commonClauses = [
 export const TemplateLeaseWorkflow = ({ 
   propertyId, 
   onBack, 
-  onComplete 
+  onComplete,
+  selectedTenant 
 }: TemplateLeaseWorkflowProps) => {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);

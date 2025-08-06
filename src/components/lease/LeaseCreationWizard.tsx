@@ -11,6 +11,7 @@ interface LeaseCreationWizardProps {
   onClose: () => void;
   propertyId: string;
   onLeaseCreated?: () => void;
+  selectedTenant?: { id: string; name: string } | null;
 }
 
 type WorkflowType = 'template' | 'upload' | null;
@@ -19,7 +20,8 @@ export const LeaseCreationWizard = ({
   isOpen,
   onClose,
   propertyId,
-  onLeaseCreated
+  onLeaseCreated,
+  selectedTenant
 }: LeaseCreationWizardProps) => {
   const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowType>(null);
 
@@ -119,12 +121,14 @@ export const LeaseCreationWizard = ({
             propertyId={propertyId}
             onBack={handleBack}
             onComplete={handleComplete}
+            selectedTenant={selectedTenant}
           />
         ) : (
           <UploadLeaseWorkflow
             propertyId={propertyId}
             onBack={handleBack}
             onComplete={handleComplete}
+            selectedTenant={selectedTenant}
           />
         )}
       </DialogContent>

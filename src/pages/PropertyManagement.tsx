@@ -29,6 +29,7 @@ import {
 import { Property } from '@/types/dashboard';
 import { LeaseSigningDialog } from '@/components/lease/LeaseSigningDialog';
 import { LeaseCreationWizard } from '@/components/lease/LeaseCreationWizard';
+import { ApplicationsTab } from '@/components/property/ApplicationsTab';
 
 interface MaintenanceRequest {
   id: string;
@@ -54,6 +55,7 @@ export default function PropertyManagement() {
   const [emailForInvite, setEmailForInvite] = useState('');
   const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([]);
   const [showLeaseDialog, setShowLeaseDialog] = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     if (!user || !isLandlord) {
@@ -144,6 +146,16 @@ export default function PropertyManagement() {
       default:
         return <AlertCircle className="h-4 w-4" />;
     }
+  };
+
+  const handleStartLease = (tenantId: string, tenantName: string) => {
+    setSelectedTenant({ id: tenantId, name: tenantName });
+    setShowLeaseDialog(true);
+  };
+
+  const handleLeaseDialogClose = () => {
+    setShowLeaseDialog(false);
+    setSelectedTenant(null);
   };
 
   if (loading) {
@@ -360,50 +372,10 @@ export default function PropertyManagement() {
 
         {/* Applications Tab */}
         <TabsContent value="applications" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Applications</CardTitle>
-              <CardDescription>Manage tenant applications for this property</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="text-center py-8">
-                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">No new applications</h3>
-                <p className="text-muted-foreground mb-6">Applications will appear here when submitted</p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex gap-3">
-                  <Input
-                    placeholder="Enter email address"
-                    value={emailForInvite}
-                    onChange={(e) => setEmailForInvite(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button onClick={handleSendInvite} disabled={!emailForInvite}>
-                    <Mail className="h-4 w-4 mr-2" />
-                    Send application link
-                  </Button>
-                </div>
-                
-                <Button variant="outline" className="w-full">
-                  <Link className="h-4 w-4 mr-2" />
-                  Get shareable application link
-                </Button>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Invite more renters to apply</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Button variant="outline" className="w-full">
-                    Print your property sheet
-                  </Button>
-                </CardContent>
-              </Card>
-            </CardContent>
-          </Card>
+          <ApplicationsTab 
+            propertyId={property.id} 
+            onStartLease={handleStartLease}
+          />
         </TabsContent>
 
         {/* Leases Tab */}
@@ -537,10 +509,12 @@ export default function PropertyManagement() {
       {showLeaseDialog && property && (
         <LeaseCreationWizard
           isOpen={showLeaseDialog}
-          onClose={() => setShowLeaseDialog(false)}
+          onClose={handleLeaseDialogClose}
           propertyId={property.id}
+          selectedTenant={selectedTenant}
           onLeaseCreated={() => {
             setShowLeaseDialog(false);
+            setSelectedTenant(null);
             toast({
               title: "Success",
               description: "Lease created successfully and ready for signing",
