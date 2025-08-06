@@ -370,10 +370,10 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   return (
-    <div className="bg-background min-h-screen flex flex-col">
-      <div className="container mx-auto py-8 px-4 max-w-4xl flex-1 flex flex-col">
-        {/* Header */}
-        <div className="mb-8">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header - Fixed height */}
+      <div className="flex-shrink-0 bg-background border-b">
+        <div className="container mx-auto py-6 px-4 max-w-4xl">
           <h1 className="text-3xl font-bold mb-4">Rental Application</h1>
           <Progress value={progress} className="h-2" />
           
@@ -408,70 +408,78 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Step Content - Flexible height with proper scrolling */}
-        <div className="flex-1 flex flex-col min-h-0 relative">
-          {/* Auto-save indicator */}
-          {showSavedMessage && (
-            <div className="absolute top-4 right-4 z-10 bg-green-50 text-green-700 px-3 py-1 rounded-md text-sm border border-green-200 shadow-sm">
-              Progress saved ✓
-            </div>
-          )}
-          
-          <Card className="flex-1 flex flex-col">
-            <CardHeader className="flex-shrink-0">
-              <CardTitle className="flex items-center justify-between">
-                {STEPS[currentStep].title}
-                {autoSaving && (
-                  <span className="text-sm text-muted-foreground">Saving...</span>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-hidden p-0">
-              <div className="h-full overflow-y-auto">
-                <div className="p-6 space-y-6">
-                  <CurrentStepComponent
-                    formData={formData}
-                    updateFormData={updateFormData}
-                    onNext={nextStep}
-                    onSave={saveProfile}
-                  />
-                </div>
+      {/* Content Area - Scrollable */}
+      <div className="flex-1 overflow-hidden">
+        <div className="container mx-auto px-4 max-w-4xl h-full flex flex-col">
+          <div className="flex-1 py-6 overflow-hidden relative">
+            {/* Auto-save indicator */}
+            {showSavedMessage && (
+              <div className="absolute top-2 right-2 z-10 bg-green-50 text-green-700 px-3 py-1 rounded-md text-sm border border-green-200 shadow-sm">
+                Progress saved ✓
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Fixed Navigation at bottom */}
-        <div className="flex justify-between mt-6 pt-4 border-t bg-background">
-          <Button
-            variant="outline"
-            onClick={currentStep === 0 ? onCancel : prevStep}
-            className="flex items-center gap-2"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            {currentStep === 0 ? 'Cancel' : 'Previous'}
-          </Button>
-
-          <div className="flex gap-2">
-            {currentStep === STEPS.length - 1 ? (
-              <Button 
-                onClick={submitApplication}
-                disabled={!Object.keys(STEPS).every((_, index) => isStepComplete(index))}
-                className="flex items-center gap-2"
-              >
-                Submit Application
-              </Button>
-            ) : (
-              <Button 
-                onClick={nextStep}
-                disabled={!validateCurrentStep()}
-                className="flex items-center gap-2"
-              >
-                Next
-                <ChevronRight className="w-4 h-4" />
-              </Button>
             )}
+            
+            <Card className="h-full flex flex-col">
+              <CardHeader className="flex-shrink-0">
+                <CardTitle className="flex items-center justify-between">
+                  {STEPS[currentStep].title}
+                  {autoSaving && (
+                    <span className="text-sm text-muted-foreground">Saving...</span>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-hidden p-0">
+                <div className="h-full overflow-y-auto">
+                  <div className="p-6">
+                    <CurrentStepComponent
+                      formData={formData}
+                      updateFormData={updateFormData}
+                      onNext={nextStep}
+                      onSave={saveProfile}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Navigation - Fixed at bottom */}
+      <div className="flex-shrink-0 bg-background border-t">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="flex justify-between py-4">
+            <Button
+              variant="outline"
+              onClick={currentStep === 0 ? onCancel : prevStep}
+              className="flex items-center gap-2"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              {currentStep === 0 ? 'Cancel' : 'Previous'}
+            </Button>
+
+            <div className="flex gap-2">
+              {currentStep === STEPS.length - 1 ? (
+                <Button 
+                  onClick={submitApplication}
+                  disabled={!Object.keys(STEPS).every((_, index) => isStepComplete(index))}
+                  className="flex items-center gap-2"
+                >
+                  Submit Application
+                </Button>
+              ) : (
+                <Button 
+                  onClick={nextStep}
+                  disabled={!validateCurrentStep()}
+                  className="flex items-center gap-2"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

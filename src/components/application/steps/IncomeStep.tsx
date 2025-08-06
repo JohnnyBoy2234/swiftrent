@@ -102,7 +102,7 @@ export default function IncomeStep({ formData, updateFormData }: IncomeStepProps
   };
 
   return (
-    <div className="space-y-6 max-h-full overflow-y-auto">
+    <div className="space-y-6">{/* Removed max-height and overflow constraints */}
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-semibold">Income Sources</h3>
