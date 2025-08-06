@@ -78,8 +78,21 @@ export const TemplateLeaseWorkflow = ({
   };
 
   const handleGenerateAndSend = async () => {
+    console.log("Button clicked - handleGenerateAndSend called");
+    console.log("Current user:", user);
+    console.log("Property ID:", propertyId);
+    console.log("Lease data:", leaseData);
+    
     if (!user) {
+      console.error("No user found");
       toast.error("You must be logged in to generate a lease");
+      return;
+    }
+    
+    // Validate lease data
+    if (!leaseData.monthlyRent || !leaseData.securityDeposit || !leaseData.startDate) {
+      console.error("Missing required lease data:", leaseData);
+      toast.error("Please fill in all required fields");
       return;
     }
     
