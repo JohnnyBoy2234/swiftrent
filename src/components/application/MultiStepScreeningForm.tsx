@@ -370,7 +370,7 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="fixed inset-0 bg-background flex flex-col">
       {/* Header - Fixed height */}
       <div className="flex-shrink-0 bg-background border-b">
         <div className="container mx-auto py-6 px-4 max-w-4xl">
@@ -411,9 +411,9 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
       </div>
 
       {/* Content Area - Scrollable */}
-      <div className="flex-1 overflow-hidden">
-        <div className="container mx-auto px-4 max-w-4xl h-full flex flex-col">
-          <div className="flex-1 py-6 overflow-hidden relative">
+      <div className="flex-1 min-h-0">
+        <div className="container mx-auto px-4 max-w-4xl h-full">
+          <div className="py-6 h-full relative">
             {/* Auto-save indicator */}
             {showSavedMessage && (
               <div className="absolute top-2 right-2 z-10 bg-green-50 text-green-700 px-3 py-1 rounded-md text-sm border border-green-200 shadow-sm">
@@ -430,17 +430,13 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 overflow-hidden p-0">
-                <div className="h-full overflow-y-auto">
-                  <div className="p-6">
-                    <CurrentStepComponent
-                      formData={formData}
-                      updateFormData={updateFormData}
-                      onNext={nextStep}
-                      onSave={saveProfile}
-                    />
-                  </div>
-                </div>
+              <CardContent className="flex-1 min-h-0 p-6 overflow-y-auto">
+                <CurrentStepComponent
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  onNext={nextStep}
+                  onSave={saveProfile}
+                />
               </CardContent>
             </Card>
           </div>
