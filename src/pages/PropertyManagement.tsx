@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { Property } from '@/types/dashboard';
 import { LeaseSigningDialog } from '@/components/lease/LeaseSigningDialog';
+import { LeaseCreationWizard } from '@/components/lease/LeaseCreationWizard';
 
 interface MaintenanceRequest {
   id: string;
@@ -532,19 +533,17 @@ export default function PropertyManagement() {
         </TabsContent>
       </Tabs>
 
-      {/* Lease Signing Dialog */}
-      {showLeaseDialog && (
-        <LeaseSigningDialog
+      {/* Lease Creation Wizard */}
+      {showLeaseDialog && property && (
+        <LeaseCreationWizard
           isOpen={showLeaseDialog}
           onClose={() => setShowLeaseDialog(false)}
-          tenancyId=""
-          leaseDocumentUrl=""
-          currentStatus="draft"
-          onSigned={() => {
+          propertyId={property.id}
+          onLeaseCreated={() => {
             setShowLeaseDialog(false);
             toast({
               title: "Success",
-              description: "Lease process initiated",
+              description: "Lease created successfully and ready for signing",
             });
           }}
         />
