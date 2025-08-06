@@ -98,6 +98,8 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { tenancyId } = await req.json();
     
+    console.log("Received request for tenancy:", tenancyId);
+    
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -113,11 +115,11 @@ const handler = async (req: Request): Promise<Response> => {
         landlord_profile:profiles!landlord_id (display_name)
       `)
       .eq('id', tenancyId)
-      .single();
+      .maybeSingle();
 
     if (fetchError) {
       console.error("Error fetching tenancy:", fetchError);
-      throw new Error("Failed to fetch tenancy data");
+      throw new Error(`Failed to fetch tenancy data: ${fetchError.message}`);
     }
 
     if (!tenancy) {
@@ -131,6 +133,8 @@ const handler = async (req: Request): Promise<Response> => {
     
     // Upload to storage
     const fileName = `${tenancy.landlord_id}/${tenancyId}/lease-${Date.now()}.pdf`;
+    console.log("Uploading PDF with filename:", fileName);
+    
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('lease-documents')
       .upload(fileName, pdfBuffer, {
@@ -139,7 +143,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (uploadError) {
       console.error("Error uploading PDF:", uploadError);
-      throw new Error("Failed to upload lease document");
+      throw new Error(`Failed to upload lease document: ${uploadError.message}`);
     }
 
     console.log("PDF uploaded successfully:", uploadData.path);

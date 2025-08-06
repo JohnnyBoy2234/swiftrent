@@ -78,10 +78,15 @@ export const TemplateLeaseWorkflow = ({
   };
 
   const handleGenerateAndSend = async () => {
-    if (!user) return;
+    if (!user) {
+      toast.error("You must be logged in to generate a lease");
+      return;
+    }
     
     setIsGenerating(true);
     try {
+      console.log("Starting lease generation for property:", propertyId);
+      
       // First create a tenancy record
       const { data: tenancy, error: tenancyError } = await supabase
         .from('tenancies')
@@ -98,9 +103,15 @@ export const TemplateLeaseWorkflow = ({
         .select()
         .single();
 
-      if (tenancyError) throw tenancyError;
+      if (tenancyError) {
+        console.error('Error creating tenancy:', tenancyError);
+        throw new Error(`Failed to create tenancy: ${tenancyError.message}`);
+      }
+
+      console.log("Tenancy created:", tenancy);
 
       // Generate the lease document
+      console.log("Calling generate-lease function...");
       const { data, error } = await supabase.functions.invoke('generate-lease', {
         body: { 
           tenancyId: tenancy.id,
@@ -108,7 +119,12 @@ export const TemplateLeaseWorkflow = ({
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error generating lease:', error);
+        throw new Error(`Failed to generate lease: ${error.message}`);
+      }
+
+      console.log("Lease generated successfully:", data);
 
       // Update tenancy with document URL
       const { error: updateError } = await supabase
@@ -119,7 +135,10 @@ export const TemplateLeaseWorkflow = ({
         })
         .eq('id', tenancy.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error updating tenancy:', updateError);
+        throw new Error(`Failed to update tenancy: ${updateError.message}`);
+      }
 
       // TODO: Send notification to tenant about lease ready for signing
       // This would typically send an email or in-app notification to the tenant
@@ -129,7 +148,7 @@ export const TemplateLeaseWorkflow = ({
       onComplete();
     } catch (error) {
       console.error('Error generating lease:', error);
-      toast.error("Failed to generate lease");
+      toast.error(`Failed to generate lease: ${error.message || "Unknown error"}`);
     } finally {
       setIsGenerating(false);
     }
