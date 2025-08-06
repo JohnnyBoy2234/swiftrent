@@ -21,6 +21,20 @@ export interface ApplicationWithTenant {
     is_complete: boolean;
     created_at: string;
   };
+  screening_details?: {
+    full_name: string;
+    id_number: string;
+    phone: string;
+    employment_status: string;
+    job_title: string;
+    company_name: string;
+    net_monthly_income: number;
+    current_address: string;
+    reason_for_moving: string;
+    previous_landlord_name: string;
+    previous_landlord_contact: string;
+    consent_given: boolean;
+  };
 }
 
 export const useLandlordApplications = (propertyId?: string) => {
@@ -53,7 +67,7 @@ export const useLandlordApplications = (propertyId?: string) => {
       // Then fetch related data for each application
       const applicationsWithProfiles = await Promise.all(
         (applicationsData || []).map(async (app) => {
-          const [tenantProfile, screeningProfile] = await Promise.all([
+          const [tenantProfile, screeningProfile, screeningDetails] = await Promise.all([
             supabase
               .from('profiles')
               .select('display_name, user_id')
@@ -63,13 +77,19 @@ export const useLandlordApplications = (propertyId?: string) => {
               .from('screening_profiles')
               .select('first_name, last_name, is_complete, created_at')
               .eq('user_id', app.tenant_id)
+              .maybeSingle(),
+            supabase
+              .from('screening_details')
+              .select('full_name, id_number, phone, employment_status, job_title, company_name, net_monthly_income, current_address, reason_for_moving, previous_landlord_name, previous_landlord_contact, consent_given')
+              .eq('user_id', app.tenant_id)
               .maybeSingle()
           ]);
 
           return {
             ...app,
             tenant_profile: tenantProfile.data,
-            screening_profile: screeningProfile.data
+            screening_profile: screeningProfile.data,
+            screening_details: screeningDetails.data
           };
         })
       );

@@ -70,38 +70,111 @@ export function ApplicationsTab({ propertyId, onStartLease }: ApplicationsTabPro
   };
 
   const renderApplicationDetails = (application: ApplicationWithTenant) => {
-    if (!application.screening_profile) {
+    if (!application.screening_profile && !application.screening_details) {
       return (
         <div className="text-center py-4">
-          <p className="text-muted-foreground">Screening profile not available</p>
+          <p className="text-muted-foreground">Screening information not available</p>
         </div>
       );
     }
 
+    const screeningDetails = application.screening_details;
+    const screeningProfile = application.screening_profile;
+
     return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium text-muted-foreground">Full Name</label>
-            <p>{application.screening_profile.first_name} {application.screening_profile.last_name}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-muted-foreground">Application Date</label>
-            <p>{format(new Date(application.created_at), 'MMM dd, yyyy')}</p>
-          </div>
-        </div>
-        
+      <div className="space-y-6">
+        {/* Basic Information */}
         <div>
-          <label className="text-sm font-medium text-muted-foreground">Screening Status</label>
-          <Badge variant={application.screening_profile.is_complete ? 'default' : 'secondary'} className="ml-2">
-            {application.screening_profile.is_complete ? 'Complete' : 'Incomplete'}
-          </Badge>
+          <h4 className="font-medium mb-3">Personal Information</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+              <p>{screeningDetails?.full_name || (screeningProfile ? `${screeningProfile.first_name} ${screeningProfile.last_name}` : 'N/A')}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Phone</label>
+              <p>{screeningDetails?.phone || 'N/A'}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">ID Number</label>
+              <p>{screeningDetails?.id_number || 'N/A'}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Application Date</label>
+              <p>{format(new Date(application.created_at), 'MMM dd, yyyy')}</p>
+            </div>
+          </div>
         </div>
 
+        {/* Employment Information */}
+        {screeningDetails && (
+          <div>
+            <h4 className="font-medium mb-3">Employment & Income</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Employment Status</label>
+                <p className="capitalize">{screeningDetails.employment_status || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Job Title</label>
+                <p>{screeningDetails.job_title || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Company</label>
+                <p>{screeningDetails.company_name || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Monthly Income</label>
+                <p>R{screeningDetails.net_monthly_income ? screeningDetails.net_monthly_income.toLocaleString() : 'N/A'}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Housing Information */}
+        {screeningDetails && (
+          <div>
+            <h4 className="font-medium mb-3">Housing History</h4>
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Current Address</label>
+                <p>{screeningDetails.current_address || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Reason for Moving</label>
+                <p>{screeningDetails.reason_for_moving || 'N/A'}</p>
+              </div>
+              {screeningDetails.previous_landlord_name && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Previous Landlord</label>
+                    <p>{screeningDetails.previous_landlord_name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Landlord Contact</label>
+                    <p>{screeningDetails.previous_landlord_contact || 'N/A'}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Status */}
         <div className="pt-4 border-t">
-          <p className="text-sm text-muted-foreground">
-            This tenant has completed their screening profile and is ready for review.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Screening Status</label>
+              <Badge variant={screeningProfile?.is_complete ? 'default' : 'secondary'} className="ml-2">
+                {screeningProfile?.is_complete ? 'Complete' : 'Incomplete'}
+              </Badge>
+            </div>
+            {screeningDetails?.consent_given && (
+              <Badge variant="outline">
+                Background Check Consent Given
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
     );

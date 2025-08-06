@@ -117,7 +117,7 @@ export const TemplateLeaseWorkflow = ({
           security_deposit: parseFloat(leaseData.securityDeposit),
           start_date: leaseData.startDate,
           end_date: leaseData.leaseType === 'month-to-month' ? null : leaseData.endDate,
-          lease_status: 'generated'
+          lease_status: 'draft'
         })
         .select()
         .single();
@@ -150,7 +150,7 @@ export const TemplateLeaseWorkflow = ({
         .from('tenancies')
         .update({ 
           lease_document_url: data.documentUrl,
-          lease_status: 'pending_tenant_signature'
+          lease_status: 'generated'
         })
         .eq('id', tenancy.id);
 
