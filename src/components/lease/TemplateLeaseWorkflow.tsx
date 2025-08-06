@@ -113,12 +113,19 @@ export const TemplateLeaseWorkflow = ({
       // Update tenancy with document URL
       const { error: updateError } = await supabase
         .from('tenancies')
-        .update({ lease_document_url: data.documentUrl })
+        .update({ 
+          lease_document_url: data.documentUrl,
+          lease_status: 'pending_tenant_signature'
+        })
         .eq('id', tenancy.id);
 
       if (updateError) throw updateError;
 
-      toast.success("Lease generated successfully and ready for signing!");
+      // TODO: Send notification to tenant about lease ready for signing
+      // This would typically send an email or in-app notification to the tenant
+      console.log(`Lease ready for tenant ${tenancy.tenant_id} to sign: ${data.documentUrl}`);
+
+      toast.success("Lease generated successfully! Tenant will be notified to sign.");
       onComplete();
     } catch (error) {
       console.error('Error generating lease:', error);

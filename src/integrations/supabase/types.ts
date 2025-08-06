@@ -552,7 +552,7 @@ export type Database = {
       tenancies: {
         Row: {
           created_at: string
-          end_date: string
+          end_date: string | null
           id: string
           landlord_id: string
           landlord_signature_url: string | null
@@ -572,7 +572,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          end_date: string
+          end_date?: string | null
           id?: string
           landlord_id: string
           landlord_signature_url?: string | null
@@ -592,7 +592,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          end_date?: string
+          end_date?: string | null
           id?: string
           landlord_id?: string
           landlord_signature_url?: string | null
