@@ -59,7 +59,7 @@ export default function Dashboard() {
     }
 
     if (!isLandlord) {
-      navigate('/');
+      navigate('/tenant-dashboard');
       return;
     }
 
