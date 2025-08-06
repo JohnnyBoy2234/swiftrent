@@ -103,12 +103,16 @@ export const TemplateLeaseWorkflow = ({
       console.log("Starting lease generation for property:", propertyId);
       
       // First create a tenancy record
+      if (!selectedTenant) {
+        throw new Error("No tenant selected for lease generation");
+      }
+
       const { data: tenancy, error: tenancyError } = await supabase
         .from('tenancies')
         .insert({
           property_id: propertyId,
           landlord_id: user.id,
-          tenant_id: user.id, // TODO: Replace with actual tenant selection
+          tenant_id: selectedTenant.id,
           monthly_rent: parseFloat(leaseData.monthlyRent),
           security_deposit: parseFloat(leaseData.securityDeposit),
           start_date: leaseData.startDate,
