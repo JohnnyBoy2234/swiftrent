@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, ArrowRight, Calendar, DollarSign, FileText, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Calendar, DollarSign, FileText, Send, Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -83,11 +83,19 @@ export const TemplateLeaseWorkflow = ({
     console.log("Button clicked - handleGenerateAndSend called");
     console.log("Current user:", user);
     console.log("Property ID:", propertyId);
+    console.log("Selected tenant:", selectedTenant);
     console.log("Lease data:", leaseData);
     
     if (!user) {
       console.error("No user found");
       toast.error("You must be logged in to generate a lease");
+      return;
+    }
+
+    if (!selectedTenant) {
+      console.error("No tenant selected for lease generation");
+      console.log("Available props:", { propertyId, selectedTenant });
+      toast.error("No tenant selected. Please select a tenant from the applications tab first.");
       return;
     }
     
@@ -101,11 +109,9 @@ export const TemplateLeaseWorkflow = ({
     setIsGenerating(true);
     try {
       console.log("Starting lease generation for property:", propertyId);
+      console.log("Selected tenant for lease:", selectedTenant);
       
       // First create a tenancy record
-      if (!selectedTenant) {
-        throw new Error("No tenant selected for lease generation");
-      }
 
       const { data: tenancy, error: tenancyError } = await supabase
         .from('tenancies')
@@ -425,6 +431,20 @@ export const TemplateLeaseWorkflow = ({
           </div>
         </div>
       </div>
+
+      {/* Selected Tenant Info */}
+      {selectedTenant && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center gap-2">
+            <div className="p-1 bg-green-600 rounded-full">
+              <Check className="h-3 w-3 text-white" />
+            </div>
+            <p className="text-sm font-medium text-green-800">
+              Creating lease for: <span className="font-semibold">{selectedTenant.name}</span>
+            </p>
+          </div>
+        </div>
+      )}
 
       {renderStepContent()}
 
