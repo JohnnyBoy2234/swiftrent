@@ -17,6 +17,7 @@ interface Tenancy {
   end_date: string;
   lease_status: string;
   lease_document_url?: string;
+  lease_document_path?: string; // Added for new system
   landlord_signature_url?: string;
   tenant_signature_url?: string;
   landlord_signed_at?: string;
@@ -81,7 +82,7 @@ export const LeaseGenerator = ({
         .from('tenancies')
         .update({ 
           lease_status: 'generated',
-          lease_document_url: data.documentUrl 
+          lease_document_path: data.documentPath // Updated to use documentPath
         })
         .eq('id', tenancy.id);
 
@@ -98,23 +99,23 @@ export const LeaseGenerator = ({
   };
 
   const downloadLease = async () => {
-    if (!tenancy.lease_document_url) return;
-
     try {
-      const { data, error } = await supabase.storage
-        .from('lease-documents')
-        .download(tenancy.lease_document_url);
+      // Check if we have a document path (new system) or URL (legacy)
+      if (tenancy.lease_document_path) {
+        const { data, error } = await supabase.storage
+          .from('lease-documents')
+          .download(tenancy.lease_document_path);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `lease-${tenancy.id}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+        const blob = new Blob([data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        window.URL.revokeObjectURL(url);
+      } else if (tenancy.lease_document_url) {
+        // Legacy support for direct URLs
+        window.open(tenancy.lease_document_url, '_blank');
+      }
     } catch (error) {
       console.error('Error downloading lease:', error);
       toast.error("Failed to download lease document");
@@ -124,7 +125,7 @@ export const LeaseGenerator = ({
   const canGenerate = tenancy.lease_status === 'draft';
   const canSign = ['generated', 'landlord_signed', 'tenant_signed'].includes(tenancy.lease_status);
   const isCompleted = tenancy.lease_status === 'fully_signed';
-  const canDownloadSigned = isCompleted && tenancy.lease_document_url;
+  const canDownloadSigned = isCompleted && (tenancy.lease_document_path || tenancy.lease_document_url);
 
   return (
     <Card>
@@ -185,7 +186,7 @@ export const LeaseGenerator = ({
             </Button>
           )}
 
-          {tenancy.lease_document_url && !isCompleted && (
+          {(tenancy.lease_document_path || tenancy.lease_document_url) && !isCompleted && (
             <Button 
               variant="outline" 
               onClick={downloadLease}

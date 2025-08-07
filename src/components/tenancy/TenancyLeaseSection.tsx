@@ -13,6 +13,7 @@ interface TenancyData {
   end_date: string;
   lease_status: string;
   lease_document_url?: string;
+  lease_document_path?: string; // Added for new system
   landlord_signature_url?: string;
   tenant_signature_url?: string;
   landlord_signed_at?: string;
@@ -49,7 +50,7 @@ export const TenancyLeaseSection = ({ tenancy, onUpdate }: TenancyLeaseSectionPr
         isOpen={showSigning}
         onClose={() => setShowSigning(false)}
         tenancyId={tenancy.id}
-        leaseDocumentUrl={tenancy.lease_document_url}
+        leaseDocumentUrl={tenancy.lease_document_path || tenancy.lease_document_url}
         currentStatus={tenancy.lease_status}
         onSigned={() => {
           setShowSigning(false);

@@ -106,14 +106,23 @@ export const LeaseSigningDialog = ({
     if (!leaseDocumentUrl) return;
 
     try {
-      const { data, error } = await supabase.storage
-        .from('lease-documents')
-        .download(leaseDocumentUrl);
+      // Check if it's a file path (starts without http) or a direct URL
+      if (leaseDocumentUrl.startsWith('http')) {
+        // Legacy direct URL
+        window.open(leaseDocumentUrl, '_blank');
+      } else {
+        // File path in storage
+        const { data, error } = await supabase.storage
+          .from('lease-documents')
+          .download(leaseDocumentUrl);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const url = URL.createObjectURL(data);
-      window.open(url, '_blank');
+        const blob = new Blob([data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        window.URL.revokeObjectURL(url);
+      }
     } catch (error) {
       console.error('Error viewing document:', error);
       toast.error("Failed to open document");

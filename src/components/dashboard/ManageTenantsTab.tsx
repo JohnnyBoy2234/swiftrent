@@ -12,8 +12,7 @@ export function ManageTenantsTab({ property, activeTenancy }: ManageTenantsTabPr
   const [leaseDialogOpen, setLeaseDialogOpen] = useState(false);
 
   const handleUploadLease = () => {
-    // Handle lease upload functionality
-    console.log('Upload lease clicked');
+    setLeaseDialogOpen(true);
   };
 
   const handleCreateLease = () => {

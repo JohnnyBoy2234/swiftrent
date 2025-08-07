@@ -120,13 +120,13 @@ export const UploadLeaseWorkflow = ({
         .insert({
           property_id: propertyId,
           landlord_id: user.id,
-          tenant_id: user.id, // TODO: Replace with actual tenant selection
+          tenant_id: selectedTenant?.id || user.id, // Use selected tenant if available
           monthly_rent: 0, // Will be filled in later
           security_deposit: 0, // Will be filled in later
           start_date: new Date().toISOString().split('T')[0],
           end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
           lease_status: 'generated',
-          lease_document_url: documentUrl
+          lease_document_path: documentUrl // Changed from lease_document_url to lease_document_path
         })
         .select()
         .single();
