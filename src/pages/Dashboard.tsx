@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Home, MessageSquare, BarChart3, Eye, Users, Calendar, MoreHorizontal } from 'lucide-react';
+import { Plus, Home, MessageSquare, BarChart3, Eye, Users, Calendar, MoreHorizontal, PenTool } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Property, Tenancy } from '@/types/dashboard';
+import { useLandlordNotifications } from '@/hooks/useLandlordNotifications';
 
 interface Inquiry {
   id: string;
@@ -51,6 +52,7 @@ export default function Dashboard() {
   const [filter, setFilter] = useState<PropertyFilter>('all');
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { notifications, pendingSignatures, markAsRead } = useLandlordNotifications();
 
   useEffect(() => {
     if (!user) {
@@ -245,6 +247,47 @@ export default function Dashboard() {
               </Button>
             </div>
           </div>
+
+          {/* Notifications for Pending Signatures */}
+          {pendingSignatures.length > 0 && (
+            <Card className="mb-6 border-orange-200 bg-orange-50">
+              <CardHeader>
+                <CardTitle className="text-orange-800 flex items-center gap-2">
+                  <PenTool className="h-5 w-5" />
+                  Action Required - Lease Signatures Pending
+                </CardTitle>
+                <CardDescription className="text-orange-700">
+                  The following leases have been signed by tenants and are ready for your signature.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {pendingSignatures.map((signature) => (
+                    <div key={signature.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                      <div>
+                        <p className="font-medium">{signature.property_title}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Tenant: {signature.tenant_name} • Monthly Rent: R{signature.monthly_rent.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-orange-600">
+                          Signed by tenant on {new Date(signature.tenant_signed_at!).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          navigate(`/landlord-lease-signing/${signature.id}`);
+                          markAsRead(signature.id);
+                        }}
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        Sign & Finalize
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Property Filters */}
           <div className="flex gap-2 mb-6">

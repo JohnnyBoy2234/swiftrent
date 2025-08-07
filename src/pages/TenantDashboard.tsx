@@ -14,7 +14,8 @@ import {
   Calendar,
   DollarSign,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Download
 } from 'lucide-react';
 import { useTenantNotifications } from '@/hooks/useTenantNotifications';
 import { useToast } from '@/hooks/use-toast';
@@ -62,9 +63,9 @@ export default function TenantDashboard() {
       case 'landlord_signed':
         return <Badge variant="default">Awaiting Your Signature</Badge>;
       case 'tenant_signed':
-        return <Badge variant="outline">Awaiting Landlord</Badge>;
-      case 'completed':
-        return <Badge variant="default">Fully Executed</Badge>;
+        return <Badge variant="outline">Awaiting Landlord Signature</Badge>;
+      case 'fully_signed':
+        return <Badge variant="default" className="bg-green-100 text-green-800">Active & Signed</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -213,10 +214,20 @@ export default function TenantDashboard() {
                         <p className="text-sm text-muted-foreground">
                           From: {lease.landlord_name} • Created: {format(new Date(lease.created_at), 'MMM dd, yyyy')}
                         </p>
-                        <Button onClick={() => handleViewLease(lease.id)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Review & Sign
-                        </Button>
+                        {lease.lease_status === 'fully_signed' ? (
+                          <Button
+                            onClick={() => window.open(lease.lease_document_url!, '_blank')}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download Signed Lease (PDF)
+                          </Button>
+                        ) : (
+                          <Button onClick={() => handleViewLease(lease.id)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Review & Sign
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

@@ -15,6 +15,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import TenantDashboard from "./pages/TenantDashboard";
 import LeaseSigningPage from "./pages/LeaseSigningPage";
+import LandlordLeaseSigningPage from "./pages/LandlordLeaseSigningPage";
 import AddProperty from "./pages/AddProperty";
 import ListProperty from "./pages/ListProperty";
 import PropertyDetail from "./pages/PropertyDetail";
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/dashboard" element={<RouteGuard><Dashboard /></RouteGuard>} />
             <Route path="/tenant-dashboard" element={<RouteGuard><TenantDashboard /></RouteGuard>} />
             <Route path="/lease-signing/:tenancyId" element={<RouteGuard><LeaseSigningPage /></RouteGuard>} />
+            <Route path="/landlord-lease-signing/:tenancyId" element={<RouteGuard><LandlordLeaseSigningPage /></RouteGuard>} />
             <Route path="/add-property" element={<RouteGuard><AddProperty /></RouteGuard>} />
             <Route path="/list-property" element={<RouteGuard><ListProperty /></RouteGuard>} />
             <Route path="/property/:id" element={<PropertyDetail />} />

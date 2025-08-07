@@ -39,11 +39,10 @@ interface LeaseDetails {
   created_at: string;
   property_title: string;
   property_location: string;
-  landlord_name: string;
-  landlord_email: string;
+  tenant_name: string;
 }
 
-export default function LeaseSigningPage() {
+export default function LandlordLeaseSigningPage() {
   const { tenancyId } = useParams<{ tenancyId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -53,7 +52,6 @@ export default function LeaseSigningPage() {
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
   const [hasAgreed, setHasAgreed] = useState(false);
-  const [documentError, setDocumentError] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -79,18 +77,17 @@ export default function LeaseSigningPage() {
             title,
             location
           ),
-          landlord_profile:profiles!fk_tenancies_landlord (
+          tenant_profile:profiles!fk_tenancies_tenant (
             display_name,
             user_id
           )
         `)
         .eq('id', tenancyId)
-        .eq('tenant_id', user.id)
+        .eq('landlord_id', user.id)
         .single();
 
       if (error) throw error;
 
-      // Get landlord email from auth.users (we'll need to create a function for this)
       const leaseDetails: LeaseDetails = {
         id: data.id,
         property_id: data.property_id,
@@ -107,8 +104,7 @@ export default function LeaseSigningPage() {
         created_at: data.created_at,
         property_title: data.properties?.title || 'Unknown Property',
         property_location: data.properties?.location || 'Address not available',
-        landlord_name: data.landlord_profile?.display_name || 'Landlord',
-        landlord_email: 'landlord@example.com' // We'll get this from a function later
+        tenant_name: data.tenant_profile?.display_name || 'Tenant'
       };
 
       setLease(leaseDetails);
@@ -119,7 +115,7 @@ export default function LeaseSigningPage() {
         description: "Failed to load lease details",
         variant: "destructive",
       });
-      navigate('/tenant-dashboard');
+      navigate('/dashboard');
     } finally {
       setLoading(false);
     }
@@ -130,39 +126,38 @@ export default function LeaseSigningPage() {
 
     setSigning(true);
     try {
-      // Create digital signature timestamp
       const signatureTimestamp = new Date().toISOString();
       
-      // Update tenancy with tenant signature
+      // Update tenancy with landlord signature
       const { error } = await supabase
         .from('tenancies')
         .update({
-          tenant_signed_at: signatureTimestamp,
-          lease_status: lease.lease_status === 'landlord_signed' ? 'fully_signed' : 'tenant_signed'
+          landlord_signed_at: signatureTimestamp,
+          lease_status: lease.lease_status === 'tenant_signed' ? 'fully_signed' : 'landlord_signed',
+          status: lease.lease_status === 'tenant_signed' ? 'active' : 'draft'
         })
         .eq('id', lease.id)
-        .eq('tenant_id', user.id);
+        .eq('landlord_id', user.id);
 
       if (error) throw error;
 
-      // Send notification to landlord
+      // Send notification to tenant if both parties have signed
       try {
         await supabase.functions.invoke('notify-lease-signed', {
           body: { 
             tenancyId: lease.id,
-            signedBy: 'tenant'
+            signedBy: 'landlord'
           }
         });
       } catch (notifyError) {
         console.error('Error sending notification:', notifyError);
-        // Don't fail the signing process if notification fails
       }
 
       toast({
         title: "Lease Signed Successfully!",
-        description: lease.lease_status === 'landlord_signed' 
-          ? "Your lease is now fully executed and active."
-          : "We have notified the landlord to complete their signature.",
+        description: lease.lease_status === 'tenant_signed' 
+          ? "The lease is now fully executed and active!"
+          : "We have notified the tenant to sign the lease.",
       });
 
       // Refresh lease details
@@ -170,7 +165,7 @@ export default function LeaseSigningPage() {
       
       // Navigate back to dashboard after a moment
       setTimeout(() => {
-        navigate('/tenant-dashboard');
+        navigate('/dashboard');
       }, 2000);
 
     } catch (error: any) {
@@ -202,11 +197,11 @@ export default function LeaseSigningPage() {
     
     switch (lease.lease_status) {
       case 'generated':
-        return { color: 'blue', text: 'Ready for Your Signature' };
+        return { color: 'blue', text: 'Ready for Signatures' };
       case 'tenant_signed':
-        return { color: 'orange', text: 'Awaiting Landlord Signature' };
+        return { color: 'orange', text: 'Ready for Your Signature' };
       case 'landlord_signed':
-        return { color: 'blue', text: 'Ready for Your Signature' };
+        return { color: 'blue', text: 'Awaiting Tenant Signature' };
       case 'fully_signed':
         return { color: 'green', text: 'Fully Executed' };
       default:
@@ -214,7 +209,7 @@ export default function LeaseSigningPage() {
     }
   };
 
-  const canSign = lease && ['generated', 'landlord_signed'].includes(lease.lease_status);
+  const canSign = lease && ['generated', 'tenant_signed'].includes(lease.lease_status);
   const isCompleted = lease?.lease_status === 'fully_signed';
   const statusInfo = getStatusInfo();
 
@@ -234,7 +229,7 @@ export default function LeaseSigningPage() {
             <AlertTriangle className="h-12 w-12 text-orange-500 mx-auto mb-4" />
             <h3 className="font-semibold mb-2">Lease Not Found</h3>
             <p className="text-muted-foreground mb-4">The requested lease could not be found.</p>
-            <Button onClick={() => navigate('/tenant-dashboard')}>
+            <Button onClick={() => navigate('/dashboard')}>
               Return to Dashboard
             </Button>
           </CardContent>
@@ -248,12 +243,12 @@ export default function LeaseSigningPage() {
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" onClick={() => navigate('/tenant-dashboard')}>
+          <Button variant="ghost" onClick={() => navigate('/dashboard')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold">Review and Sign Your Lease Agreement</h1>
+            <h1 className="text-3xl font-bold">Finalize Lease Agreement</h1>
             <p className="text-muted-foreground mt-1">{lease.property_title}</p>
           </div>
           <Badge variant={statusInfo.color === 'green' ? 'default' : 'secondary'}>
@@ -266,8 +261,8 @@ export default function LeaseSigningPage() {
           <Alert className="mb-6 border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>Congratulations!</strong> Your lease agreement has been fully executed. 
-              Both you and your landlord have signed the document.
+              <strong>Congratulations!</strong> The lease agreement has been fully executed. 
+              Both you and your tenant have signed the document and the tenancy is now active.
             </AlertDescription>
           </Alert>
         )}
@@ -282,7 +277,7 @@ export default function LeaseSigningPage() {
                   Lease Agreement Document
                 </CardTitle>
                 <CardDescription>
-                  Review the complete lease agreement before signing
+                  Review the complete lease agreement before adding your signature
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -304,7 +299,7 @@ export default function LeaseSigningPage() {
                       </div>
                     </div>
                     
-                    {/* Document preview would go here */}
+                    {/* Document preview */}
                     <div className="border rounded-lg min-h-[500px] bg-muted/20 flex items-center justify-center">
                       <div className="text-center">
                         <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -376,8 +371,8 @@ export default function LeaseSigningPage() {
                 <div className="flex items-center gap-3">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="font-medium">{lease.landlord_name}</p>
-                    <p className="text-sm text-muted-foreground">Landlord</p>
+                    <p className="font-medium">{lease.tenant_name}</p>
+                    <p className="text-sm text-muted-foreground">Tenant</p>
                   </div>
                 </div>
               </CardContent>
@@ -389,10 +384,10 @@ export default function LeaseSigningPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <PenTool className="h-5 w-5" />
-                    Digital Signature
+                    Landlord Digital Signature
                   </CardTitle>
                   <CardDescription>
-                    Sign your lease agreement digitally
+                    Add your signature to finalize the lease agreement
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -403,8 +398,9 @@ export default function LeaseSigningPage() {
                       onCheckedChange={(checked) => setHasAgreed(checked as boolean)}
                     />
                     <label htmlFor="agree" className="text-sm leading-relaxed cursor-pointer">
-                      I have read, understood, and agree to all the terms and conditions 
-                      outlined in this lease agreement.
+                      I have reviewed the lease terms and agree to finalize this agreement.
+                      By signing, I confirm that all terms are acceptable and the tenancy 
+                      will become active.
                     </label>
                   </div>
                   
@@ -415,18 +411,18 @@ export default function LeaseSigningPage() {
                     size="lg"
                   >
                     {signing ? (
-                      "Signing Lease..."
+                      "Finalizing Lease..."
                     ) : (
                       <>
                         <PenTool className="h-4 w-4 mr-2" />
-                        Digitally Sign Lease
+                        Digitally Sign and Finalize Lease
                       </>
                     )}
                   </Button>
                   
                   <p className="text-xs text-muted-foreground">
-                    By clicking "Digitally Sign Lease", you are providing your electronic signature 
-                    and agreeing to be legally bound by this agreement.
+                    By clicking "Digitally Sign and Finalize Lease", you are providing your 
+                    electronic signature and the lease will become legally binding.
                   </p>
                 </CardContent>
               </Card>
@@ -439,7 +435,7 @@ export default function LeaseSigningPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span>Your Signature</span>
+                  <span>Tenant Signature</span>
                   {lease.tenant_signed_at ? (
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
@@ -451,7 +447,7 @@ export default function LeaseSigningPage() {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span>Landlord Signature</span>
+                  <span>Your Signature</span>
                   {lease.landlord_signed_at ? (
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
@@ -464,7 +460,13 @@ export default function LeaseSigningPage() {
 
                 {lease.tenant_signed_at && (
                   <p className="text-xs text-muted-foreground mt-2">
-                    You signed on {format(new Date(lease.tenant_signed_at), 'MMM dd, yyyy \'at\' h:mm a')}
+                    Tenant signed on {format(new Date(lease.tenant_signed_at), 'MMM dd, yyyy \'at\' h:mm a')}
+                  </p>
+                )}
+                
+                {lease.landlord_signed_at && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    You signed on {format(new Date(lease.landlord_signed_at), 'MMM dd, yyyy \'at\' h:mm a')}
                   </p>
                 )}
               </CardContent>

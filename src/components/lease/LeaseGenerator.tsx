@@ -49,10 +49,10 @@ export const LeaseGenerator = ({
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       draft: { label: "Draft", variant: "secondary" as const, icon: Clock },
-      generated: { label: "Generated", variant: "default" as const, icon: FileText },
-      landlord_signed: { label: "Landlord Signed", variant: "outline" as const, icon: Signature },
-      tenant_signed: { label: "Tenant Signed", variant: "outline" as const, icon: Signature },
-      completed: { label: "Fully Executed", variant: "default" as const, icon: CheckCircle }
+      generated: { label: "Awaiting Tenant Signature", variant: "default" as const, icon: FileText },
+      landlord_signed: { label: "Awaiting Tenant Signature", variant: "outline" as const, icon: Signature },
+      tenant_signed: { label: "Awaiting Your Signature", variant: "outline" as const, icon: Signature },
+      fully_signed: { label: "Active & Signed", variant: "default" as const, icon: CheckCircle }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
@@ -123,7 +123,8 @@ export const LeaseGenerator = ({
 
   const canGenerate = tenancy.lease_status === 'draft';
   const canSign = ['generated', 'landlord_signed', 'tenant_signed'].includes(tenancy.lease_status);
-  const isCompleted = tenancy.lease_status === 'completed';
+  const isCompleted = tenancy.lease_status === 'fully_signed';
+  const canDownloadSigned = isCompleted && tenancy.lease_document_url;
 
   return (
     <Card>
@@ -184,14 +185,25 @@ export const LeaseGenerator = ({
             </Button>
           )}
 
-          {tenancy.lease_document_url && (
+          {tenancy.lease_document_url && !isCompleted && (
             <Button 
               variant="outline" 
               onClick={downloadLease}
               className="flex items-center gap-2"
             >
               <Download className="h-4 w-4" />
-              Download
+              View Document
+            </Button>
+          )}
+
+          {canDownloadSigned && (
+            <Button 
+              variant="default" 
+              onClick={downloadLease}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+            >
+              <Download className="h-4 w-4" />
+              Download Signed Lease (PDF)
             </Button>
           )}
 
@@ -209,7 +221,7 @@ export const LeaseGenerator = ({
         {isCompleted && (
           <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg">
             <CheckCircle className="h-5 w-5" />
-            <span className="font-medium">Lease fully executed by all parties</span>
+            <span className="font-medium">Lease fully executed by all parties - Tenancy is now active!</span>
           </div>
         )}
       </CardContent>
