@@ -90,91 +90,123 @@ const generateLeasePDF = (tenancy: TenancyData): Uint8Array => {
   return doc.output('arraybuffer');
 };
 
-const handler = async (req: Request): Promise<Response> => {
+serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { tenancyId } = await req.json();
-    
-    console.log("Received request for tenancy:", tenancyId);
-    
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Fetch tenancy data with related information
-    const { data: tenancy, error: fetchError } = await supabase
-      .from('tenancies')
+    const { tenancyId } = await req.json();
+    if (!tenancyId) throw new Error("Missing tenancyId");
+
+    // Fetch all related data for the lease
+    const { data: tenancy, error: tenancyError } = await supabaseClient
+      .from("tenancies")
       .select(`
         *,
         properties (title, location, description),
         tenant_profile:profiles!tenant_id (display_name),
         landlord_profile:profiles!landlord_id (display_name)
       `)
-      .eq('id', tenancyId)
-      .maybeSingle();
+      .eq("id", tenancyId)
+      .single();
 
-    if (fetchError) {
-      console.error("Error fetching tenancy:", fetchError);
-      throw new Error(`Failed to fetch tenancy data: ${fetchError.message}`);
+    if (tenancyError) throw tenancyError;
+    if (!tenancy || !tenancy.landlord_profile || !tenancy.tenant_profile || !tenancy.properties) {
+        throw new Error("Incomplete tenancy data found. Could not generate lease.");
     }
+    
+    // --- PDF Generation Logic ---
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage();
+    const { width, height } = page.getSize();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const fontSize = 12;
 
-    if (!tenancy) {
-      throw new Error("Tenancy not found");
-    }
+    let y = height - 50;
+    const drawText = (text: string, size = fontSize, isBold = false) => {
+      page.drawText(text, {
+        x: 50,
+        y,
+        font: isBold ? boldFont : font,
+        size,
+        color: rgb(0, 0, 0),
+      });
+      y -= size * 1.5;
+    };
 
-    console.log("Generating PDF for tenancy:", tenancyId);
+    drawText("Residential Lease Agreement", 18, true);
+    y -= 20;
+
+    drawText("This Lease Agreement is entered into on " + new Date().toLocaleDateString(), fontSize);
+    y -= 10;
     
-    // Generate PDF
-    const pdfBuffer = generateLeasePDF(tenancy as TenancyData);
+    drawText("PARTIES", fontSize, true);
+    drawText(`Landlord: ${safeString(tenancy.landlord_profile.display_name)}`);
+    drawText(`Tenant: ${safeString(tenancy.tenant_profile.display_name)}`);
+    y -= 10;
+
+    drawText("PROPERTY", fontSize, true);
+    drawText(`Property: ${safeString(tenancy.properties.title)}`);
+    drawText(`Address: ${safeString(tenancy.properties.location)}`);
+    drawText(`Description: ${safeString(tenancy.properties.description)}`);
+    y -= 10;
+
+    drawText("TERMS", fontSize, true);
+    drawText(`Lease Start Date: ${new Date(safeString(tenancy.start_date, new Date().toISOString())).toLocaleDateString()}`);
+    drawText(`Lease End Date: ${new Date(safeString(tenancy.end_date, new Date().toISOString())).toLocaleDateString()}`);
+    drawText(`Monthly Rent: $${safeString(tenancy.monthly_rent)}`);
+    drawText(`Security Deposit: $${safeString(tenancy.security_deposit)}`);
+    y -= 20;
+
+    drawText("This document becomes legally binding upon the digital signature of both parties.", 10);
     
-    // Upload to storage
-    const fileName = `${tenancy.landlord_id}/${tenancyId}/lease-${Date.now()}.pdf`;
-    console.log("Uploading PDF with filename:", fileName);
-    
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('lease-documents')
-      .upload(fileName, pdfBuffer, {
-        contentType: 'application/pdf',
+    const pdfBytes = await pdfDoc.save();
+    const filePath = `${tenancy.landlord_id}/${tenancyId}/lease-${Date.now()}.pdf`;
+
+    // Upload PDF to Supabase Storage
+    const { error: uploadError } = await supabaseClient.storage
+      .from("lease-documents")
+      .upload(filePath, pdfBytes, {
+        contentType: "application/pdf",
+        upsert: true,
       });
 
-    if (uploadError) {
-      console.error("Error uploading PDF:", uploadError);
-      throw new Error(`Failed to upload lease document: ${uploadError.message}`);
-    }
+    if (uploadError) throw uploadError;
 
-    console.log("PDF uploaded successfully:", uploadData.path);
+    // Update the tenancy record with the PDF PATH
+    const { error: updateError } = await supabaseClient
+      .from("tenancies")
+      .update({ lease_document_path: filePath })
+      .eq("id", tenancyId);
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        documentUrl: uploadData.path 
-      }),
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
-      }
-    );
-  } catch (error: any) {
-    console.error("Error in generate-lease function:", error);
-    return new Response(
-      JSON.stringify({ 
-        error: error.message || "Internal server error" 
-      }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
-      }
-    );
+    if (updateError) throw updateError;
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      documentPath: filePath 
+    }), {
+      headers: { 
+        "Content-Type": "application/json",
+        ...corsHeaders 
+      },
+      status: 200,
+    });
+
+  } catch (error) {
+    console.error("Lease Generation Error:", error.message);
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { 
+        "Content-Type": "application/json",
+        ...corsHeaders 
+      },
+      status: 500,
+    });
   }
-};
-
-serve(handler);
+});

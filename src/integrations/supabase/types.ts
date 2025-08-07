@@ -557,7 +557,7 @@ export type Database = {
           landlord_id: string
           landlord_signature_url: string | null
           landlord_signed_at: string | null
-          lease_document_url: string | null
+          lease_document_path: string | null
           lease_status: string | null
           monthly_rent: number
           notes: string | null
@@ -577,7 +577,7 @@ export type Database = {
           landlord_id: string
           landlord_signature_url?: string | null
           landlord_signed_at?: string | null
-          lease_document_url?: string | null
+          lease_document_path?: string | null
           lease_status?: string | null
           monthly_rent: number
           notes?: string | null
@@ -597,7 +597,7 @@ export type Database = {
           landlord_id?: string
           landlord_signature_url?: string | null
           landlord_signed_at?: string | null
-          lease_document_url?: string | null
+          lease_document_path?: string | null
           lease_status?: string | null
           monthly_rent?: number
           notes?: string | null
