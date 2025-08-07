@@ -344,7 +344,7 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
       case 'personal':
         return formData.first_name && formData.last_name;
       case 'household':
-        return false; // Not automatically complete
+        return true; // Optional step - always considered complete
       case 'income':
         return formData.income_sources.length > 0;
       case 'residence':
