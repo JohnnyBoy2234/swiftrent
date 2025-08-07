@@ -49,6 +49,28 @@ export default function TenantDashboard() {
     navigate(`/lease-signing/${tenancyId}`);
   };
 
+  const handleDownloadLease = async (leaseUrl: string, propertyTitle: string) => {
+    try {
+      const response = await fetch(leaseUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Lease_Agreement_${propertyTitle.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading lease:', error);
+      toast({
+        title: "Download Failed",
+        description: "Could not download the lease document. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleNotificationClick = (notification: any) => {
     markAsRead(notification.id);
     if (notification.type === 'lease_ready') {
@@ -214,9 +236,9 @@ export default function TenantDashboard() {
                         <p className="text-sm text-muted-foreground">
                           From: {lease.landlord_name} • Created: {format(new Date(lease.created_at), 'MMM dd, yyyy')}
                         </p>
-                        {lease.lease_status === 'fully_signed' ? (
+                         {lease.lease_status === 'fully_signed' ? (
                           <Button
-                            onClick={() => window.open(lease.lease_document_url!, '_blank')}
+                            onClick={() => handleDownloadLease(lease.lease_document_url!, lease.property_title)}
                             className="bg-green-600 hover:bg-green-700"
                           >
                             <Download className="h-4 w-4 mr-2" />
