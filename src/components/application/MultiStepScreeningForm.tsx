@@ -370,115 +370,85 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   return (
-    <div className="h-full w-full bg-background flex flex-col">
-      {/* Header - Fixed at top */}
-      <div className="flex-shrink-0 bg-background border-b px-4 py-6">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-4">Rental Application</h1>
-          <Progress value={progress} className="h-2" />
-          
-          {/* Step indicators */}
-          <div className="flex justify-between mt-4">
-            {STEPS.map((step, index) => (
-              <div key={step.id} className="flex flex-col items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  getStepStatus(index) === 'complete' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : getStepStatus(index) === 'current'
-                    ? 'bg-primary/20 text-primary border-2 border-primary'
-                    : 'bg-muted text-muted-foreground'
-                }`}>
-                  {getStepStatus(index) === 'complete' ? (
-                    <Check className="w-4 h-4" />
-                  ) : (
-                    index + 1
-                  )}
-                </div>
-                <span className={`text-xs mt-1 ${
-                  getStepStatus(index) === 'current' ? 'text-primary font-medium' : 'text-muted-foreground'
-                }`}>
-                  {step.title}
-                </span>
-                {isStepComplete(index) && (
-                  <Badge variant="outline" className="text-xs mt-1">
-                    Complete
-                  </Badge>
-                )}
-              </div>
-            ))}
-          </div>
+    <div className="flex flex-col h-screen">
+      {/* Header with Progress Bar */}
+      <header className="p-4 sm:p-6 border-b bg-background sticky top-0 z-10">
+        <h1 className="text-2xl font-bold mb-4">Rental Application</h1>
+        <Progress value={progress} className="w-full" />
+        <div className="flex justify-between mt-2 text-xs sm:text-sm text-muted-foreground">
+          {STEPS.map((step, index) => (
+            <span key={step.id} className={index === currentStep ? 'font-bold text-primary' : ''}>
+              {step.title}
+            </span>
+          ))}
         </div>
-      </div>
+      </header>
 
-      {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <div className="relative">
-            {/* Auto-save indicator */}
-            {showSavedMessage && (
-              <div className="absolute top-2 right-2 z-10 bg-green-50 text-green-700 px-3 py-1 rounded-md text-sm border border-green-200 shadow-sm">
-                Progress saved ✓
-              </div>
-            )}
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  {STEPS[currentStep].title}
-                  {autoSaving && (
-                    <span className="text-sm text-muted-foreground">Saving...</span>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <CurrentStepComponent
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  onNext={nextStep}
-                  onSave={saveProfile}
-                />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer Navigation - Fixed at bottom */}
-      <div className="flex-shrink-0 bg-background border-t px-4 py-4">
+      {/* Scrollable Main Content Area */}
+      <main className="flex-grow overflow-y-auto p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={currentStep === 0 ? onCancel : prevStep}
-              className="flex items-center gap-2"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              {currentStep === 0 ? 'Cancel' : 'Previous'}
-            </Button>
-
-            <div className="flex gap-2">
-              {currentStep === STEPS.length - 1 ? (
-                <Button 
-                  onClick={submitApplication}
-                  disabled={!Object.keys(STEPS).every((_, index) => isStepComplete(index))}
-                  className="flex items-center gap-2"
-                >
-                  Submit Application
-                </Button>
-              ) : (
-                <Button 
-                  onClick={nextStep}
-                  disabled={!validateCurrentStep()}
-                  className="flex items-center gap-2"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              )}
+          {/* Auto-save indicator */}
+          {showSavedMessage && (
+            <div className="mb-4 bg-green-50 text-green-700 px-3 py-1 rounded-md text-sm border border-green-200 shadow-sm">
+              Progress saved ✓
             </div>
+          )}
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                {STEPS[currentStep].title}
+                {autoSaving && (
+                  <span className="text-sm text-muted-foreground">Saving...</span>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <CurrentStepComponent
+                formData={formData}
+                updateFormData={updateFormData}
+                onNext={nextStep}
+                onSave={saveProfile}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+
+      {/* Sticky Footer for Navigation */}
+      <footer className="p-4 border-t bg-background sticky bottom-0 z-10">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
+          <Button
+            variant="outline"
+            onClick={currentStep === 0 ? onCancel : prevStep}
+            className="flex items-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            {currentStep === 0 ? 'Cancel' : 'Previous'}
+          </Button>
+
+          <div className="flex gap-2">
+            {currentStep === STEPS.length - 1 ? (
+              <Button 
+                onClick={submitApplication}
+                disabled={!Object.keys(STEPS).every((_, index) => isStepComplete(index))}
+                className="flex items-center gap-2"
+              >
+                Submit Application
+              </Button>
+            ) : (
+              <Button 
+                onClick={nextStep}
+                disabled={!validateCurrentStep()}
+                className="flex items-center gap-2"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }
