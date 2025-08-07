@@ -30,6 +30,7 @@ import { Property } from '@/types/dashboard';
 import { LeaseSigningDialog } from '@/components/lease/LeaseSigningDialog';
 import { LeaseCreationWizard } from '@/components/lease/LeaseCreationWizard';
 import { ApplicationsTab } from '@/components/property/ApplicationsTab';
+import { PaymentsTab } from '@/components/property/PaymentsTab';
 
 interface MaintenanceRequest {
   id: string;
@@ -416,33 +417,7 @@ export default function PropertyManagement() {
 
         {/* Payments Tab */}
         <TabsContent value="payments" className="space-y-6">
-          <Card>
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Say hello to online rent payments</CardTitle>
-              <CardDescription>
-                Collect rent payments automatically with our secure payment system
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center space-y-6">
-              <div className="space-y-4">
-                <div className="p-6 bg-muted/50 rounded-lg">
-                  <CreditCard className="h-12 w-12 text-primary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">Automated Collections</h3>
-                  <p className="text-muted-foreground">
-                    Set up automatic rent collection and never chase payments again
-                  </p>
-                </div>
-              </div>
-              
-              <Button size="lg" className="w-full max-w-md">
-                Start collecting rent
-              </Button>
-              
-              <p className="text-sm text-muted-foreground">
-                Connect your bank account to get started with online payments
-              </p>
-            </CardContent>
-          </Card>
+          <PaymentsTab propertyId={property.id} />
         </TabsContent>
 
         {/* Maintenance Tab */}

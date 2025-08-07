@@ -285,6 +285,65 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          due_date: string | null
+          id: string
+          landlord_id: string
+          payment_date: string | null
+          payment_type: string
+          paystack_reference: string | null
+          paystack_transaction_id: string | null
+          status: string
+          tenancy_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          landlord_id: string
+          payment_date?: string | null
+          payment_type: string
+          paystack_reference?: string | null
+          paystack_transaction_id?: string | null
+          status?: string
+          tenancy_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          landlord_id?: string
+          payment_date?: string | null
+          payment_type?: string
+          paystack_reference?: string | null
+          paystack_transaction_id?: string | null
+          status?: string
+          tenancy_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_tenancy_id_fkey"
+            columns: ["tenancy_id"]
+            isOneToOne: false
+            referencedRelation: "tenancies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -295,6 +354,7 @@ export type Database = {
           id_verification_status: string | null
           id_verified: boolean
           is_tenant_screened: boolean
+          paystack_subaccount_code: string | null
           phone: string | null
           updated_at: string
           user_id: string
@@ -308,6 +368,7 @@ export type Database = {
           id_verification_status?: string | null
           id_verified?: boolean
           is_tenant_screened?: boolean
+          paystack_subaccount_code?: string | null
           phone?: string | null
           updated_at?: string
           user_id: string
@@ -321,6 +382,7 @@ export type Database = {
           id_verification_status?: string | null
           id_verified?: boolean
           is_tenant_screened?: boolean
+          paystack_subaccount_code?: string | null
           phone?: string | null
           updated_at?: string
           user_id?: string

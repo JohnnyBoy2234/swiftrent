@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { ManageTenantsTabProps } from '@/types/dashboard';
 import { useState } from 'react';
 import { LeaseSigningDialog } from '@/components/lease/LeaseSigningDialog';
+import { PaymentRequestButton } from '@/components/payments/PaymentRequestButton';
 
 export function ManageTenantsTab({ property, activeTenancy }: ManageTenantsTabProps) {
   const navigate = useNavigate();
@@ -136,10 +137,11 @@ export function ManageTenantsTab({ property, activeTenancy }: ManageTenantsTabPr
             </Badge>
           </div>
           
-          <Button variant="outline" size="sm" className="w-full" onClick={handleViewPayments}>
-            <CreditCard className="w-4 h-4 mr-2" />
-            View payment history
-          </Button>
+          <PaymentRequestButton
+            tenancyId={property.id}
+            monthlyRent={property.price}
+            securityDeposit={0}
+          />
         </CardContent>
       </Card>
 

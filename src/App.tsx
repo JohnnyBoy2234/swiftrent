@@ -23,6 +23,7 @@ import PropertyManagement from "./pages/PropertyManagement";
 import IdVerification from "./pages/IdVerification";
 import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/id-verification" element={<IdVerification />} />
             <Route path="/messages" element={<RouteGuard><Messages /></RouteGuard>} />
             <Route path="/apply/:id" element={<PropertyDetail />} />
+            <Route path="/payment-success" element={<RouteGuard><PaymentSuccess /></RouteGuard>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
