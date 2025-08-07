@@ -66,6 +66,13 @@ const Navbar = () => {
                           Rental Manager
                         </Link>
                       </Button>
+                    ) : !isLandlord ? (
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to="/tenant-dashboard" className="flex items-center relative">
+                          <LayoutDashboard className="h-4 w-4 mr-2" />
+                          My Dashboard
+                        </Link>
+                      </Button>
                     ) : (
                       <Button variant="ghost" size="sm" asChild>
                         <Link to="/messages" className="flex items-center relative">
@@ -174,6 +181,10 @@ const Navbar = () => {
                     {isLandlord && hasProperties ? (
                       <Button variant="outline" className="w-full" asChild>
                         <Link to="/dashboard">Rental Manager</Link>
+                      </Button>
+                    ) : !isLandlord ? (
+                      <Button variant="outline" className="w-full" asChild>
+                        <Link to="/tenant-dashboard">My Dashboard</Link>
                       </Button>
                     ) : (
                       <Button variant="outline" className="w-full" asChild>
