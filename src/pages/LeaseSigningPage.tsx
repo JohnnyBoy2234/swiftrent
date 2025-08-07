@@ -94,11 +94,15 @@ const LeaseSigningPage = () => {
     }
   };
   
-  const handleDownload = async (url: string, filename: string) => {
+  const handleDownload = async (filePath: string, filename: string) => {
     try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Network response was not ok');
-      const blob = await response.blob();
+      const { data, error } = await supabase.storage
+        .from('lease-documents')
+        .download(filePath);
+
+      if (error) throw error;
+
+      const blob = new Blob([data], { type: 'application/pdf' });
       const blobUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = blobUrl;
@@ -139,10 +143,13 @@ const LeaseSigningPage = () => {
         <CardContent>
           <div className="mb-6">
             <h3 className="font-semibold mb-2">Lease Document</h3>
-            {tenancy.lease_document_url ? (
+            {tenancy.lease_document_path ? (
               <>
-                <iframe src={tenancy.lease_document_url} width="100%" height="500px" className="border rounded-md" title="Lease Agreement"></iframe>
-                <Button variant="outline" className="mt-2" onClick={() => handleDownload(tenancy.lease_document_url, `lease-${tenancy.properties?.title}.pdf`)}>
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                  <p className="text-blue-800 font-medium">Lease document is ready for review</p>
+                  <p className="text-sm text-blue-600">Please download and review the lease document before signing.</p>
+                </div>
+                <Button variant="outline" onClick={() => handleDownload(tenancy.lease_document_path, `lease-${tenancy.properties?.title}.pdf`)}>
                     Download PDF
                 </Button>
               </>

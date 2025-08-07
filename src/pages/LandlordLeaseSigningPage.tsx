@@ -4,7 +4,7 @@ import { supabase } from '../integrations/supabase/client';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import { Checkbox } from '../components/ui/checkbox';
-import { useToast } from '../components/ui/use-toast';
+import { useToast } from '../hooks/use-toast';
 import { Skeleton } from '../components/ui/skeleton';
 
 const LandlordLeaseSigningPage = () => {
@@ -82,11 +82,15 @@ const LandlordLeaseSigningPage = () => {
     }
   };
   
-  const handleDownload = async (url: string, filename: string) => {
+  const handleDownload = async (filePath: string, filename: string) => {
     try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Network response was not ok');
-      const blob = await response.blob();
+      const { data, error } = await supabase.storage
+        .from('lease-documents')
+        .download(filePath);
+
+      if (error) throw error;
+
+      const blob = new Blob([data], { type: 'application/pdf' });
       const blobUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = blobUrl;
@@ -127,10 +131,13 @@ const LandlordLeaseSigningPage = () => {
         <CardContent>
           <div className="mb-6">
             <h3 className="font-semibold mb-2">Lease Document</h3>
-            {tenancy.lease_document_url ? (
+            {tenancy.lease_document_path ? (
               <>
-                <iframe src={tenancy.lease_document_url} width="100%" height="500px" className="border rounded-md" title="Lease Agreement"></iframe>
-                <Button variant="outline" className="mt-2" onClick={() => handleDownload(tenancy.lease_document_url, `lease-${tenancy.properties?.title}.pdf`)}>
+                <div className="mb-4 p-4 bg-green-50 rounded-lg">
+                  <p className="text-green-800 font-medium">Tenant has signed the lease</p>
+                  <p className="text-sm text-green-600">Please download and review the lease document before adding your signature.</p>
+                </div>
+                <Button variant="outline" onClick={() => handleDownload(tenancy.lease_document_path, `lease-${tenancy.properties?.title}.pdf`)}>
                     Download PDF
                 </Button>
               </>
