@@ -370,10 +370,10 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="max-w-4xl mx-auto w-full flex flex-col min-h-screen">
-        {/* Header */}
-        <div className="flex-shrink-0 bg-background border-b px-4 py-6">
+    <div className="fixed inset-0 bg-background flex flex-col">
+      {/* Header - Fixed at top */}
+      <div className="flex-shrink-0 bg-background border-b px-4 py-6">
+        <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-4">Rental Application</h1>
           <Progress value={progress} className="h-2" />
           
@@ -408,10 +408,12 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Content Area - Scrollable */}
-        <div className="flex-1 min-h-0 px-4 py-6">
-          <div className="h-full relative">
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="relative">
             {/* Auto-save indicator */}
             {showSavedMessage && (
               <div className="absolute top-2 right-2 z-10 bg-green-50 text-green-700 px-3 py-1 rounded-md text-sm border border-green-200 shadow-sm">
@@ -419,8 +421,8 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
               </div>
             )}
             
-            <Card className="h-full flex flex-col">
-              <CardHeader className="flex-shrink-0">
+            <Card>
+              <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   {STEPS[currentStep].title}
                   {autoSaving && (
@@ -428,7 +430,7 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 min-h-0 p-6 overflow-y-auto">
+              <CardContent className="p-6">
                 <CurrentStepComponent
                   formData={formData}
                   updateFormData={updateFormData}
@@ -439,9 +441,11 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
             </Card>
           </div>
         </div>
+      </div>
 
-        {/* Footer Navigation - Fixed at bottom */}
-        <div className="flex-shrink-0 bg-background border-t px-4 py-4">
+      {/* Footer Navigation - Fixed at bottom */}
+      <div className="flex-shrink-0 bg-background border-t px-4 py-4">
+        <div className="max-w-4xl mx-auto">
           <div className="flex justify-between">
             <Button
               variant="outline"
