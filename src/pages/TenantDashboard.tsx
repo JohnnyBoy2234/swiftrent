@@ -49,26 +49,17 @@ export default function TenantDashboard() {
     navigate(`/lease-signing/${tenancyId}`);
   };
 
-  const handleDownloadLease = async (leaseUrl: string, propertyTitle: string) => {
-    try {
-      const response = await fetch(leaseUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Lease_Agreement_${propertyTitle.replace(/[^a-z0-9]/gi, '_')}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading lease:', error);
-      toast({
-        title: "Download Failed",
-        description: "Could not download the lease document. Please try again.",
-        variant: "destructive"
-      });
-    }
+  const handleDownloadLease = (leaseUrl: string, propertyTitle: string) => {
+    // Create a temporary anchor element to trigger download
+    const link = document.createElement('a');
+    link.href = leaseUrl;
+    link.download = `Lease_Agreement_${propertyTitle.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+    link.target = '_blank';
+    
+    // Add to DOM, click, then remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleNotificationClick = (notification: any) => {
