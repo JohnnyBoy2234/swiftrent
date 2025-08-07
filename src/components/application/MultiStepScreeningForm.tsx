@@ -370,7 +370,7 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   return (
-    <div className="fixed inset-0 bg-background flex flex-col">
+    <div className="h-full w-full bg-background flex flex-col">
       {/* Header - Fixed at top */}
       <div className="flex-shrink-0 bg-background border-b px-4 py-6">
         <div className="max-w-4xl mx-auto">
@@ -411,7 +411,7 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
       </div>
 
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="relative">
             {/* Auto-save indicator */}
