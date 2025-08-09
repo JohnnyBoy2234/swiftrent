@@ -373,8 +373,25 @@ export default function PropertyDetail() {
     }
 
     if (isScreened && property) {
-      // User is already screened, submit application directly
+      // User is already screened, check again for duplicates before submitting
       try {
+        const { data: existingApp, error: checkError } = await supabase
+          .from('applications')
+          .select('id')
+          .eq('tenant_id', user.id)
+          .eq('property_id', property.id)
+          .maybeSingle();
+
+        if (checkError) throw checkError;
+
+        if (existingApp) {
+          toast({
+            title: "Already applied",
+            description: "You have already submitted an application for this property."
+          });
+          return;
+        }
+
         await submitApplication(property.id, property.landlord_id);
         toast({
           title: "Application submitted successfully",

@@ -133,6 +133,24 @@ export default function TenantScreeningForm({
 
     setLoading(true);
     try {
+      // Check if user has already applied to this property
+      const { data: existingApplication, error: checkError } = await supabase
+        .from('applications')
+        .select('id')
+        .eq('tenant_id', user.id)
+        .eq('property_id', propertyId)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (existingApplication) {
+        toast({
+          title: "Application already submitted",
+          description: "You have already submitted an application for this property."
+        });
+        return;
+      }
+
       // Save screening details
       const { error: screeningError } = await supabase
         .from('screening_details')
@@ -269,12 +287,22 @@ export default function TenantScreeningForm({
             <div>
               <Label htmlFor="net_monthly_income">Net Monthly Income (ZAR)</Label>
               <Input
-                type="number"
+                type="text"
                 {...register('net_monthly_income', { 
-                  valueAsNumber: true,
-                  min: { value: 0, message: 'Income must be positive' }
+                  pattern: {
+                    value: /^\d+$/,
+                    message: 'Please enter a valid amount (numbers only)'
+                  },
+                  min: { value: 1, message: 'Income must be positive' },
+                  setValueAs: (value) => value === '' ? undefined : parseInt(value, 10)
                 })}
                 placeholder="Enter your monthly income"
+                onInput={(e) => {
+                  // Remove any non-digit characters and prevent leading zeros
+                  const value = e.currentTarget.value.replace(/\D/g, '');
+                  const cleanValue = value.replace(/^0+/, '') || '';
+                  e.currentTarget.value = cleanValue;
+                }}
               />
               {errors.net_monthly_income && (
                 <p className="text-sm text-destructive mt-1">{errors.net_monthly_income.message}</p>
