@@ -23,6 +23,7 @@ export type Database = {
           status: string
           tenant_id: string
           updated_at: string
+          viewing_id: string | null
         }
         Insert: {
           created_at?: string
@@ -32,6 +33,7 @@ export type Database = {
           status?: string
           tenant_id: string
           updated_at?: string
+          viewing_id?: string | null
         }
         Update: {
           created_at?: string
@@ -41,6 +43,7 @@ export type Database = {
           status?: string
           tenant_id?: string
           updated_at?: string
+          viewing_id?: string | null
         }
         Relationships: []
       }
@@ -812,11 +815,61 @@ export type Database = {
         }
         Relationships: []
       }
+      viewings: {
+        Row: {
+          completed_at: string | null
+          conversation_id: string | null
+          created_at: string
+          id: string
+          landlord_id: string
+          notes: string | null
+          property_id: string
+          scheduled_date: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          landlord_id: string
+          notes?: string | null
+          property_id: string
+          scheduled_date?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          landlord_id?: string
+          notes?: string | null
+          property_id?: string
+          scheduled_date?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      can_create_application: {
+        Args: {
+          viewing_uuid: string
+          landlord_uuid: string
+          tenant_uuid: string
+        }
+        Returns: boolean
+      }
       create_admin_account: {
         Args: { email_param: string; display_name_param: string }
         Returns: Json
