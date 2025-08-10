@@ -25,8 +25,18 @@ export function useDocuments() {
 
   const fetchDocuments = async () => {
     try {
-      // For now, return empty array until documents table is created
-      setDocuments([]);
+      const { data, error } = await supabase
+        .from('documents')
+        .select(`
+          *,
+          profiles!documents_user_id_fkey (
+            display_name
+          )
+        `)
+        .order('uploaded_at', { ascending: false });
+
+      if (error) throw error;
+      setDocuments(data || []);
     } catch (error: any) {
       console.error('Error fetching documents:', error);
       toast({
@@ -45,7 +55,18 @@ export function useDocuments() {
     rejectionReason?: string
   ) => {
     try {
-      // Placeholder until documents table is available
+      const { error } = await supabase
+        .from('documents')
+        .update({
+          status,
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: (await supabase.auth.getUser()).data.user?.id,
+          rejection_reason: status === 'rejected' ? rejectionReason : null
+        })
+        .eq('id', documentId);
+
+      if (error) throw error;
+
       toast({
         title: `Document ${status}`,
         description: `The document has been ${status} successfully.`
