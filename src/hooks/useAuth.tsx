@@ -9,6 +9,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, role?: 'tenant' | 'landlord') => Promise<{ error: any; isNewUser?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithGoogle: (role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
+  signInWithProvider: (provider: 'google' | 'apple' | 'facebook', role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isLandlord: boolean;
 }
