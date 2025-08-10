@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, role: 'tenant' | 'landlord' = 'tenant') => {
-    const redirectUrl = `${window.location.origin}/id-verification`;
+    const redirectUrl = `${window.location.origin}/verify`; 
     
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -97,11 +97,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
-  const signInWithGoogle = async (role: 'tenant' | 'landlord' = 'tenant') => {
-    const redirectUrl = `${window.location.origin}/id-verification`;
-    
+  const signInWithProvider = async (provider: 'google' | 'apple' | 'facebook', role: 'tenant' | 'landlord' = 'tenant') => {
+    const redirectUrl = `${window.location.origin}/verify`;
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider,
       options: {
         redirectTo: redirectUrl,
         queryParams: {
@@ -112,6 +111,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     return { error };
   };
+
+  const signInWithGoogle = async (role: 'tenant' | 'landlord' = 'tenant') => signInWithProvider('google', role);
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -124,6 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signIn,
     signInWithGoogle,
+    signInWithProvider,
     signOut,
     isLandlord
   };

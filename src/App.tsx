@@ -20,10 +20,10 @@ import AddProperty from "./pages/AddProperty";
 import ListProperty from "./pages/ListProperty";
 import PropertyDetail from "./pages/PropertyDetail";
 import PropertyManagement from "./pages/PropertyManagement";
-import IdVerification from "./pages/IdVerification";
 import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import Verify from "./pages/Verify";
 
 const queryClient = new QueryClient();
 
@@ -49,7 +49,7 @@ const App = () => (
             <Route path="/list-property" element={<RouteGuard><ListProperty /></RouteGuard>} />
             <Route path="/property/:id" element={<PropertyDetail />} />
             <Route path="/manage-property/:id" element={<RouteGuard><PropertyManagement /></RouteGuard>} />
-            <Route path="/id-verification" element={<IdVerification />} />
+            <Route path="/verify" element={<RouteGuard><Verify /></RouteGuard>} />
             <Route path="/messages" element={<RouteGuard><Messages /></RouteGuard>} />
             <Route path="/apply/:id" element={<PropertyDetail />} />
             <Route path="/payment-success" element={<RouteGuard><PaymentSuccess /></RouteGuard>} />

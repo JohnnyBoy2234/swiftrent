@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,14 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'tenant' | 'landlord'>('tenant');
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, signInWithGoogle, user } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithProvider, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -39,10 +39,9 @@ export default function Auth() {
         description: error.message
       });
     } else {
-      toast({
-        title: "Welcome back!",
-        description: "You have been signed in successfully."
-      });
+      // Send 6-digit code then redirect to verification
+      await supabase.functions.invoke('send-login-code');
+      navigate('/verify');
     }
     
     setLoading(false);
@@ -61,19 +60,9 @@ export default function Auth() {
         description: error.message
       });
     } else {
-      if (isNewUser) {
-        toast({
-          title: "Account created!",
-          description: "Please check your email to verify your account, then complete ID verification."
-        });
-      } else {
-        toast({
-          title: "Welcome back!",
-          description: "Please complete your ID verification."
-        });
-        // For existing users confirming email, redirect to ID verification
-        navigate('/id-verification');
-      }
+      // Account created or existing session
+      await supabase.functions.invoke('send-login-code');
+      navigate('/verify');
     }
     
     setLoading(false);
@@ -81,9 +70,7 @@ export default function Auth() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    
-    const { error } = await signInWithGoogle('tenant');
-    
+    const { error } = await signInWithProvider('google', 'tenant');
     if (error) {
       toast({
         variant: "destructive",
@@ -92,7 +79,24 @@ export default function Auth() {
       });
       setLoading(false);
     }
-    // Note: Loading state will be cleared by auth state change when redirect completes
+  };
+
+  const handleAppleSignIn = async () => {
+    setLoading(true);
+    const { error } = await signInWithProvider('apple', 'tenant');
+    if (error) {
+      toast({ variant: 'destructive', title: 'Apple sign in failed', description: error.message });
+      setLoading(false);
+    }
+  };
+
+  const handleFacebookSignIn = async () => {
+    setLoading(true);
+    const { error } = await signInWithProvider('facebook', 'tenant');
+    if (error) {
+      toast({ variant: 'destructive', title: 'Facebook sign in failed', description: error.message });
+      setLoading(false);
+    }
   };
 
   return (
@@ -113,7 +117,6 @@ export default function Auth() {
             
             <TabsContent value="signin">
               <div className="space-y-4">
-                {/* Google Sign In */}
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -128,6 +131,12 @@ export default function Auth() {
                     <path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                   </svg>
                   Continue with Google
+                </Button>
+                <Button type="button" variant="outline" className="w-full" onClick={handleAppleSignIn} disabled={loading}>
+                  Continue with Apple
+                </Button>
+                <Button type="button" variant="outline" className="w-full" onClick={handleFacebookSignIn} disabled={loading}>
+                  Continue with Facebook
                 </Button>
 
                 <div className="relative">
@@ -220,7 +229,9 @@ export default function Auth() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      minLength={6}
+                      minLength={8}
+                      pattern="^(?=.*[A-Za-z])(?=.*\\d).{8,}$"
+                      title="At least 8 characters, with 1 letter and 1 number"
                     />
                   </div>
                   <div className="space-y-3">
