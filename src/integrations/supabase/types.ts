@@ -743,6 +743,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_admin_account: {
+        Args: { email_param: string; display_name_param: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _user_id: string
