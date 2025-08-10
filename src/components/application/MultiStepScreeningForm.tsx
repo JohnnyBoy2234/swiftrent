@@ -57,6 +57,7 @@ export interface ScreeningProfile {
 
 interface MultiStepScreeningFormProps {
   propertyId: string;
+  viewingId?: string;
   onComplete: () => void;
   onCancel: () => void;
 }
@@ -70,7 +71,7 @@ const STEPS = [
   { id: 'review', title: 'Review', component: ReviewStep },
 ];
 
-export default function MultiStepScreeningForm({ propertyId, onComplete, onCancel }: MultiStepScreeningFormProps) {
+export default function MultiStepScreeningForm({ propertyId, viewingId, onComplete, onCancel }: MultiStepScreeningFormProps) {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -305,14 +306,20 @@ export default function MultiStepScreeningForm({ propertyId, onComplete, onCance
         .eq('user_id', user.id);
 
       // Create application
+      const applicationData: any = {
+        property_id: propertyId,
+        tenant_id: user.id,
+        landlord_id: property.landlord_id,
+        status: 'pending'
+      };
+
+      if (viewingId) {
+        applicationData.viewing_id = viewingId;
+      }
+
       const { error: applicationError } = await supabase
         .from('applications')
-        .insert([{
-          property_id: propertyId,
-          tenant_id: user.id,
-          landlord_id: property.landlord_id,
-          status: 'pending'
-        }]);
+        .insert([applicationData]);
 
       if (applicationError) throw applicationError;
 

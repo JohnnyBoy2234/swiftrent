@@ -31,6 +31,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import MultiStepScreeningForm from '@/components/application/MultiStepScreeningForm';
 import { useApplications } from '@/hooks/useApplications';
+import ViewingWorkflow from '@/components/viewing/ViewingWorkflow';
+import ApplicationAccessGuard from '@/components/application/ApplicationAccessGuard';
 
 interface Property {
   id: string;
@@ -757,6 +759,26 @@ export default function PropertyDetail() {
               </CardContent>
             </Card>
 
+            {/* Viewing Workflow */}
+            {user && property.landlord_id !== user.id && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Property Viewing</CardTitle>
+                  <CardDescription>Schedule and manage property viewings</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ViewingWorkflow
+                    propertyId={property.id}
+                    propertyTitle={property.title}
+                    tenantId={user.id}
+                    onViewingCompleted={() => {
+                      // Refresh application state if needed
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
             {/* Application */}
             <Card>
               <CardHeader>
@@ -771,37 +793,25 @@ export default function PropertyDetail() {
                       This is your property listing
                     </p>
                   </div>
+                ) : user ? (
+                  <ApplicationAccessGuard
+                    propertyId={property.id}
+                    landlordId={property.landlord_id}
+                    tenantId={user.id}
+                    onApplicationComplete={handleScreeningComplete}
+                    onCancel={() => setShowScreeningForm(false)}
+                  />
                 ) : (
-                  <>
-                    {property && hasAppliedToProperty(property.id) ? (
-                      <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
-                        <p className="text-sm text-green-800">
-                          <CheckCircle className="h-4 w-4 inline mr-1" />
-                          Application submitted
-                        </p>
-                      </div>
-                    ) : (
-                      <Button 
-                        className="w-full" 
-                        size="lg" 
-                        onClick={handleStartApplication}
-                        disabled={applicationLoading || checkingVerification}
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        {applicationLoading ? 'Submitting...' : 'Start Application'}
-                      </Button>
-                    )}
-                    {isScreened && !hasAppliedToProperty(property?.id || '') && (
-                      <p className="text-xs text-muted-foreground">
-                        Your screening details are saved - application will be submitted instantly
-                      </p>
-                    )}
-                    {!isScreened && (
-                      <p className="text-xs text-muted-foreground">
-                        Complete one-time screening form and submit application
-                      </p>
-                    )}
-                  </>
+                  <div className="text-center space-y-3">
+                    <p className="text-muted-foreground">Sign in to apply for this property</p>
+                    <Button 
+                      className="w-full" 
+                      onClick={() => navigate('/auth')}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Sign In to Apply
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>
