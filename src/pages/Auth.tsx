@@ -9,13 +9,67 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+
+// Email validation regex
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Password validation criteria
+const PASSWORD_CRITERIA = {
+  minLength: 8,
+  hasUppercase: /[A-Z]/,
+  hasLowercase: /[a-z]/,
+  hasNumber: /\d/,
+  hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/
+};
+
+// Validate email format
+const validateEmail = (email: string): { isValid: boolean; error?: string } => {
+  if (!email) {
+    return { isValid: false, error: 'Email is required' };
+  }
+  if (!EMAIL_REGEX.test(email)) {
+    return { isValid: false, error: 'Please enter a valid email address' };
+  }
+  return { isValid: true };
+};
+
+// Validate password security
+const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+  
+  if (password.length < PASSWORD_CRITERIA.minLength) {
+    errors.push(`At least ${PASSWORD_CRITERIA.minLength} characters`);
+  }
+  if (!PASSWORD_CRITERIA.hasUppercase.test(password)) {
+    errors.push('At least one uppercase letter');
+  }
+  if (!PASSWORD_CRITERIA.hasLowercase.test(password)) {
+    errors.push('At least one lowercase letter');
+  }
+  if (!PASSWORD_CRITERIA.hasNumber.test(password)) {
+    errors.push('At least one number');
+  }
+  if (!PASSWORD_CRITERIA.hasSpecialChar.test(password)) {
+    errors.push('At least one special character');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
 
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'tenant' | 'landlord'>('tenant');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState('signin');
   const { signIn, signUp, signInWithGoogle, signInWithProvider, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -26,22 +80,81 @@ export default function Auth() {
     }
   }, [user, navigate]);
 
+  // Real-time email validation
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (value && !EMAIL_REGEX.test(value)) {
+      setEmailError('Please enter a valid email address');
+    } else {
+      setEmailError('');
+    }
+  };
+
+  // Real-time password validation for signup
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (activeTab === 'signup') {
+      const validation = validatePassword(value);
+      setPasswordErrors(validation.errors);
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
+    // Validate email format
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      toast({
+        variant: "destructive",
+        title: "Invalid email",
+        description: emailValidation.error
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Basic password check for signin
+    if (!password) {
+      toast({
+        variant: "destructive",
+        title: "Password required",
+        description: "Please enter your password"
+      });
+      setLoading(false);
+      return;
+    }
+    
     const { error } = await signIn(email, password);
     
     if (error) {
+      // Provide specific error messages
+      let errorTitle = "Sign in failed";
+      let errorDescription = "Please check your credentials and try again";
+      
+      if (error.message.includes('Invalid login credentials') || error.message.includes('Email not confirmed')) {
+        errorTitle = "Invalid credentials";
+        errorDescription = "Invalid email or password. Please check your credentials.";
+      } else if (error.message.includes('Email not confirmed')) {
+        errorTitle = "Email not verified";
+        errorDescription = "Please check your email and click the verification link before signing in.";
+      } else if (error.message.includes('Too many requests')) {
+        errorTitle = "Too many attempts";
+        errorDescription = "Too many sign-in attempts. Please wait a moment and try again.";
+      }
+      
       toast({
         variant: "destructive",
-        title: "Sign in failed",
-        description: error.message
+        title: errorTitle,
+        description: errorDescription
       });
     } else {
-      // Send 6-digit code then redirect to verification
-      await supabase.functions.invoke('send-login-code');
-      navigate('/verify');
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in."
+      });
+      navigate('/');
     }
     
     setLoading(false);
@@ -51,18 +164,71 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     
+    // Validate email format
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      toast({
+        variant: "destructive",
+        title: "Invalid email",
+        description: emailValidation.error
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Validate password security
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      toast({
+        variant: "destructive",
+        title: "Password doesn't meet requirements",
+        description: `Password must have: ${passwordValidation.errors.join(', ')}`
+      });
+      setLoading(false);
+      return;
+    }
+    
     const { error, isNewUser } = await signUp(email, password, role);
     
     if (error) {
+      // Provide specific error messages
+      let errorTitle = "Sign up failed";
+      let errorDescription = "Please try again";
+      
+      if (error.message.includes('User already registered')) {
+        errorTitle = "Account already exists";
+        errorDescription = "An account with this email already exists. Please sign in instead.";
+      } else if (error.message.includes('Invalid email')) {
+        errorTitle = "Invalid email";
+        errorDescription = "Please enter a valid email address";
+      } else if (error.message.includes('Password should be at least')) {
+        errorTitle = "Password too weak";
+        errorDescription = "Password must meet security requirements";
+      } else if (error.message.includes('rate limit')) {
+        errorTitle = "Too many attempts";
+        errorDescription = "Please wait a moment before trying again";
+      }
+      
       toast({
         variant: "destructive",
-        title: "Sign up failed",
-        description: error.message
+        title: errorTitle,
+        description: errorDescription
       });
     } else {
-      // Account created or existing session
-      await supabase.functions.invoke('send-login-code');
-      navigate('/verify');
+      toast({
+        title: "Account created successfully!",
+        description: isNewUser 
+          ? "Please check your email for a verification link before signing in." 
+          : "You're now signed in to your account."
+      });
+      
+      if (isNewUser) {
+        // Switch to sign in tab for new users to verify email first
+        setActiveTab('signin');
+        setPassword(''); // Clear password for security
+      } else {
+        navigate('/');
+      }
     }
     
     setLoading(false);
@@ -109,7 +275,7 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -158,19 +324,41 @@ export default function Auth() {
                       id="signin-email"
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => handleEmailChange(e.target.value)}
                       required
+                      className={emailError ? "border-destructive" : ""}
                     />
+                    {emailError && (
+                      <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>{emailError}</AlertDescription>
+                      </Alert>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signin-password">Password</Label>
-                    <Input
-                      id="signin-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        id="signin-password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? 'Signing in...' : 'Sign In'}
@@ -217,22 +405,96 @@ export default function Auth() {
                       id="signup-email"
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => handleEmailChange(e.target.value)}
                       required
+                      className={emailError ? "border-destructive" : ""}
                     />
+                    {emailError && (
+                      <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>{emailError}</AlertDescription>
+                      </Alert>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={8}
-                      pattern="^(?=.*[A-Za-z])(?=.*\\d).{8,}$"
-                      title="At least 8 characters, with 1 letter and 1 number"
-                    />
+                    <Label htmlFor="signup-password">Password Requirements</Label>
+                    <div className="relative">
+                      <Input
+                        id="signup-password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => handlePasswordChange(e.target.value)}
+                        required
+                        className={passwordErrors.length > 0 ? "border-destructive" : ""}
+                        placeholder="Enter a secure password"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    {/* Password criteria display */}
+                    <div className="space-y-1 text-sm">
+                      <div className="flex items-center gap-2">
+                        {password.length >= PASSWORD_CRITERIA.minLength ? (
+                          <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        ) : (
+                          <AlertCircle className="h-3 w-3 text-muted-foreground" />
+                        )}
+                        <span className={password.length >= PASSWORD_CRITERIA.minLength ? "text-green-600" : "text-muted-foreground"}>
+                          At least 8 characters
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {PASSWORD_CRITERIA.hasUppercase.test(password) ? (
+                          <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        ) : (
+                          <AlertCircle className="h-3 w-3 text-muted-foreground" />
+                        )}
+                        <span className={PASSWORD_CRITERIA.hasUppercase.test(password) ? "text-green-600" : "text-muted-foreground"}>
+                          One uppercase letter
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {PASSWORD_CRITERIA.hasLowercase.test(password) ? (
+                          <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        ) : (
+                          <AlertCircle className="h-3 w-3 text-muted-foreground" />
+                        )}
+                        <span className={PASSWORD_CRITERIA.hasLowercase.test(password) ? "text-green-600" : "text-muted-foreground"}>
+                          One lowercase letter
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {PASSWORD_CRITERIA.hasNumber.test(password) ? (
+                          <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        ) : (
+                          <AlertCircle className="h-3 w-3 text-muted-foreground" />
+                        )}
+                        <span className={PASSWORD_CRITERIA.hasNumber.test(password) ? "text-green-600" : "text-muted-foreground"}>
+                          One number
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {PASSWORD_CRITERIA.hasSpecialChar.test(password) ? (
+                          <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        ) : (
+                          <AlertCircle className="h-3 w-3 text-muted-foreground" />
+                        )}
+                        <span className={PASSWORD_CRITERIA.hasSpecialChar.test(password) ? "text-green-600" : "text-muted-foreground"}>
+                          One special character
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-3">
                     <Label>Account Type</Label>

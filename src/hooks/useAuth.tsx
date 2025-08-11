@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, role: 'tenant' | 'landlord' = 'tenant') => {
-    const redirectUrl = `${window.location.origin}/verify`; 
+    const redirectUrl = `${window.location.origin}/`; // Redirect to home page after email confirmation
     
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -84,8 +84,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
     
-    // Check if this is a new user (not just confirming email)
+    // If no error and we have a user but no session, it means email confirmation is required
     const isNewUser = data.user && !data.session;
+    
+    // If we have both user and session, the user is immediately logged in (email confirmation disabled)
+    if (data.user && data.session && !error) {
+      // Create user role record
+      try {
+        await supabase.from('user_roles').insert({
+          user_id: data.user.id,
+          role: role
+        });
+        
+        // Create user profile
+        await supabase.from('profiles').insert({
+          user_id: data.user.id,
+          display_name: data.user.email?.split('@')[0] || 'User'
+        });
+      } catch (roleError) {
+        console.error('Error creating user role/profile:', roleError);
+        // Don't fail signup if role creation fails
+      }
+    }
     
     return { error, isNewUser };
   };
@@ -99,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithProvider = async (provider: 'google' | 'apple' | 'facebook', role: 'tenant' | 'landlord' = 'tenant') => {
-    const redirectUrl = `${window.location.origin}/verify`;
+    const redirectUrl = `${window.location.origin}/`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
