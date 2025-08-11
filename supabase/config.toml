@@ -67,3 +67,6 @@ verify_jwt = true
 
 [functions.verify-login-code]
 verify_jwt = true
+
+[functions.notify-viewing-booked]
+verify_jwt = true

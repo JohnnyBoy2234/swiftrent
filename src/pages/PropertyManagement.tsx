@@ -31,6 +31,7 @@ import { LeaseSigningDialog } from '@/components/lease/LeaseSigningDialog';
 import { LeaseCreationWizard } from '@/components/lease/LeaseCreationWizard';
 import { ApplicationsTab } from '@/components/property/ApplicationsTab';
 import { PaymentsTab } from '@/components/property/PaymentsTab';
+import { ViewingSlotsManager } from '@/components/viewing/ViewingSlotsManager';
 
 interface MaintenanceRequest {
   id: string;
