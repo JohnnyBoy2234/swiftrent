@@ -36,6 +36,9 @@ interface FormData {
   reason_for_moving: string;
   previous_landlord_name: string;
   previous_landlord_contact: string;
+  // Documents
+  id_document: File | null;
+  income_document: File | null;
   // Additional
   has_pets: boolean;
   pet_details: string;
@@ -46,6 +49,7 @@ const steps = [
   { key: "personal", title: "Personal" },
   { key: "employment", title: "Employment" },
   { key: "residence", title: "Residence" },
+  { key: "documents", title: "Documents" },
   { key: "additional", title: "Additional" },
   { key: "consent", title: "Consent" },
 ] as const;
@@ -76,6 +80,8 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
     reason_for_moving: "",
     previous_landlord_name: "",
     previous_landlord_contact: "",
+    id_document: null,
+    income_document: null,
     has_pets: false,
     pet_details: "",
     screening_consent: false,
@@ -154,8 +160,34 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
     }
   };
 
-  const handleInputChange = (field: keyof FormData, value: string | boolean) => {
+  const handleInputChange = (field: keyof FormData, value: string | boolean | File | null) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileUpload = async (file: File, documentType: 'id' | 'income') => {
+    if (!user) return null;
+    
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}_${documentType}_${Date.now()}.${fileExt}`;
+      const bucket = documentType === 'id' ? 'id-documents' : 'income-documents';
+      
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(fileName, file);
+      
+      if (uploadError) throw uploadError;
+      
+      return fileName;
+    } catch (error) {
+      console.error('File upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: "Could not upload document. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    }
   };
 
   const canProceedFromStep = (stepIdx: number): boolean => {
@@ -164,6 +196,7 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
       personal: ["first_name", "last_name", "id_number", "phone"],
       employment: ["employment_status"],
       residence: ["current_address"],
+      documents: [],
       additional: [],
       consent: ["screening_consent"],
     };
@@ -204,7 +237,7 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
     }
 
     // Final validation
-    if (!canProceedFromStep(4)) {
+    if (!canProceedFromStep(5)) {
       toast({
         title: "Consent required",
         description: "You must provide screening consent to submit.",
@@ -215,6 +248,18 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
 
     setSubmitting(true);
     try {
+      // Upload documents if provided
+      let idDocumentPath = null;
+      let incomeDocumentPath = null;
+      
+      if (formData.id_document) {
+        idDocumentPath = await handleFileUpload(formData.id_document, 'id');
+      }
+      
+      if (formData.income_document) {
+        incomeDocumentPath = await handleFileUpload(formData.income_document, 'income');
+      }
+
       // Upsert screening profile
       const { error: profileError } = await supabase.from("screening_profiles").upsert({
         user_id: user.id,
@@ -226,6 +271,10 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
         screening_consent: formData.screening_consent,
         screening_consent_date: new Date().toISOString(),
         is_complete: true,
+        documents: {
+          id_document: idDocumentPath,
+          income_document: incomeDocumentPath,
+        },
         updated_at: new Date().toISOString(),
       });
       if (profileError) throw profileError;
@@ -482,6 +531,51 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
 
           {currentStep === 3 && (
             <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Supporting Documents</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Upload supporting documents to strengthen your application (optional but recommended)
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="id_document">ID Document</Label>
+                  <Input 
+                    id="id_document" 
+                    type="file" 
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      handleInputChange("id_document", file);
+                    }} 
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Upload a copy of your ID (PDF, JPG, or PNG format)
+                  </p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="income_document">Income Statement</Label>
+                  <Input 
+                    id="income_document" 
+                    type="file" 
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      handleInputChange("income_document", file);
+                    }} 
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Upload proof of income (pay slip, bank statement, etc.)
+                  </p>
+                </div>
+              </div>
+              
+              <NextBack />
+            </div>
+          )}
+
+          {currentStep === 4 && (
+            <div className="space-y-4">
               <h3 className="text-lg font-semibold">Additional Information</h3>
               <div className="flex items-center space-x-2">
                 <Checkbox id="has_pets" checked={formData.has_pets} onCheckedChange={(c) => handleInputChange("has_pets", c as boolean)} />
@@ -497,7 +591,7 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
             </div>
           )}
 
-          {currentStep === 4 && (
+          {currentStep === 5 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Consent and Authorization</h3>
               <div className="flex items-start space-x-2">
