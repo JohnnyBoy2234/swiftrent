@@ -230,6 +230,33 @@ export function ApplicationsTab({ propertyId, propertyTitle, propertyLocation, o
           </div>
         )}
 
+        {/* Documents */}
+        {screeningProfile?.documents && screeningProfile.documents.length > 0 && (
+          <div>
+            <h4 className="font-medium mb-3">Uploaded Documents</h4>
+            <div className="grid gap-2">
+              {screeningProfile.documents.map((doc, index) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{doc.name}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {doc.type === 'id' ? 'ID Document' : 'Income Document'}
+                    </Badge>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.open(doc.url, '_blank')}
+                  >
+                    View
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Status */}
         <div className="pt-4 border-t">
           <div className="flex items-center justify-between">
@@ -415,7 +442,7 @@ export function ApplicationsTab({ propertyId, propertyTitle, propertyLocation, o
                                   <Check className="h-4 w-4 mr-2" />
                                   Accept & Start Lease
                                 </Button>
-                                <Button 
+                                <Button
                                   variant="outline" 
                                   size="sm"
                                   onClick={() => handleDeclineApplication(application.id)}

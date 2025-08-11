@@ -20,6 +20,11 @@ export interface ApplicationWithTenant {
     last_name: string;
     is_complete: boolean;
     created_at: string;
+    documents?: Array<{
+      type: string;
+      url: string;
+      name: string;
+    }>;
   };
   screening_details?: {
     full_name: string;
@@ -75,7 +80,7 @@ export const useLandlordApplications = (propertyId?: string) => {
               .maybeSingle(),
             supabase
               .from('screening_profiles')
-              .select('first_name, last_name, is_complete, created_at')
+              .select('first_name, last_name, is_complete, created_at, documents')
               .eq('user_id', app.tenant_id)
               .maybeSingle(),
             supabase
@@ -85,12 +90,17 @@ export const useLandlordApplications = (propertyId?: string) => {
               .maybeSingle()
           ]);
 
-          return {
-            ...app,
-            tenant_profile: tenantProfile.data,
-            screening_profile: screeningProfile.data,
-            screening_details: screeningDetails.data
-          };
+           return {
+             ...app,
+             tenant_profile: tenantProfile.data,
+             screening_profile: screeningProfile.data ? {
+               ...screeningProfile.data,
+               documents: Array.isArray(screeningProfile.data.documents) 
+                 ? screeningProfile.data.documents as Array<{type: string; url: string; name: string;}>
+                 : []
+             } : undefined,
+             screening_details: screeningDetails.data
+           };
         })
       );
 

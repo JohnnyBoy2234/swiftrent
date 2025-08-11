@@ -47,12 +47,22 @@ export const useApplications = () => {
 
     setLoading(true);
     try {
+      // First, try to remove any existing application for this property by this tenant
+      // This handles duplicate key errors seamlessly
+      await supabase
+        .from('applications')
+        .delete()
+        .eq('tenant_id', user.id)
+        .eq('property_id', propertyId);
+
+      // Now insert the new application
       const { data, error } = await supabase
         .from('applications')
         .insert({
           tenant_id: user.id,
           landlord_id: landlordId,
-          property_id: propertyId
+          property_id: propertyId,
+          status: 'pending'
         })
         .select()
         .single();

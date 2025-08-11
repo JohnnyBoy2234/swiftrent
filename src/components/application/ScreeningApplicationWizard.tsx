@@ -279,15 +279,8 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
   const handleSubmit = async () => {
     if (!user) return;
 
-    // Prevent duplicate submissions if an application exists and is not invited
-    if (existingApplication && existingApplication.status !== "invited") {
-      toast({
-        title: "Application already submitted",
-        description: "You have already submitted an application for this property.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Note: We'll handle any duplicates seamlessly in the submission process
+    // No need to block re-submissions - the system will update existing applications
 
     // Final validation
     if (!canProceedFromStep(5)) {
@@ -336,33 +329,28 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
       });
       if (detailsError) throw detailsError;
 
-      // Create or update application, set to submitted
-      const applicationPayload = {
-        tenant_id: user.id,
-        landlord_id: landlordId,
-        property_id: propertyId,
-        status: "submitted" as const,
-      };
+      // Submit application - handle duplicates seamlessly
+      // First, remove any existing application to prevent duplicate key errors
+      await supabase
+        .from("applications")
+        .delete()
+        .eq("tenant_id", user.id)
+        .eq("property_id", propertyId);
 
-      let applicationId: string | null = null;
-      if (existingApplication) {
-        const { data, error } = await supabase
-          .from("applications")
-          .update({ ...applicationPayload, updated_at: new Date().toISOString() })
-          .eq("id", existingApplication.id)
-          .select()
-          .single();
-        if (error) throw error;
-        applicationId = data?.id ?? null;
-      } else {
-        const { data, error } = await supabase
-          .from("applications")
-          .insert(applicationPayload)
-          .select()
-          .single();
-        if (error) throw error;
-        applicationId = data?.id ?? null;
-      }
+      // Now insert the new application
+      const { data, error } = await supabase
+        .from("applications")
+        .insert({
+          tenant_id: user.id,
+          landlord_id: landlordId,
+          property_id: propertyId,
+          status: "pending" as const,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      const applicationId = data?.id ?? null;
 
       // Mark invite used
       if (inviteId) {
@@ -410,7 +398,8 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
     );
   }
 
-  if (existingApplication && existingApplication.status !== "invited") {
+  // Allow re-applications for all statuses except accepted/declined
+  if (existingApplication && ['accepted', 'declined'].includes(existingApplication.status)) {
     return (
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
@@ -419,7 +408,7 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <p className="text-lg mb-2">Application already submitted</p>
+            <p className="text-lg mb-2">Application {existingApplication.status}</p>
             <p className="text-sm text-muted-foreground mb-4">
               Status: <span className="capitalize font-medium">{existingApplication.status}</span>
             </p>
