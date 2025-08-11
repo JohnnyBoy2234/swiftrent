@@ -184,6 +184,33 @@ export type Database = {
           },
         ]
       }
+      email_verification_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          token: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       inquiries: {
         Row: {
           created_at: string
@@ -439,6 +466,7 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string
+          email_verified: boolean
           id: string
           id_verification_status: string | null
           id_verified: boolean
@@ -453,6 +481,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name: string
+          email_verified?: boolean
           id?: string
           id_verification_status?: string | null
           id_verified?: boolean
@@ -467,6 +496,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string
+          email_verified?: boolean
           id?: string
           id_verification_status?: string | null
           id_verified?: boolean
@@ -851,6 +881,42 @@ export type Database = {
           expires_at?: string
           id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      viewing_slots: {
+        Row: {
+          booked_by_tenant_id: string | null
+          created_at: string
+          end_time: string
+          id: string
+          landlord_id: string
+          property_id: string
+          start_time: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booked_by_tenant_id?: string | null
+          created_at?: string
+          end_time: string
+          id?: string
+          landlord_id: string
+          property_id: string
+          start_time: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booked_by_tenant_id?: string | null
+          created_at?: string
+          end_time?: string
+          id?: string
+          landlord_id?: string
+          property_id?: string
+          start_time?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }

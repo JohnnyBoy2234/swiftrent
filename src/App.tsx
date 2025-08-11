@@ -65,7 +65,7 @@ const App = () => (
                   <Route path="/list-property" element={<RouteGuard><ListProperty /></RouteGuard>} />
                   <Route path="/property/:id" element={<PropertyDetail />} />
                   <Route path="/manage-property/:id" element={<RouteGuard><PropertyManagement /></RouteGuard>} />
-                  <Route path="/verify" element={<RouteGuard><Verify /></RouteGuard>} />
+                  
                   <Route path="/messages" element={<RouteGuard><Messages /></RouteGuard>} />
                   <Route path="/apply/invite/:token" element={<RouteGuard><ApplyInvite /></RouteGuard>} />
                   <Route path="/apply/:id" element={<PropertyDetail />} />

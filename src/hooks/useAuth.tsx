@@ -11,6 +11,7 @@ interface AuthContextType {
   signInWithGoogle: (role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
   signInWithProvider: (provider: 'google' | 'apple' | 'facebook', role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
+  resendVerificationEmail: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isLandlord: boolean;
 }
@@ -74,49 +75,81 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, role: 'tenant' | 'landlord' = 'tenant') => {
-    const redirectUrl = `${window.location.origin}/`; // Redirect to home page after email confirmation
-    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
         data: { role }
       }
     });
     
-    // If no error and we have a user but no session, it means email confirmation is required
-    const isNewUser = data.user && !data.session;
-    
-    // If we have both user and session, the user is immediately logged in (email confirmation disabled)
-    if (data.user && data.session && !error) {
-      // Create user role record
+    if (error) {
+      return { error, isNewUser: false };
+    }
+
+    if (data.user) {
       try {
+        // Create user role record
         await supabase.from('user_roles').insert({
           user_id: data.user.id,
           role: role
         });
         
-        // Create user profile
+        // Create user profile (email_verified defaults to false)
         await supabase.from('profiles').insert({
           user_id: data.user.id,
-          display_name: data.user.email?.split('@')[0] || 'User'
+          display_name: data.user.email?.split('@')[0] || 'User',
+          email_verified: false
         });
+
+        // Send verification email
+        await supabase.functions.invoke('send-verification-email', {
+          body: {
+            email: data.user.email,
+            userId: data.user.id
+          }
+        });
+
       } catch (roleError) {
-        console.error('Error creating user role/profile:', roleError);
-        // Don't fail signup if role creation fails
+        console.error('Error creating user role/profile or sending verification email:', roleError);
+        // Don't fail signup if role creation fails, but log the error
       }
     }
     
-    return { error, isNewUser };
+    return { error: null, isNewUser: true };
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
-    return { error };
+    
+    if (error) {
+      return { error };
+    }
+
+    // Check if user is verified
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email_verified')
+        .eq('user_id', data.user.id)
+        .single();
+
+      if (!profile?.email_verified) {
+        // Sign out the user since they're not verified
+        await supabase.auth.signOut();
+        return { 
+          error: { 
+            message: 'Please verify your email before signing in. Check your inbox for the verification link.',
+            name: 'EmailNotVerified'
+          } 
+        };
+      }
+    }
+    
+    return { error: null };
   };
 
   const signInWithProvider = async (provider: 'google' | 'apple' | 'facebook', role: 'tenant' | 'landlord' = 'tenant') => {
@@ -144,6 +177,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  const resendVerificationEmail = async (email: string) => {
+    try {
+      // Get user by email
+      const { data: userData, error: userError } = await supabase
+        .from('profiles')
+        .select('user_id, email_verified')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (userError || !userData) {
+        return { error: { message: 'User not found' } };
+      }
+
+      if (userData.email_verified) {
+        return { error: { message: 'Email is already verified' } };
+      }
+
+      const { error } = await supabase.functions.invoke('send-verification-email', {
+        body: {
+          email: email,
+          userId: userData.user_id,
+          isResend: true
+        }
+      });
+
+      return { error };
+    } catch (error: any) {
+      return { error: { message: error.message } };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -157,6 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGoogle,
     signInWithProvider,
     resetPassword,
+    resendVerificationEmail,
     signOut,
     isLandlord
   };
