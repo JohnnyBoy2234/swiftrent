@@ -45,6 +45,37 @@ export function ViewingSlotsManager({ propertyId }: ViewingSlotsManagerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propertyId]);
 
+  // Realtime updates for bookings
+  useEffect(() => {
+    if (!user) return;
+    const channel = (supabase as any)
+      .channel(`viewing-slots-${propertyId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'viewing_slots', filter: `property_id=eq.${propertyId}` },
+        (payload: any) => {
+          const newRow = payload.new as Slot;
+          const oldRow = payload.old as Slot | undefined;
+
+          // Update local state
+          setSlots((prev) => prev.map((s) => (s.id === newRow.id ? { ...s, ...newRow } as Slot : s)));
+
+          // Notify landlord when a slot becomes booked
+          if (oldRow?.status !== 'booked' && newRow.status === 'booked') {
+            toast({
+              title: 'New viewing booked',
+              description: `${format(new Date(newRow.start_time), 'PPP p')} is now booked`,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      (supabase as any).removeChannel(channel);
+    };
+  }, [propertyId, user]);
+
   const fetchSlots = async () => {
     if (!user) return;
     setLoading(true);
