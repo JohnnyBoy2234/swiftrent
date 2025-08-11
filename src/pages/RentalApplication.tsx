@@ -1,5 +1,5 @@
 import { useParams, useSearchParams } from 'react-router-dom';
-import { RentalApplicationForm } from '@/components/application/RentalApplicationForm';
+import { ScreeningApplicationWizard } from '@/components/application/ScreeningApplicationWizard';
 
 export default function RentalApplication() {
   const { propertyId } = useParams<{ propertyId: string }>();
