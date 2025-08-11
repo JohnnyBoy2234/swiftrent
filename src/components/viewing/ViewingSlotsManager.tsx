@@ -311,12 +311,28 @@ export function ViewingSlotsManager({ propertyId }: ViewingSlotsManagerProps) {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className={cn("text-xs px-2 py-1 rounded-full border", slot.status === "booked" ? "bg-primary/10 text-primary" : "text-muted-foreground")}> 
-                            {slot.status === "booked" ? "Booked" : "Available"}
+                            {slot.status === "booked" ? "Booked" : slot.status === "completed" ? "Completed" : "Available"}
                           </span>
                           {slot.status === "booked" && (
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <User className="h-4 w-4" />
                               <span>Booked</span>
+                              <Button
+                                size="sm"
+                                className="ml-2"
+                                onClick={async () => {
+                                  await handleMarkCompleted(slot.id);
+                                  await handleInvite(slot);
+                                }}
+                              >
+                                Viewing Completed
+                              </Button>
+                            </div>
+                          )}
+                          {slot.status === "completed" && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <User className="h-4 w-4" />
+                              <span>Completed</span>
                             </div>
                           )}
                         </div>

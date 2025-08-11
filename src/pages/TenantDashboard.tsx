@@ -20,6 +20,7 @@ import {
 import { useTenantNotifications } from '@/hooks/useTenantNotifications';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { TenantApplicationsSection } from '@/components/tenant/TenantApplicationsSection';
 
 export default function TenantDashboard() {
   const { user, isLandlord, signOut } = useAuth();
@@ -248,6 +249,9 @@ export default function TenantDashboard() {
               </div>
             )}
           </div>
+
+          {/* My Applications */}
+          <TenantApplicationsSection />
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
