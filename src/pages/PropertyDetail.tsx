@@ -76,14 +76,12 @@ export default function PropertyDetail() {
   const [messageLoading, setMessageLoading] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [messageOpen, setMessageOpen] = useState(false);
-  const [isIdVerified, setIsIdVerified] = useState(false);
-  const [checkingVerification, setCheckingVerification] = useState(false);
   const [userProfile, setUserProfile] = useState<{display_name: string; phone: string | null} | null>(null);
-  const [showScreeningForm, setShowScreeningForm] = useState(false);
+  
   
 const [bookingOpen, setBookingOpen] = useState(false);
-const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<MessageFormData>();
-  const { isScreened, hasAppliedToProperty, submitApplication, loading: applicationLoading } = useApplications();
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<MessageFormData>();
+  const { hasAppliedToProperty, submitApplication, loading: applicationLoading } = useApplications();
   const { createConversation, sendMessage } = useMessaging();
 
   useEffect(() => {
@@ -94,21 +92,8 @@ const { register, handleSubmit, reset, setValue, formState: { errors } } = useFo
 
   useEffect(() => {
     if (user) {
-      checkIdVerification();
       fetchUserProfile();
     }
-  }, [user]);
-
-  // Add effect to re-check verification status when user returns to page
-  useEffect(() => {
-    const handleFocus = () => {
-      if (user) {
-        checkIdVerification();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
   }, [user]);
 
   const fetchUserProfile = async () => {
@@ -128,35 +113,6 @@ const { register, handleSubmit, reset, setValue, formState: { errors } } = useFo
     }
   };
 
-  const checkIdVerification = async () => {
-    if (!user) return;
-
-    setCheckingVerification(true);
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id_verified')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      console.log('ID Verification check result:', data);
-      console.log('User ID:', user.id);
-      
-      // If no profile exists, user is not verified
-      if (!data) {
-        console.log('No profile found for user');
-        setIsIdVerified(false);
-      } else {
-        setIsIdVerified(data.id_verified || false);
-      }
-    } catch (error: any) {
-      console.error('Error checking verification status:', error);
-      setIsIdVerified(false);
-    } finally {
-      setCheckingVerification(false);
-    }
-  };
 
   const fetchProperty = async () => {
     if (!id) return;
@@ -296,15 +252,6 @@ const { register, handleSubmit, reset, setValue, formState: { errors } } = useFo
       return;
     }
 
-    if (!isIdVerified) {
-      toast({
-        title: "ID verification required",
-        description: "Complete your ID verification to message landlords."
-      });
-      navigate(`/id-verification?return=${encodeURIComponent(window.location.pathname)}`);
-      return;
-    }
-
     if (!property) return;
 
     const conv = await createConversation(property.id, property.landlord_id, user.id);
@@ -324,15 +271,6 @@ const { register, handleSubmit, reset, setValue, formState: { errors } } = useFo
       return;
     }
 
-    if (!isIdVerified) {
-      toast({
-        title: "ID verification required",
-        description: "Complete your ID verification to book viewings."
-      });
-      navigate(`/id-verification?return=${encodeURIComponent(window.location.pathname)}`);
-      return;
-    }
-
     setBookingOpen(true);
   };
 
@@ -347,15 +285,6 @@ const { register, handleSubmit, reset, setValue, formState: { errors } } = useFo
       return;
     }
 
-    if (!isIdVerified) {
-      toast({
-        title: "ID verification required",
-        description: "Complete your ID verification to contact landlords."
-      });
-      navigate(`/id-verification?return=${encodeURIComponent(window.location.pathname)}`);
-      return;
-    }
-
     if (property?.profiles?.phone) {
       window.open(`tel:${property.profiles.phone}`, '_self');
     } else {
@@ -367,79 +296,7 @@ const { register, handleSubmit, reset, setValue, formState: { errors } } = useFo
     }
   };
 
-  const handleStartApplication = async () => {
-    if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Sign in required",
-        description: "Please sign in to submit an application."
-      });
-      navigate('/auth');
-      return;
-    }
 
-    if (!isIdVerified) {
-      toast({
-        title: "ID verification required",
-        description: "Complete your ID verification to apply for properties."
-      });
-      navigate(`/id-verification?return=${encodeURIComponent(window.location.pathname)}`);
-      return;
-    }
-
-    if (property && hasAppliedToProperty(property.id)) {
-      toast({
-        title: "Already applied",
-        description: "You have already submitted an application for this property."
-      });
-      return;
-    }
-
-    if (isScreened && property) {
-      // User is already screened, check again for duplicates before submitting
-      try {
-        const { data: existingApp, error: checkError } = await supabase
-          .from('applications')
-          .select('id')
-          .eq('tenant_id', user.id)
-          .eq('property_id', property.id)
-          .maybeSingle();
-
-        if (checkError) throw checkError;
-
-        if (existingApp) {
-          toast({
-            title: "Already applied",
-            description: "You have already submitted an application for this property."
-          });
-          return;
-        }
-
-        await submitApplication(property.id, property.landlord_id);
-        toast({
-          title: "Application submitted successfully",
-          description: "Your application has been sent using your saved details."
-        });
-      } catch (error: any) {
-        toast({
-          variant: "destructive",
-          title: "Error submitting application",
-          description: error.message
-        });
-      }
-    } else {
-      // Show screening form for first-time applicants
-      setShowScreeningForm(true);
-    }
-  };
-
-  const handleScreeningComplete = () => {
-    setShowScreeningForm(false);
-    toast({
-      title: "Application submitted successfully",
-      description: "Your screening details have been saved and your application has been sent to the landlord."
-    });
-  };
 
   const toggleLike = () => {
     setIsLiked(!isLiked);
@@ -675,31 +532,21 @@ const { register, handleSubmit, reset, setValue, formState: { errors } } = useFo
                   </div>
                 ) : user && property.landlord_id !== user.id ? (
                   <div className="space-y-2">
-                    {!isIdVerified && (
-                      <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
-                        <p className="text-sm text-amber-800">
-                          <CheckCircle className="h-4 w-4 inline mr-1" />
-                          Complete ID verification to message landlords
-                        </p>
-                      </div>
-                    )}
-                    <Button 
-                      className="w-full" 
-                      onClick={handleContactLandlord}
-                      disabled={checkingVerification}
-                    >
-                      <Mail className="h-4 w-4 mr-2" />
-                      {checkingVerification ? 'Checking...' : 'Message Landlord'}
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      className="w-full"
-                      onClick={handleRequestViewing}
-                      disabled={checkingVerification}
-                    >
-                      <Calendar className="h-4 w-4 mr-2" />
-                      {checkingVerification ? 'Checking...' : 'Book a Viewing'}
-                    </Button>
+                     <Button 
+                       className="w-full" 
+                       onClick={handleContactLandlord}
+                     >
+                       <Mail className="h-4 w-4 mr-2" />
+                       Message Landlord
+                     </Button>
+                     <Button 
+                       variant="outline"
+                       className="w-full"
+                       onClick={handleRequestViewing}
+                     >
+                       <Calendar className="h-4 w-4 mr-2" />
+                       Book a Viewing
+                     </Button>
                   </div>
                 ) : (
                   <Button 
@@ -712,16 +559,15 @@ const { register, handleSubmit, reset, setValue, formState: { errors } } = useFo
                 )}
 
                 
-                {user && property.landlord_id !== user.id ? (
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={handleCallLandlord}
-                    disabled={checkingVerification}
-                  >
-                    <Phone className="h-4 w-4 mr-2" />
-                    Call Landlord
-                  </Button>
+                 {user && property.landlord_id !== user.id ? (
+                   <Button 
+                     variant="outline" 
+                     className="w-full"
+                     onClick={handleCallLandlord}
+                   >
+                     <Phone className="h-4 w-4 mr-2" />
+                     Call Landlord
+                   </Button>
                 ) : !user ? (
                   <Button 
                     variant="outline" 

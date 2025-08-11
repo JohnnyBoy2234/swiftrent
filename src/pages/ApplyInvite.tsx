@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import MultiStepScreeningForm from '@/components/application/MultiStepScreeningForm';
+
 
 interface ApplicationInvite {
   id: string;
@@ -163,14 +163,17 @@ export default function ApplyInvite() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {invite && (
-              <MultiStepScreeningForm
-                propertyId={invite.property_id}
-                viewingId={undefined}
-                onComplete={handleComplete}
-                onCancel={() => navigate('/tenant-dashboard')}
-              />
-            )}
+            <div className="text-center py-8">
+              <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
+              <p className="text-lg mb-4">Application invitation received!</p>
+              <p className="text-sm text-muted-foreground mb-6">
+                You can now contact the landlord directly through the Messages section.
+              </p>
+              <div className="flex gap-2 justify-center">
+                <Button onClick={handleComplete}>Accept Invitation</Button>
+                <Button variant="outline" onClick={() => navigate('/messages')}>Go to Messages</Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
