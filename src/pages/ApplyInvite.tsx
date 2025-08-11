@@ -152,14 +152,19 @@ export default function ApplyInvite() {
     );
   }
 
+  const handleStartApplication = () => {
+    // Navigate to rental application form with invite parameters
+    navigate(`/rental-application/${invite.property_id}?landlord=${invite.landlord_id}&invite=${invite.id}`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto p-6 max-w-4xl">
         <Card>
           <CardHeader>
-            <CardTitle>Complete Your Application</CardTitle>
+            <CardTitle>Application Invitation</CardTitle>
             <CardDescription>
-              Please complete the screening form to submit your application.
+              You've been invited to apply for this property. Complete the rental application to proceed.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -167,11 +172,11 @@ export default function ApplyInvite() {
               <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
               <p className="text-lg mb-4">Application invitation received!</p>
               <p className="text-sm text-muted-foreground mb-6">
-                You can now contact the landlord directly through the Messages section.
+                Click "Start Application" to complete your rental application form.
               </p>
               <div className="flex gap-2 justify-center">
-                <Button onClick={handleComplete}>Accept Invitation</Button>
-                <Button variant="outline" onClick={() => navigate('/messages')}>Go to Messages</Button>
+                <Button onClick={handleStartApplication}>Start Application</Button>
+                <Button variant="outline" onClick={() => navigate('/tenant-dashboard')}>Go to Dashboard</Button>
               </div>
             </div>
           </CardContent>
