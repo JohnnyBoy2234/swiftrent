@@ -25,8 +25,8 @@ import NotFound from "./pages/NotFound";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import Verify from "./pages/Verify";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminManagement from "./pages/admin/AdminManagement";
 import DocumentReview from "./pages/admin/DocumentReview";
+import ApplyInvite from "./pages/ApplyInvite";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +64,7 @@ const App = () => (
                   <Route path="/manage-property/:id" element={<RouteGuard><PropertyManagement /></RouteGuard>} />
                   <Route path="/verify" element={<RouteGuard><Verify /></RouteGuard>} />
                   <Route path="/messages" element={<RouteGuard><Messages /></RouteGuard>} />
+                  <Route path="/apply/invite/:token" element={<RouteGuard><ApplyInvite /></RouteGuard>} />
                   <Route path="/apply/:id" element={<PropertyDetail />} />
                   <Route path="/payment-success" element={<RouteGuard><PaymentSuccess /></RouteGuard>} />
                   <Route path="*" element={<NotFound />} />

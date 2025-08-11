@@ -29,10 +29,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
-import MultiStepScreeningForm from '@/components/application/MultiStepScreeningForm';
 import { useApplications } from '@/hooks/useApplications';
-import ViewingWorkflow from '@/components/viewing/ViewingWorkflow';
-import ApplicationAccessGuard from '@/components/application/ApplicationAccessGuard';
+import { useMessaging } from '@/hooks/useMessaging';
 
 interface Property {
   id: string;
@@ -84,6 +82,7 @@ export default function PropertyDetail() {
   
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<MessageFormData>();
   const { isScreened, hasAppliedToProperty, submitApplication, loading: applicationLoading } = useApplications();
+  const { createConversation, sendMessage } = useMessaging();
 
   useEffect(() => {
     if (id) {
@@ -283,7 +282,9 @@ export default function PropertyDetail() {
     }
   };
 
-  const handleContactLandlord = () => {
+  const { createConversation, sendMessage } = useMessaging();
+
+  const handleContactLandlord = async () => {
     if (!user) {
       toast({
         variant: "destructive",
@@ -303,16 +304,41 @@ export default function PropertyDetail() {
       return;
     }
 
-    // Auto-fill form with user data
-    if (userProfile) {
-      setValue('name', userProfile.display_name || '');
-      setValue('phone', userProfile.phone || '');
+    if (!property) return;
+
+    const conv = await createConversation(property.id, property.landlord_id, user.id);
+    if (conv) {
+      navigate(`/messages?c=${conv.id}`);
     }
-    if (user.email) {
-      setValue('email', user.email);
+  };
+
+  const handleRequestViewing = async () => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Sign in required",
+        description: "Please sign in to request a viewing."
+      });
+      navigate('/auth');
+      return;
     }
 
-    setMessageOpen(true);
+    if (!isIdVerified) {
+      toast({
+        title: "ID verification required",
+        description: "Complete your ID verification to contact landlords."
+      });
+      navigate(`/id-verification?return=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
+    if (!property) return;
+
+    const conv = await createConversation(property.id, property.landlord_id, user.id);
+    if (conv) {
+      await sendMessage(conv.id, `Hi, I'm interested in scheduling a viewing for this property: ${property.title}.`);
+      navigate(`/messages?c=${conv.id}`);
+    }
   };
 
   const handleCallLandlord = () => {
@@ -477,14 +503,12 @@ export default function PropertyDetail() {
             {property.featured && <Badge variant="secondary">Featured</Badge>}
             <Badge>{property.status}</Badge>
           </div>
-          <h1 className="text-3xl font-bold text-primary mb-2">{property.title}</h1>
+          <h1 className="text-3xl font-bold mb-2">{property.title}</h1>
           <div className="flex items-center text-muted-foreground mb-4">
             <MapPin className="h-4 w-4 mr-1" />
             {property.location}
           </div>
-          <div className="text-3xl font-bold text-accent">
-            R{property.price.toLocaleString()}/month
-          </div>
+          <div className="text-3xl font-bold">R{property.price.toLocaleString()}/month</div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -629,8 +653,8 @@ export default function PropertyDetail() {
             {/* Contact Landlord */}
             <Card>
               <CardHeader>
-                <CardTitle>Message Landlord</CardTitle>
-                <CardDescription>Send a message to arrange a viewing</CardDescription>
+                <CardTitle>Contact</CardTitle>
+                <CardDescription>Message the landlord or request a viewing</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {property.profiles && (
@@ -670,7 +694,16 @@ export default function PropertyDetail() {
                       disabled={checkingVerification}
                     >
                       <Mail className="h-4 w-4 mr-2" />
-                      {checkingVerification ? 'Checking...' : 'Contact Landlord'}
+                      {checkingVerification ? 'Checking...' : 'Message Landlord'}
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleRequestViewing}
+                      disabled={checkingVerification}
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {checkingVerification ? 'Checking...' : 'Request a Viewing'}
                     </Button>
                   </div>
                 ) : (
@@ -683,58 +716,6 @@ export default function PropertyDetail() {
                   </Button>
                 )}
 
-                <Dialog open={messageOpen} onOpenChange={setMessageOpen}>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Send Message</DialogTitle>
-                      <DialogDescription>
-                        Send a message to the landlord about this property
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleSubmit(onSubmitMessage)} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name *</Label>
-                        <Input
-                          {...register('name', { required: 'Name is required' })}
-                          placeholder="John Doe"
-                        />
-                        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email *</Label>
-                        <Input
-                          type="email"
-                          {...register('email', { required: 'Email is required' })}
-                          placeholder="john@example.com"
-                        />
-                        {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Input
-                          {...register('phone')}
-                          placeholder="+27 123 456 7890"
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="message">Message *</Label>
-                        <Textarea
-                          {...register('message', { required: 'Message is required' })}
-                          placeholder="I'm interested in viewing this property..."
-                          rows={4}
-                        />
-                        {errors.message && <p className="text-sm text-destructive">{errors.message.message}</p>}
-                      </div>
-                      
-                      <Button type="submit" className="w-full" disabled={messageLoading}>
-                        {messageLoading ? 'Sending...' : 'Send Message'}
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
                 
                 {user && property.landlord_id !== user.id ? (
                   <Button 
@@ -759,40 +740,22 @@ export default function PropertyDetail() {
               </CardContent>
             </Card>
 
-            {/* Tenant Actions - Contact & Apply Section */}
-            {user && property.landlord_id !== user.id && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Take Action</CardTitle>
-                  <CardDescription>Contact landlord or apply for this property</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ApplicationAccessGuard
-                    propertyId={property.id}
-                    landlordId={property.landlord_id}
-                    tenantId={user.id}
-                    onApplicationComplete={handleScreeningComplete}
-                    onCancel={() => setShowScreeningForm(false)}
-                  />
-                </CardContent>
-              </Card>
-            )}
 
             {/* Sign In Prompt for Non-Authenticated Users */}
             {!user && (
               <Card>
                 <CardHeader>
                   <CardTitle>Get Started</CardTitle>
-                  <CardDescription>Sign in to contact landlord or apply</CardDescription>
+                  <CardDescription>Sign in to message the landlord or request a viewing</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="text-center space-y-3">
-                    <p className="text-muted-foreground">Sign in to contact the landlord or apply for this property</p>
+                    <p className="text-muted-foreground">Sign in to contact the landlord or request a viewing for this property</p>
                     <Button 
                       className="w-full" 
                       onClick={() => navigate('/auth')}
                     >
-                      <FileText className="h-4 w-4 mr-2" />
+                      <Mail className="h-4 w-4 mr-2" />
                       Sign In to Get Started
                     </Button>
                   </div>
@@ -840,18 +803,6 @@ export default function PropertyDetail() {
           </div>
         </div>
 
-        {/* Screening Form Dialog */}
-        {showScreeningForm && property && (
-          <Dialog open={showScreeningForm} onOpenChange={setShowScreeningForm}>
-            <DialogContent className="max-w-full max-h-full p-0 overflow-hidden">
-              <MultiStepScreeningForm
-                propertyId={property.id}
-                onComplete={handleScreeningComplete}
-                onCancel={() => setShowScreeningForm(false)}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
       </div>
     </div>
   );

@@ -21,6 +21,8 @@ import { useLandlordApplications, ApplicationWithTenant } from '@/hooks/useLandl
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import ViewingManagement from '@/components/landlord/ViewingManagement';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ApplicationsTabProps {
   propertyId: string;
@@ -32,19 +34,82 @@ interface ApplicationsTabProps {
 export function ApplicationsTab({ propertyId, propertyTitle, propertyLocation, onStartLease }: ApplicationsTabProps) {
   const { applications, loading, updateApplicationStatus } = useLandlordApplications(propertyId);
   const { toast } = useToast();
+  const { user } = useAuth();
   const [emailForInvite, setEmailForInvite] = useState('');
   const [selectedApplication, setSelectedApplication] = useState<ApplicationWithTenant | null>(null);
+  const [leads, setLeads] = useState<any[]>([]);
+  const [invitesByTenant, setInvitesByTenant] = useState<Record<string, any>>({});
 
-  const handleSendInvite = async () => {
-    if (!emailForInvite) return;
-    
-    // In a real implementation, this would send an email invitation
-    toast({
-      title: "Invitation Sent",
-      description: `Application link sent to ${emailForInvite}`,
-    });
-    setEmailForInvite('');
+  const fetchLeads = async () => {
+    if (!user || !propertyId) return;
+    // Fetch conversations for this property where current user is landlord
+    const { data: convs, error } = await supabase
+      .from('conversations')
+      .select('id, tenant_id, last_message_at, property_id, landlord_id')
+      .eq('property_id', propertyId)
+      .eq('landlord_id', user.id)
+      .order('last_message_at', { ascending: false });
+    if (error) {
+      console.warn('Failed to fetch leads', error);
+      return;
+    }
+    const tenantIds = Array.from(new Set((convs || []).map(c => c.tenant_id)));
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('user_id, display_name')
+      .in('user_id', tenantIds);
+    const profileMap = new Map<string, any>();
+    (profiles || []).forEach(p => profileMap.set(p.user_id, p));
+    setLeads((convs || []).map(c => ({ ...c, tenant_profile: profileMap.get(c.tenant_id) })));
+
+    const { data: invites } = await supabase
+      .from('application_invites')
+      .select('*')
+      .eq('property_id', propertyId)
+      .eq('landlord_id', user.id);
+    const map: Record<string, any> = {};
+    (invites || []).forEach(i => { map[i.tenant_id] = i; });
+    setInvitesByTenant(map);
   };
+
+  const handleInvite = async (tenantId: string, conversationId?: string) => {
+    if (!user) return;
+    try {
+      const token = crypto.randomUUID();
+      const { data, error } = await supabase
+        .from('application_invites')
+        .insert({
+          token,
+          property_id: propertyId,
+          landlord_id: user.id,
+          tenant_id: tenantId,
+          conversation_id: conversationId,
+          status: 'invited'
+        })
+        .select('*')
+        .single();
+      if (error) throw error;
+
+      const link = `${window.location.origin}/apply/invite/${token}`;
+      if (conversationId) {
+        await supabase.from('messages').insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: `You've been invited to apply for this property. Click here to start: ${link}`,
+          message_type: 'text'
+        });
+      }
+
+      toast({ title: 'Invite sent', description: 'We notified the tenant with an application link.' });
+      await fetchLeads();
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Failed to send invite', description: e.message });
+    }
+  };
+
+  useEffect(() => {
+    fetchLeads();
+  }, [user, propertyId]);
 
   const handleAcceptApplication = async (application: ApplicationWithTenant) => {
     const success = await updateApplicationStatus(application.id, 'accepted');
@@ -214,6 +279,50 @@ export function ApplicationsTab({ propertyId, propertyTitle, propertyLocation, o
         </TabsContent>
 
         <TabsContent value="applications" className="space-y-4">
+          {/* Leads / Inquiries */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Leads</CardTitle>
+              <CardDescription>Tenants you've chatted with about this property</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {leads.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No leads yet. Conversations will appear here.</p>
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {leads.map((lead) => (
+                    <div key={lead.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <div className="font-medium">{lead.tenant_profile?.display_name || 'Tenant'}</div>
+                        <div className="text-xs text-muted-foreground">
+                          Last message {lead.last_message_at ? format(new Date(lead.last_message_at), 'MMM dd, yyyy') : 'N/A'}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {invitesByTenant[lead.tenant_id]?.status === 'invited' ? (
+                          <Badge variant="secondary">Invited to Apply</Badge>
+                        ) : invitesByTenant[lead.tenant_id]?.status === 'used' ? (
+                          <Badge>Application Submitted</Badge>
+                        ) : (
+                          <Button size="sm" onClick={() => handleInvite(lead.tenant_id, lead.id)}>
+                            Invite to Apply
+                          </Button>
+                        )}
+                        <Button variant="outline" size="sm" onClick={() => window.open(`/messages?c=${lead.id}`, '_self')}>
+                          <Eye className="h-4 w-4 mr-2" /> View Chat
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Applications List */}
           <Card>
             <CardHeader>
               <CardTitle>Applications</CardTitle>

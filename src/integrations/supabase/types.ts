@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      application_invites: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          landlord_id: string
+          property_id: string
+          status: string
+          tenant_id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          landlord_id: string
+          property_id: string
+          status?: string
+          tenant_id: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          landlord_id?: string
+          property_id?: string
+          status?: string
+          tenant_id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       applications: {
         Row: {
           created_at: string

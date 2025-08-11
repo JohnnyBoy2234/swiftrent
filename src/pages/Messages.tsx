@@ -23,7 +23,7 @@ import {
   Bell
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useSearchParams } from 'react-router-dom';
 
 export default function Messages() {
   const { user, isLandlord } = useAuth();
@@ -96,6 +96,18 @@ export default function Messages() {
   }
 
   const selectedConversation = conversations.find(c => c.id === activeConversation);
+
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const cid = searchParams.get('c');
+    if (cid) {
+      const exists = conversations.find(c => c.id === cid);
+      if (exists) {
+        setActiveConversation(cid);
+        setShowConversations(false);
+      }
+    }
+  }, [searchParams, conversations]);
 
   // Render with sidebar for landlords, without for tenants
   if (isLandlord) {
