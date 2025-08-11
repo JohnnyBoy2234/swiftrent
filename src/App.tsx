@@ -28,6 +28,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminManagement from "./pages/admin/AdminManagement";
 import DocumentReview from "./pages/admin/DocumentReview";
 import ApplyInvite from "./pages/ApplyInvite";
+import ApplicationDetail from "./pages/ApplicationDetail";
 import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
@@ -68,6 +69,7 @@ const App = () => (
                   
                   <Route path="/messages" element={<RouteGuard><Messages /></RouteGuard>} />
                   <Route path="/apply/invite/:token" element={<RouteGuard><ApplyInvite /></RouteGuard>} />
+                  <Route path="/application/:id" element={<RouteGuard><ApplicationDetail /></RouteGuard>} />
                   <Route path="/apply/:id" element={<PropertyDetail />} />
                   <Route path="/payment-success" element={<RouteGuard><PaymentSuccess /></RouteGuard>} />
                   <Route path="*" element={<NotFound />} />

@@ -31,6 +31,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { useApplications } from '@/hooks/useApplications';
 import { useMessaging } from '@/hooks/useMessaging';
+import { TenantApplicationButton } from '@/components/tenant/TenantApplicationButton';
 import { BookViewingDialog } from "@/components/viewing/BookViewingDialog";
 import { useViewingBooking } from "@/hooks/useViewingBooking";
 import { format } from "date-fns";
@@ -542,25 +543,31 @@ export default function PropertyDetail() {
                        Message Landlord
                      </Button>
                      {activeBooking ? (
-                       <Button 
-                         variant="outline"
-                         className="w-full"
-                         onClick={() => setBookingOpen(true)}
-                       >
-                         <Calendar className="h-4 w-4 mr-2" />
-                         Manage Your Viewing
-                       </Button>
-                     ) : (
-                       <Button 
-                         variant="outline"
-                         className="w-full"
-                         onClick={handleRequestViewing}
-                       >
-                         <Calendar className="h-4 w-4 mr-2" />
-                         Book a Viewing
-                       </Button>
-                     )}
-                   </div>
+                        <Button 
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => setBookingOpen(true)}
+                        >
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Manage Your Viewing
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="outline"
+                          className="w-full"
+                          onClick={handleRequestViewing}
+                        >
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Book a Viewing
+                        </Button>
+                      )}
+                      
+                      {/* Application Button */}
+                      <TenantApplicationButton 
+                        propertyId={property.id}
+                        className="w-full"
+                      />
+                    </div>
                 ) : (
                   <Button 
                     className="w-full"
