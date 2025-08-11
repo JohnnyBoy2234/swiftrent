@@ -10,6 +10,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithGoogle: (role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
   signInWithProvider: (provider: 'google' | 'apple' | 'facebook', role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isLandlord: boolean;
 }
@@ -135,6 +136,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async (role: 'tenant' | 'landlord' = 'tenant') => signInWithProvider('google', role);
 
+  const resetPassword = async (email: string) => {
+    const redirectUrl = `${window.location.origin}/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl
+    });
+    return { error };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -147,6 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signInWithGoogle,
     signInWithProvider,
+    resetPassword,
     signOut,
     isLandlord
   };

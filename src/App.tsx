@@ -28,6 +28,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminManagement from "./pages/admin/AdminManagement";
 import DocumentReview from "./pages/admin/DocumentReview";
 import ApplyInvite from "./pages/ApplyInvite";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
                   <Route path="/how-it-works" element={<HowItWorks />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/dashboard" element={<RouteGuard><Dashboard /></RouteGuard>} />
                   <Route path="/tenant-dashboard" element={<RouteGuard><TenantDashboard /></RouteGuard>} />
                   <Route path="/lease-signing/:tenancyId" element={<RouteGuard><LeaseSigningPage /></RouteGuard>} />
