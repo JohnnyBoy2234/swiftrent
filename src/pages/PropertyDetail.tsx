@@ -282,7 +282,6 @@ export default function PropertyDetail() {
     }
   };
 
-  const { createConversation, sendMessage } = useMessaging();
 
   const handleContactLandlord = async () => {
     if (!user) {

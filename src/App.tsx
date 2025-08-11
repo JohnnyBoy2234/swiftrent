@@ -25,6 +25,7 @@ import NotFound from "./pages/NotFound";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import Verify from "./pages/Verify";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminManagement from "./pages/admin/AdminManagement";
 import DocumentReview from "./pages/admin/DocumentReview";
 import ApplyInvite from "./pages/ApplyInvite";
 
