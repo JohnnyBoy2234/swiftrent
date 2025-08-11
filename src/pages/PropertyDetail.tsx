@@ -635,10 +635,6 @@ const [bookingOpen, setBookingOpen] = useState(false);
                   <span className="text-muted-foreground">Listed</span>
                   <span className="font-medium">{new Date(property.created_at).toLocaleDateString()}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Property ID</span>
-                  <span className="font-medium text-xs">{property.id.slice(0, 8)}</span>
-                </div>
               </CardContent>
             </Card>
           </div>
