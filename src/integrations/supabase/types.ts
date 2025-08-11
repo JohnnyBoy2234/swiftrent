@@ -817,6 +817,7 @@ export type Database = {
       }
       viewings: {
         Row: {
+          application_sent: boolean | null
           completed_at: string | null
           conversation_id: string | null
           created_at: string
@@ -828,8 +829,10 @@ export type Database = {
           status: string
           tenant_id: string
           updated_at: string
+          viewing_confirmed: boolean | null
         }
         Insert: {
+          application_sent?: boolean | null
           completed_at?: string | null
           conversation_id?: string | null
           created_at?: string
@@ -841,8 +844,10 @@ export type Database = {
           status?: string
           tenant_id: string
           updated_at?: string
+          viewing_confirmed?: boolean | null
         }
         Update: {
+          application_sent?: boolean | null
           completed_at?: string | null
           conversation_id?: string | null
           created_at?: string
@@ -854,6 +859,7 @@ export type Database = {
           status?: string
           tenant_id?: string
           updated_at?: string
+          viewing_confirmed?: boolean | null
         }
         Relationships: []
       }
@@ -862,6 +868,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_application: {
+        Args: { property_uuid: string; tenant_uuid: string }
+        Returns: boolean
+      }
       can_create_application: {
         Args: {
           viewing_uuid: string
