@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { 
   Users, 
   Mail, 
@@ -20,7 +20,7 @@ import {
 import { useLandlordApplications, ApplicationWithTenant } from '@/hooks/useLandlordApplications';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import ViewingManagement from '@/components/landlord/ViewingManagement';
+
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
