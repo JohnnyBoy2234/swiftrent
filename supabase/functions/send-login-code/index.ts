@@ -65,12 +65,14 @@ serve(async (req) => {
 
     const resend = new Resend(resendApiKey);
     const to = user.email ?? "";
-    const from = "EasyRent <onboarding@resend.dev>"; // Use your verified domain if available
+    const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") ?? "verify@swiftrent.co.za";
+    const FROM_NAME = Deno.env.get("RESEND_FROM_NAME") ?? "SwiftRent";
+    const from = `${FROM_NAME} <${FROM_EMAIL}>`;
 
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
         <h2>Verify your sign-in</h2>
-        <p>Your EasyRent verification code is:</p>
+        <p>Your SwiftRent verification code is:</p>
         <p style="font-size: 28px; font-weight: bold; letter-spacing: 4px;">${code}</p>
         <p>This code expires in 10 minutes. If you didn\'t request this, you can safely ignore this email.</p>
       </div>
@@ -79,7 +81,7 @@ serve(async (req) => {
     const { error: emailError } = await resend.emails.send({
       from,
       to: [to],
-      subject: "Your EasyRent verification code",
+      subject: "Your SwiftRent verification code",
       html: emailHtml,
     });
 
