@@ -23,7 +23,7 @@ interface Slot {
   landlord_id: string;
   start_time: string;
   end_time: string;
-  status: "available" | "booked";
+  status: "available" | "booked" | "completed";
   booked_by_tenant_id: string | null;
 }
 
@@ -142,6 +142,81 @@ export function ViewingSlotsManager({ propertyId }: ViewingSlotsManagerProps) {
     }
   };
 
+  const handleMarkCompleted = async (slotId: string) => {
+    try {
+      const slot = slots.find((s) => s.id === slotId);
+      const { error } = await (supabase as any)
+        .from("viewing_slots")
+        .update({ status: "completed" })
+        .eq("id", slotId);
+      if (error) throw error;
+
+      // Notify landlord and tenant
+      if (slot) {
+        try {
+          await (supabase as any).functions.invoke('notify-viewing-booked', {
+            body: {
+              property_id: slot.property_id,
+              landlord_id: slot.landlord_id,
+              tenant_id: slot.booked_by_tenant_id,
+              slot_id: slot.id,
+              action: 'completed'
+            }
+          });
+        } catch {}
+      }
+
+      toast({ title: "Viewing marked as completed" });
+      await fetchSlots();
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Error", description: "Failed to mark as completed", variant: "destructive" });
+    }
+  };
+
+  const handleInvite = async (slot: Slot) => {
+    if (!user || !slot.booked_by_tenant_id) return;
+    try {
+      const token = crypto.randomUUID();
+      const { data: invite, error } = await (supabase as any)
+        .from("application_invites")
+        .insert({
+          token,
+          property_id: propertyId,
+          landlord_id: user.id,
+          tenant_id: slot.booked_by_tenant_id,
+          status: "invited",
+        })
+        .select("*")
+        .single();
+      if (error) throw error;
+
+      // Try to notify via messages if a conversation exists
+      const { data: conv } = await (supabase as any)
+        .from("conversations")
+        .select("id")
+        .eq("property_id", propertyId)
+        .eq("landlord_id", user.id)
+        .eq("tenant_id", slot.booked_by_tenant_id)
+        .maybeSingle();
+
+      const link = `${window.location.origin}/apply/invite/${token}`;
+      if (conv?.id) {
+        await (supabase as any).from("messages").insert({
+          conversation_id: conv.id,
+          sender_id: user.id,
+          content: `You've been invited to apply for this property. Click here to start: ${link}`,
+          message_type: "text",
+        });
+      }
+
+      toast({ title: "Invite sent", description: "We notified the tenant with an application link." });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Error", description: "Failed to send invite", variant: "destructive" });
+    }
+  };
+
   const groupedSlots = useMemo(() => {
     const byDay: Record<string, Slot[]> = {};
     for (const s of slots) {
@@ -241,7 +316,6 @@ export function ViewingSlotsManager({ propertyId }: ViewingSlotsManagerProps) {
                           {slot.status === "booked" && (
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <User className="h-4 w-4" />
-                              {/* In a future enhancement we can fetch tenant display name */}
                               <span>Booked</span>
                             </div>
                           )}

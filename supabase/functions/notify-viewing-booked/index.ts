@@ -21,7 +21,7 @@ interface Payload {
   tenant_id: string;
   slot_id: string;
   old_slot_id?: string;
-  action?: 'booked' | 'cancelled' | 'updated';
+  action?: 'booked' | 'cancelled' | 'updated' | 'completed';
 }
 
 serve(async (req) => {
@@ -138,6 +138,18 @@ serve(async (req) => {
             <p style="margin: 4px 0;"><strong>New Time:</strong> ${when}</p>
           </div>
           <p>Please update your calendar accordingly.</p>
+        `;
+        break;
+
+      case 'completed':
+        subject = `Viewing Completed: ${propertyTitle}`;
+        htmlContent = `
+          <h2 style="color: #16a34a;">Viewing Completed</h2>
+          <p>The viewing for <strong>${propertyTitle}</strong> has been marked as completed by ${tenantName} or ${landlordName}.</p>
+          <div style="background: #ecfdf5; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #16a34a;">
+            <p style="margin: 4px 0;"><strong>Completed Time:</strong> ${when}</p>
+          </div>
+          <p>You can now invite the tenant to apply from your dashboard.</p>
         `;
         break;
     }
