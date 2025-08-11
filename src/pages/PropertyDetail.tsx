@@ -654,7 +654,7 @@ export default function PropertyDetail() {
                       This is your property listing
                     </p>
                   </div>
-                ) : user ? (
+                ) : user && property.landlord_id !== user.id ? (
                   <div className="space-y-2">
                     {!isIdVerified && (
                       <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
@@ -670,7 +670,7 @@ export default function PropertyDetail() {
                       disabled={checkingVerification}
                     >
                       <Mail className="h-4 w-4 mr-2" />
-                      {checkingVerification ? 'Checking...' : 'Send Message'}
+                      {checkingVerification ? 'Checking...' : 'Contact Landlord'}
                     </Button>
                   </div>
                 ) : (
@@ -759,41 +759,14 @@ export default function PropertyDetail() {
               </CardContent>
             </Card>
 
-            {/* Viewing Workflow */}
+            {/* Tenant Actions - Contact & Apply Section */}
             {user && property.landlord_id !== user.id && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Property Viewing</CardTitle>
-                  <CardDescription>Schedule and manage property viewings</CardDescription>
+                  <CardTitle>Take Action</CardTitle>
+                  <CardDescription>Contact landlord or apply for this property</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ViewingWorkflow
-                    propertyId={property.id}
-                    propertyTitle={property.title}
-                    tenantId={user.id}
-                    onViewingCompleted={() => {
-                      // Refresh application state if needed
-                    }}
-                  />
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Application */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Apply for this Property</CardTitle>
-                <CardDescription>Submit a formal rental application</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {user && property.landlord_id === user.id ? (
-                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      <CheckCircle className="h-4 w-4 inline mr-1" />
-                      This is your property listing
-                    </p>
-                  </div>
-                ) : user ? (
                   <ApplicationAccessGuard
                     propertyId={property.id}
                     landlordId={property.landlord_id}
@@ -801,20 +774,48 @@ export default function PropertyDetail() {
                     onApplicationComplete={handleScreeningComplete}
                     onCancel={() => setShowScreeningForm(false)}
                   />
-                ) : (
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Sign In Prompt for Non-Authenticated Users */}
+            {!user && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Get Started</CardTitle>
+                  <CardDescription>Sign in to contact landlord or apply</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
                   <div className="text-center space-y-3">
-                    <p className="text-muted-foreground">Sign in to apply for this property</p>
+                    <p className="text-muted-foreground">Sign in to contact the landlord or apply for this property</p>
                     <Button 
                       className="w-full" 
                       onClick={() => navigate('/auth')}
                     >
                       <FileText className="h-4 w-4 mr-2" />
-                      Sign In to Apply
+                      Sign In to Get Started
                     </Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Property Owner Notice */}
+            {user && property.landlord_id === user.id && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Property Management</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <CheckCircle className="h-4 w-4 inline mr-1" />
+                      This is your property listing. Manage applications from your dashboard.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Property Info */}
             <Card>
