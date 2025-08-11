@@ -985,9 +985,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      cancel_viewing_booking: {
+        Args: { slot_uuid: string; tenant_uuid: string }
+        Returns: boolean
+      }
       create_admin_account: {
         Args: { email_param: string; display_name_param: string }
         Returns: Json
+      }
+      has_active_booking: {
+        Args: { property_uuid: string; tenant_uuid: string }
+        Returns: {
+          has_booking: boolean
+          slot_id: string
+          start_time: string
+          end_time: string
+        }[]
       }
       has_role: {
         Args: {
@@ -1003,6 +1016,14 @@ export type Database = {
       promote_to_landlord: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      update_viewing_booking: {
+        Args: {
+          old_slot_uuid: string
+          new_slot_uuid: string
+          tenant_uuid: string
+        }
+        Returns: boolean
       }
     }
     Enums: {

@@ -20,6 +20,8 @@ interface Payload {
   landlord_id: string;
   tenant_id: string;
   slot_id: string;
+  old_slot_id?: string;
+  action?: 'booked' | 'cancelled' | 'updated';
 }
 
 serve(async (req) => {
@@ -28,7 +30,7 @@ serve(async (req) => {
   }
 
   try {
-    const { property_id, landlord_id, tenant_id, slot_id } = (await req.json()) as Payload;
+    const { property_id, landlord_id, tenant_id, slot_id, old_slot_id, action = 'booked' } = (await req.json()) as Payload;
 
     // Fetch property
     const { data: property, error: propErr } = await admin
@@ -46,6 +48,26 @@ serve(async (req) => {
       .maybeSingle();
     if (slotErr) throw slotErr;
 
+    // Fetch old slot for updates
+    let oldSlot = null;
+    if (action === 'updated' && old_slot_id) {
+      const { data: oldSlotData } = await admin
+        .from("viewing_slots")
+        .select("start_time, end_time")
+        .eq("id", old_slot_id)
+        .maybeSingle();
+      oldSlot = oldSlotData;
+    }
+
+    // Fetch profiles for display names
+    const { data: profiles } = await admin
+      .from("profiles")
+      .select("user_id, display_name")
+      .in("user_id", [landlord_id, tenant_id]);
+
+    const landlordProfile = profiles?.find(p => p.user_id === landlord_id);
+    const tenantProfile = profiles?.find(p => p.user_id === tenant_id);
+
     // Fetch user emails via Admin API
     const [{ data: landlord }, { data: tenant }] = await Promise.all([
       admin.auth.admin.getUserById(landlord_id),
@@ -55,34 +77,107 @@ serve(async (req) => {
     const landlordEmail = landlord.user?.email;
     const tenantEmail = tenant.user?.email;
 
-    const when = slot?.start_time
-      ? new Date(slot.start_time).toLocaleString()
-      : "(time TBD)";
+    const formatDateTime = (dateString: string) => {
+      return new Date(dateString).toLocaleDateString('en-ZA', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    };
 
-    const subject = `Viewing Confirmed: ${property?.title ?? "Property"} on ${when}`;
+    const when = slot?.start_time ? formatDateTime(slot.start_time) : "(time TBD)";
+    const oldWhen = oldSlot?.start_time ? formatDateTime(oldSlot.start_time) : null;
 
-    const html = (recipient: "landlord" | "tenant") => `
-      <div>
-        <h2 style="margin:0 0 8px;">Viewing Confirmed</h2>
-        <p style="margin:0 0 4px;">Property: <strong>${property?.title ?? property_id}</strong></p>
-        <p style="margin:0 0 4px;">Address: ${property?.location ?? "N/A"}</p>
-        <p style="margin:0 0 4px;">When: ${when}</p>
-        <p style="margin:16px 0 0; color:#555;">This is an automated confirmation from SwiftRent.</p>
-      </div>
-    `;
+    let subject = '';
+    let htmlContent = '';
+    const propertyTitle = property?.title ?? "Property";
+    const tenantName = tenantProfile?.display_name ?? "Tenant";
+    const landlordName = landlordProfile?.display_name ?? "Landlord";
 
-    // Send emails
+    switch (action) {
+      case 'booked':
+        subject = `New Viewing Booked: ${propertyTitle}`;
+        htmlContent = `
+          <h2 style="color: #2563eb;">New Viewing Booked</h2>
+          <p><strong>${tenantName}</strong> has booked a viewing for your property:</p>
+          <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
+            <h3 style="margin: 0 0 8px;">${propertyTitle}</h3>
+            <p style="margin: 4px 0;"><strong>Location:</strong> ${property?.location ?? "N/A"}</p>
+            <p style="margin: 4px 0;"><strong>Viewing Time:</strong> ${when}</p>
+          </div>
+          <p>Please ensure you're available for the viewing.</p>
+        `;
+        break;
+
+      case 'cancelled':
+        subject = `Viewing Cancelled: ${propertyTitle}`;
+        htmlContent = `
+          <h2 style="color: #dc2626;">Viewing Cancelled</h2>
+          <p><strong>${tenantName}</strong> has cancelled their viewing for your property:</p>
+          <div style="background: #fef2f2; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #dc2626;">
+            <h3 style="margin: 0 0 8px;">${propertyTitle}</h3>
+            <p style="margin: 4px 0;"><strong>Location:</strong> ${property?.location ?? "N/A"}</p>
+            <p style="margin: 4px 0;"><strong>Cancelled Time:</strong> ${when}</p>
+          </div>
+          <p>The viewing slot is now available for other potential tenants.</p>
+        `;
+        break;
+
+      case 'updated':
+        subject = `Viewing Rescheduled: ${propertyTitle}`;
+        htmlContent = `
+          <h2 style="color: #059669;">Viewing Rescheduled</h2>
+          <p><strong>${tenantName}</strong> has rescheduled their viewing for your property:</p>
+          <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #059669;">
+            <h3 style="margin: 0 0 8px;">${propertyTitle}</h3>
+            <p style="margin: 4px 0;"><strong>Location:</strong> ${property?.location ?? "N/A"}</p>
+            ${oldWhen ? `<p style="margin: 4px 0;"><strong>Previous Time:</strong> <span style="text-decoration: line-through;">${oldWhen}</span></p>` : ''}
+            <p style="margin: 4px 0;"><strong>New Time:</strong> ${when}</p>
+          </div>
+          <p>Please update your calendar accordingly.</p>
+        `;
+        break;
+    }
+
+    // Send email to landlord
     const sends: Promise<any>[] = [];
     if (landlordEmail) {
       sends.push(
-        resend.emails.send({ from: "SwiftRent <onboarding@resend.dev>", to: [landlordEmail], subject, html: html("landlord") })
+        resend.emails.send({ 
+          from: "QuickRent <noreply@quickrent.co.za>", 
+          to: [landlordEmail], 
+          subject, 
+          html: htmlContent 
+        })
       );
     }
-    if (tenantEmail) {
+
+    // Send confirmation to tenant for bookings
+    if (tenantEmail && action === 'booked') {
+      const tenantHtml = `
+        <h2 style="color: #2563eb;">Viewing Confirmed</h2>
+        <p>Hello ${tenantName},</p>
+        <p>Your viewing has been confirmed for:</p>
+        <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
+          <h3 style="margin: 0 0 8px;">${propertyTitle}</h3>
+          <p style="margin: 4px 0;"><strong>Location:</strong> ${property?.location ?? "N/A"}</p>
+          <p style="margin: 4px 0;"><strong>Viewing Time:</strong> ${when}</p>
+        </div>
+        <p>Please arrive on time. You can manage your booking from the property page.</p>
+      `;
       sends.push(
-        resend.emails.send({ from: "SwiftRent <onboarding@resend.dev>", to: [tenantEmail], subject, html: html("tenant") })
+        resend.emails.send({
+          from: "QuickRent <noreply@quickrent.co.za>",
+          to: [tenantEmail],
+          subject: `Viewing Confirmed: ${propertyTitle}`,
+          html: tenantHtml
+        })
       );
     }
+
     await Promise.allSettled(sends);
 
     return new Response(JSON.stringify({ ok: true }), {

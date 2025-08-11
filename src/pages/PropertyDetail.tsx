@@ -32,6 +32,8 @@ import { useForm } from 'react-hook-form';
 import { useApplications } from '@/hooks/useApplications';
 import { useMessaging } from '@/hooks/useMessaging';
 import { BookViewingDialog } from "@/components/viewing/BookViewingDialog";
+import { useViewingBooking } from "@/hooks/useViewingBooking";
+import { format } from "date-fns";
 
 interface Property {
   id: string;
@@ -77,9 +79,9 @@ export default function PropertyDetail() {
   const [isLiked, setIsLiked] = useState(false);
   const [messageOpen, setMessageOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{display_name: string; phone: string | null} | null>(null);
+  const [bookingOpen, setBookingOpen] = useState(false);
   
-  
-const [bookingOpen, setBookingOpen] = useState(false);
+  const { activeBooking } = useViewingBooking(property?.id || '', property?.landlord_id || '');
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<MessageFormData>();
   const { hasAppliedToProperty, submitApplication, loading: applicationLoading } = useApplications();
   const { createConversation, sendMessage } = useMessaging();
@@ -539,15 +541,26 @@ const [bookingOpen, setBookingOpen] = useState(false);
                        <Mail className="h-4 w-4 mr-2" />
                        Message Landlord
                      </Button>
-                     <Button 
-                       variant="outline"
-                       className="w-full"
-                       onClick={handleRequestViewing}
-                     >
-                       <Calendar className="h-4 w-4 mr-2" />
-                       Book a Viewing
-                     </Button>
-                  </div>
+                     {activeBooking ? (
+                       <Button 
+                         variant="outline"
+                         className="w-full"
+                         onClick={() => setBookingOpen(true)}
+                       >
+                         <Calendar className="h-4 w-4 mr-2" />
+                         Manage Your Viewing
+                       </Button>
+                     ) : (
+                       <Button 
+                         variant="outline"
+                         className="w-full"
+                         onClick={handleRequestViewing}
+                       >
+                         <Calendar className="h-4 w-4 mr-2" />
+                         Book a Viewing
+                       </Button>
+                     )}
+                   </div>
                 ) : (
                   <Button 
                     className="w-full"
@@ -616,6 +629,36 @@ const [bookingOpen, setBookingOpen] = useState(false);
                       <CheckCircle className="h-4 w-4 inline mr-1" />
                       This is your property listing. Manage applications from your dashboard.
                     </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Current Viewing Status */}
+            {user && property.landlord_id !== user.id && activeBooking && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Your Scheduled Viewing
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
+                    <div className="font-medium">
+                      {format(new Date(activeBooking.start_time), "EEEE, MMMM d, yyyy")}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {format(new Date(activeBooking.start_time), "h:mm a")} - {format(new Date(activeBooking.end_time), "h:mm a")}
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-2"
+                      onClick={() => setBookingOpen(true)}
+                    >
+                      Manage Booking
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
