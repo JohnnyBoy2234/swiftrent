@@ -31,6 +31,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { useApplications } from '@/hooks/useApplications';
 import { useMessaging } from '@/hooks/useMessaging';
+import { BookViewingDialog } from "@/components/viewing/BookViewingDialog";
 
 interface Property {
   id: string;
@@ -80,7 +81,8 @@ export default function PropertyDetail() {
   const [userProfile, setUserProfile] = useState<{display_name: string; phone: string | null} | null>(null);
   const [showScreeningForm, setShowScreeningForm] = useState(false);
   
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<MessageFormData>();
+const [bookingOpen, setBookingOpen] = useState(false);
+const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<MessageFormData>();
   const { isScreened, hasAppliedToProperty, submitApplication, loading: applicationLoading } = useApplications();
   const { createConversation, sendMessage } = useMessaging();
 
@@ -316,7 +318,7 @@ export default function PropertyDetail() {
       toast({
         variant: "destructive",
         title: "Sign in required",
-        description: "Please sign in to request a viewing."
+        description: "Please sign in to book a viewing."
       });
       navigate('/auth');
       return;
@@ -325,19 +327,13 @@ export default function PropertyDetail() {
     if (!isIdVerified) {
       toast({
         title: "ID verification required",
-        description: "Complete your ID verification to contact landlords."
+        description: "Complete your ID verification to book viewings."
       });
       navigate(`/id-verification?return=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
 
-    if (!property) return;
-
-    const conv = await createConversation(property.id, property.landlord_id, user.id);
-    if (conv) {
-      await sendMessage(conv.id, `Hi, I'm interested in scheduling a viewing for this property: ${property.title}.`);
-      navigate(`/messages?c=${conv.id}`);
-    }
+    setBookingOpen(true);
   };
 
   const handleCallLandlord = () => {
@@ -653,7 +649,7 @@ export default function PropertyDetail() {
             <Card>
               <CardHeader>
                 <CardTitle>Contact</CardTitle>
-                <CardDescription>Message the landlord or request a viewing</CardDescription>
+                <CardDescription>Message the landlord or book a viewing</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {property.profiles && (
@@ -702,7 +698,7 @@ export default function PropertyDetail() {
                       disabled={checkingVerification}
                     >
                       <Calendar className="h-4 w-4 mr-2" />
-                      {checkingVerification ? 'Checking...' : 'Request a Viewing'}
+                      {checkingVerification ? 'Checking...' : 'Book a Viewing'}
                     </Button>
                   </div>
                 ) : (
@@ -745,11 +741,11 @@ export default function PropertyDetail() {
               <Card>
                 <CardHeader>
                   <CardTitle>Get Started</CardTitle>
-                  <CardDescription>Sign in to message the landlord or request a viewing</CardDescription>
+                <CardDescription>Sign in to message the landlord or book a viewing</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="text-center space-y-3">
-                    <p className="text-muted-foreground">Sign in to contact the landlord or request a viewing for this property</p>
+                    <p className="text-muted-foreground">Sign in to contact the landlord or book a viewing for this property</p>
                     <Button 
                       className="w-full" 
                       onClick={() => navigate('/auth')}
@@ -803,6 +799,15 @@ export default function PropertyDetail() {
         </div>
 
       </div>
+
+      {property && (
+        <BookViewingDialog
+          propertyId={property.id}
+          landlordId={property.landlord_id}
+          open={bookingOpen}
+          onOpenChange={setBookingOpen}
+        />
+      )}
     </div>
   );
 }

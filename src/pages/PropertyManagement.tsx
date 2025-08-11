@@ -24,7 +24,8 @@ import {
   ChevronRight,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
+  Calendar
 } from 'lucide-react';
 import { Property } from '@/types/dashboard';
 import { LeaseSigningDialog } from '@/components/lease/LeaseSigningDialog';
@@ -378,6 +379,11 @@ export default function PropertyManagement() {
             propertyId={property.id} 
             onStartLease={handleStartLease}
           />
+        </TabsContent>
+
+        {/* Viewings Tab */}
+        <TabsContent value="viewings" className="space-y-6">
+          <ViewingSlotsManager propertyId={property.id} />
         </TabsContent>
 
         {/* Leases Tab */}
