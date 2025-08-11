@@ -679,6 +679,7 @@ export type Database = {
       screening_profiles: {
         Row: {
           created_at: string
+          documents: Json | null
           first_name: string
           has_pets: boolean | null
           id: string
@@ -696,6 +697,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          documents?: Json | null
           first_name: string
           has_pets?: boolean | null
           id?: string
@@ -713,6 +715,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          documents?: Json | null
           first_name?: string
           has_pets?: boolean | null
           id?: string

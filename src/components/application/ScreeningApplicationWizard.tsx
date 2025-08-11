@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { FileText, Upload, X } from "lucide-react";
 
 export interface ScreeningApplicationWizardProps {
   propertyId: string;
@@ -36,13 +37,16 @@ interface FormData {
   reason_for_moving: string;
   previous_landlord_name: string;
   previous_landlord_contact: string;
-  // Documents
-  id_document: File | null;
-  income_document: File | null;
   // Additional
   has_pets: boolean;
   pet_details: string;
   screening_consent: boolean;
+}
+
+interface DocumentItem {
+  name: string;
+  url: string;
+  type: string;
 }
 
 const steps = [
@@ -63,8 +67,10 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [existingApplication, setExistingApplication] = useState<any>(null);
+  const [uploadedDocuments, setUploadedDocuments] = useState<DocumentItem[]>([]);
 
   const [formData, setFormData] = useState<FormData>({
     first_name: "",
@@ -80,8 +86,6 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
     reason_for_moving: "",
     previous_landlord_name: "",
     previous_landlord_contact: "",
-    id_document: null,
-    income_document: null,
     has_pets: false,
     pet_details: "",
     screening_consent: false,
@@ -130,6 +134,11 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
           pet_details: profile.pet_details || "",
           screening_consent: profile.screening_consent || false,
         }));
+
+        // Load existing documents
+        if (profile.documents && Array.isArray(profile.documents)) {
+          setUploadedDocuments(profile.documents as unknown as DocumentItem[]);
+        }
       }
 
       // Screening details
@@ -160,33 +169,77 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
     }
   };
 
-  const handleInputChange = (field: keyof FormData, value: string | boolean | File | null) => {
+  const handleInputChange = (field: keyof FormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFileUpload = async (file: File, documentType: 'id' | 'income') => {
-    if (!user) return null;
-    
+  const uploadDocument = async (file: File, documentType: string) => {
+    if (!user) return;
+
+    setUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}_${documentType}_${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${documentType}_${Date.now()}.${fileExt}`;
+      
       const bucket = documentType === 'id' ? 'id-documents' : 'income-documents';
       
-      const { error: uploadError } = await supabase.storage
+      const { error } = await supabase.storage
         .from(bucket)
         .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(fileName);
+
+      const newDocument: DocumentItem = {
+        name: file.name,
+        url: urlData.publicUrl,
+        type: documentType
+      };
+
+      setUploadedDocuments(prev => [...prev, newDocument]);
       
-      if (uploadError) throw uploadError;
-      
-      return fileName;
-    } catch (error) {
-      console.error('File upload error:', error);
       toast({
-        title: "Upload failed",
-        description: "Could not upload document. Please try again.",
-        variant: "destructive",
+        title: "Document Uploaded",
+        description: `${file.name} has been uploaded successfully.`,
       });
-      return null;
+    } catch (error: any) {
+      console.error('Error uploading document:', error);
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Failed to upload document",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeDocument = async (index: number) => {
+    const document = uploadedDocuments[index];
+    const fileName = document.url.split('/').pop();
+    const bucket = document.type === 'id' ? 'id-documents' : 'income-documents';
+    
+    try {
+      await supabase.storage
+        .from(bucket)
+        .remove([`${user?.id}/${fileName}`]);
+        
+      setUploadedDocuments(prev => prev.filter((_, i) => i !== index));
+      
+      toast({
+        title: "Document Removed",
+        description: "Document has been removed successfully.",
+      });
+    } catch (error) {
+      console.error('Error removing document:', error);
+      toast({
+        title: "Removal Failed",
+        description: "Failed to remove document",
+        variant: "destructive"
+      });
     }
   };
 
@@ -248,19 +301,7 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
 
     setSubmitting(true);
     try {
-      // Upload documents if provided
-      let idDocumentPath = null;
-      let incomeDocumentPath = null;
-      
-      if (formData.id_document) {
-        idDocumentPath = await handleFileUpload(formData.id_document, 'id');
-      }
-      
-      if (formData.income_document) {
-        incomeDocumentPath = await handleFileUpload(formData.income_document, 'income');
-      }
-
-      // Upsert screening profile
+      // Upsert screening profile with documents
       const { error: profileError } = await supabase.from("screening_profiles").upsert({
         user_id: user.id,
         first_name: formData.first_name,
@@ -271,10 +312,7 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
         screening_consent: formData.screening_consent,
         screening_consent_date: new Date().toISOString(),
         is_complete: true,
-        documents: {
-          id_document: idDocumentPath,
-          income_document: incomeDocumentPath,
-        },
+        documents: uploadedDocuments as any,
         updated_at: new Date().toISOString(),
       });
       if (profileError) throw profileError;
@@ -435,6 +473,7 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
         <div className="space-y-8">
           <StepIndicator />
 
+          {/* Step 1: Personal Information */}
           {currentStep === 0 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Personal Information</h3>
@@ -466,6 +505,7 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
             </div>
           )}
 
+          {/* Step 2: Employment Information */}
           {currentStep === 1 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Employment Information</h3>
@@ -504,6 +544,7 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
             </div>
           )}
 
+          {/* Step 3: Residence Information */}
           {currentStep === 2 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Current Residence</h3>
@@ -529,79 +570,174 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
             </div>
           )}
 
+          {/* Step 4: Supporting Documents */}
           {currentStep === 3 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Supporting Documents</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Upload supporting documents to strengthen your application (optional but recommended)
-              </p>
-              
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="id_document">ID Document</Label>
-                  <Input 
-                    id="id_document" 
-                    type="file" 
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0] || null;
-                      handleInputChange("id_document", file);
-                    }} 
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Upload a copy of your ID (PDF, JPG, or PNG format)
-                  </p>
-                </div>
-                
-                <div>
-                  <Label htmlFor="income_document">Income Statement</Label>
-                  <Input 
-                    id="income_document" 
-                    type="file" 
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0] || null;
-                      handleInputChange("income_document", file);
-                    }} 
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Upload proof of income (pay slip, bank statement, etc.)
-                  </p>
-                </div>
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Supporting Documents</h3>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Upload supporting documents to strengthen your application. All documents are optional but recommended.
+                </p>
               </div>
-              
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Income Documents */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Income Documents</CardTitle>
+                    <CardDescription>
+                      Payslips, bank statements, employment letter
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="income-upload">Upload Income Documents</Label>
+                        <Input
+                          id="income-upload"
+                          type="file"
+                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                          multiple
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            files.forEach(file => uploadDocument(file, 'income'));
+                          }}
+                          disabled={uploading}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Accepted formats: PDF, DOC, DOCX, JPG, PNG
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* ID Documents */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Identity Documents</CardTitle>
+                    <CardDescription>
+                      ID copy, passport, driver's license
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="id-upload">Upload ID Documents</Label>
+                        <Input
+                          id="id-upload"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          multiple
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            files.forEach(file => uploadDocument(file, 'id'));
+                          }}
+                          disabled={uploading}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Accepted formats: PDF, JPG, PNG
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Uploaded Documents List */}
+              {uploadedDocuments.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Uploaded Documents</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {uploadedDocuments.map((doc, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm font-medium">{doc.name}</p>
+                              <p className="text-xs text-muted-foreground capitalize">{doc.type} document</p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeDocument(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {uploading && (
+                <div className="flex items-center justify-center p-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  <span className="ml-2 text-sm">Uploading documents...</span>
+                </div>
+              )}
+
               <NextBack />
             </div>
           )}
 
+          {/* Step 5: Additional Information */}
           {currentStep === 4 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Additional Information</h3>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="has_pets" checked={formData.has_pets} onCheckedChange={(c) => handleInputChange("has_pets", c as boolean)} />
-                <Label htmlFor="has_pets">I have pets</Label>
-              </div>
-              {formData.has_pets && (
-                <div>
-                  <Label htmlFor="pet_details">Pet Details</Label>
-                  <Textarea id="pet_details" value={formData.pet_details} onChange={(e) => handleInputChange("pet_details", e.target.value)} placeholder="Please describe your pets (type, breed, size, etc.)" />
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="has_pets"
+                    checked={formData.has_pets}
+                    onCheckedChange={(checked) => handleInputChange("has_pets", !!checked)}
+                  />
+                  <Label htmlFor="has_pets">Do you have pets?</Label>
                 </div>
-              )}
+                {formData.has_pets && (
+                  <div>
+                    <Label htmlFor="pet_details">Pet Details</Label>
+                    <Textarea
+                      id="pet_details"
+                      placeholder="Please describe your pets (type, breed, age, etc.)"
+                      value={formData.pet_details}
+                      onChange={(e) => handleInputChange("pet_details", e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
               <NextBack />
             </div>
           )}
 
+          {/* Step 6: Consent */}
           {currentStep === 5 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Consent and Authorization</h3>
-              <div className="flex items-start space-x-2">
-                <Checkbox id="screening_consent" checked={formData.screening_consent} onCheckedChange={(c) => handleInputChange("screening_consent", c as boolean)} />
-                <Label htmlFor="screening_consent" className="text-sm leading-relaxed">
-                  I authorize the landlord and their agents to conduct a credit check, verify my employment, contact previous landlords,
-                  and perform any other screening necessary for this rental application. *
-                </Label>
+              <h3 className="text-lg font-semibold">Screening Consent</h3>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="screening_consent"
+                    checked={formData.screening_consent}
+                    onCheckedChange={(checked) => handleInputChange("screening_consent", !!checked)}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor="screening_consent" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      I consent to background and credit screening *
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      By checking this box, you authorize us to conduct background and credit checks as part of the application process.
+                      This information will be used solely for rental application evaluation purposes.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <Separator />
               <NextBack onSubmit />
             </div>
           )}
@@ -610,5 +746,3 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
     </Card>
   );
 }
-
-export default ScreeningApplicationWizard;
