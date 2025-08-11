@@ -335,7 +335,8 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
         .from("applications")
         .delete()
         .eq("tenant_id", user.id)
-        .eq("property_id", propertyId);
+        .eq("property_id", propertyId)
+        .neq("status", "accepted");
 
       // Now insert the new application
       const { data, error } = await supabase
