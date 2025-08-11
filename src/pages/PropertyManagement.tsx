@@ -221,14 +221,18 @@ export default function PropertyManagement() {
 
       {/* Tabs Navigation */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <Home className="h-4 w-4" />
             Overview
           </TabsTrigger>
           <TabsTrigger value="listing" className="flex items-center gap-2">
             <List className="h-4 w-4" />
-            Listing
+            Listings
+          </TabsTrigger>
+          <TabsTrigger value="viewings" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Viewing
           </TabsTrigger>
           <TabsTrigger value="applications" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
