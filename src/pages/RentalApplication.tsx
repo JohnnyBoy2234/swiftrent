@@ -21,7 +21,7 @@ export default function RentalApplication() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 py-8">
       <div className="container mx-auto px-4">
-        <RentalApplicationForm 
+        <ScreeningApplicationWizard 
           propertyId={propertyId}
           landlordId={landlordId}
           inviteId={inviteId || undefined}
