@@ -342,7 +342,19 @@ export default function Dashboard() {
                 </TableHeader>
                 <TableBody>
                   {filteredProperties.map((property) => (
-                    <TableRow key={property.id} className="hover:bg-muted/50">
+                    <TableRow
+                      key={property.id}
+                      className="hover:bg-muted/50 cursor-pointer"
+                      onClick={() => navigate(`/manage-property/${property.id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          navigate(`/manage-property/${property.id}`);
+                        }
+                      }}
+                    >
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-blue-500 rounded-lg flex items-center justify-center">
@@ -383,7 +395,10 @@ export default function Dashboard() {
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => navigate(`/manage-property/${property.id}`)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/manage-property/${property.id}`);
+                          }}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
