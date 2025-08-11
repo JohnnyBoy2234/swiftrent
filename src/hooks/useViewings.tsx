@@ -15,6 +15,8 @@ export interface Viewing {
   created_at: string;
   updated_at: string;
   completed_at?: string;
+  viewing_confirmed?: boolean;
+  application_sent?: boolean;
 }
 
 export interface ViewingWithDetails extends Viewing {
@@ -207,6 +209,104 @@ export const useViewings = (propertyId?: string, conversationId?: string) => {
     }
   };
 
+  // Check if tenant can access application for a property
+  const checkApplicationAccess = async (propertyId: string, tenantId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('can_access_application', {
+        property_uuid: propertyId,
+        tenant_uuid: tenantId
+      });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error checking application access:', error);
+      return false;
+    }
+  };
+
+  // Confirm viewing completion (landlord action)
+  const confirmViewing = async (viewingId: string) => {
+    if (!user) return false;
+
+    try {
+      const { error } = await supabase
+        .from('viewings')
+        .update({ viewing_confirmed: true })
+        .eq('id', viewingId)
+        .eq('landlord_id', user.id);
+
+      if (error) throw error;
+
+      await fetchViewings();
+      toast({
+        title: "Success",
+        description: "Viewing confirmed successfully",
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error confirming viewing:', error);
+      toast({
+        title: "Error",
+        description: "Failed to confirm viewing",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  // Send application to tenant (landlord action)
+  const sendApplication = async (viewingId: string) => {
+    if (!user) return false;
+
+    try {
+      const { error } = await supabase
+        .from('viewings')
+        .update({ application_sent: true })
+        .eq('id', viewingId)
+        .eq('landlord_id', user.id)
+        .eq('viewing_confirmed', true);
+
+      if (error) throw error;
+
+      await fetchViewings();
+      toast({
+        title: "Success",
+        description: "Application sent to tenant",
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error sending application:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send application",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  // Get viewing status for property-tenant pair
+  const getViewingStatus = async (propertyId: string, tenantId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('viewings')
+        .select('*')
+        .eq('property_id', propertyId)
+        .eq('tenant_id', tenantId)
+        .order('created_at', { ascending: false })
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error getting viewing status:', error);
+      return null;
+    }
+  };
+
   return {
     viewings,
     loading,
@@ -215,5 +315,9 @@ export const useViewings = (propertyId?: string, conversationId?: string) => {
     scheduleViewing,
     getCompletedViewing,
     fetchViewings,
+    checkApplicationAccess,
+    confirmViewing,
+    sendApplication,
+    getViewingStatus,
   };
 };

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, 
   Mail, 
@@ -13,18 +14,22 @@ import {
   X, 
   Calendar,
   User,
-  FileText
+  FileText,
+  Building
 } from 'lucide-react';
 import { useLandlordApplications, ApplicationWithTenant } from '@/hooks/useLandlordApplications';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import ViewingManagement from '@/components/landlord/ViewingManagement';
 
 interface ApplicationsTabProps {
   propertyId: string;
+  propertyTitle?: string;
+  propertyLocation?: string;
   onStartLease: (tenantId: string, tenantName: string) => void;
 }
 
-export function ApplicationsTab({ propertyId, onStartLease }: ApplicationsTabProps) {
+export function ApplicationsTab({ propertyId, propertyTitle, propertyLocation, onStartLease }: ApplicationsTabProps) {
   const { applications, loading, updateApplicationStatus } = useLandlordApplications(propertyId);
   const { toast } = useToast();
   const [emailForInvite, setEmailForInvite] = useState('');
@@ -190,183 +195,182 @@ export function ApplicationsTab({ propertyId, onStartLease }: ApplicationsTabPro
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Applications</CardTitle>
-          <CardDescription>Manage tenant applications for this property</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {applications.length === 0 ? (
-            <>
-              <div className="text-center py-8">
-                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">No new applications</h3>
-                <p className="text-muted-foreground mb-6">Applications will appear here when submitted</p>
-              </div>
+      <Tabs defaultValue="viewings" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="viewings">
+            Viewing Management
+          </TabsTrigger>
+          <TabsTrigger value="applications">
+            Applications ({applications.length})
+          </TabsTrigger>
+        </TabsList>
 
-              <div className="space-y-4">
-                <div className="flex gap-3">
-                  <Input
-                    placeholder="Enter email address"
-                    value={emailForInvite}
-                    onChange={(e) => setEmailForInvite(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button onClick={handleSendInvite} disabled={!emailForInvite}>
-                    <Mail className="h-4 w-4 mr-2" />
-                    Send application link
-                  </Button>
-                </div>
-                
-                <Button variant="outline" className="w-full">
-                  <Link className="h-4 w-4 mr-2" />
-                  Get shareable application link
-                </Button>
-              </div>
+        <TabsContent value="viewings" className="space-y-4">
+          <ViewingManagement
+            propertyId={propertyId}
+            propertyTitle={propertyTitle || "Property"}
+            propertyLocation={propertyLocation || "Location"}
+          />
+        </TabsContent>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Invite more renters to apply</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Button variant="outline" className="w-full">
-                    Print your property sheet
-                  </Button>
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">{applications.length} Application{applications.length > 1 ? 's' : ''}</h3>
-                <div className="flex gap-3">
-                  <Input
-                    placeholder="Enter email address"
-                    value={emailForInvite}
-                    onChange={(e) => setEmailForInvite(e.target.value)}
-                    className="w-64"
-                  />
-                  <Button onClick={handleSendInvite} disabled={!emailForInvite} variant="outline" size="sm">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Invite more
-                  </Button>
-                </div>
-              </div>
+        <TabsContent value="applications" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Applications</CardTitle>
+              <CardDescription>
+                Applications can only be submitted after viewing confirmation and landlord approval
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {applications.length === 0 ? (
+                <>
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="font-semibold mb-2">No applications yet</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Applications will appear here after you send them to tenants who have completed viewings
+                    </p>
+                  </div>
 
-              <div className="grid gap-4">
-                {applications.map((application) => {
-                  const tenantName = application.screening_profile 
-                    ? `${application.screening_profile.first_name} ${application.screening_profile.last_name}`
-                    : application.tenant_profile?.display_name || 'Unknown Tenant';
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <Building className="h-5 w-5 text-blue-600" />
+                      <div className="text-sm">
+                        <p className="font-medium text-blue-800 mb-1">New Workflow Process:</p>
+                        <ol className="list-decimal list-inside space-y-1 text-blue-700">
+                          <li>Tenants schedule viewings through the property page</li>
+                          <li>After viewings are completed, confirm them in the Viewing Management tab</li>
+                          <li>Send applications to confirmed viewers</li>
+                          <li>Review and approve applications here</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">
+                      {applications.length} Application{applications.length > 1 ? 's' : ''}
+                    </h3>
+                  </div>
 
-                  return (
-                    <Card key={application.id} className="border-l-4 border-l-primary/20">
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <div className="p-2 bg-primary/10 rounded-full">
-                                <User className="h-4 w-4 text-primary" />
-                              </div>
-                              <div>
-                                <h4 className="font-semibold">{tenantName}</h4>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <Calendar className="h-3 w-3" />
-                                  Applied {format(new Date(application.created_at), 'MMM dd, yyyy')}
+                  <div className="grid gap-4">
+                    {applications.map((application) => {
+                      const tenantName = application.screening_profile 
+                        ? `${application.screening_profile.first_name} ${application.screening_profile.last_name}`
+                        : application.tenant_profile?.display_name || 'Unknown Tenant';
+
+                      return (
+                        <Card key={application.id} className="border-l-4 border-l-primary/20">
+                          <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div className="p-2 bg-primary/10 rounded-full">
+                                    <User className="h-4 w-4 text-primary" />
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold">{tenantName}</h4>
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                      <Calendar className="h-3 w-3" />
+                                      Applied {format(new Date(application.created_at), 'MMM dd, yyyy')}
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-2 mb-3">
+                                  <Badge variant={getStatusBadgeVariant(application.status)}>
+                                    {application.status.toUpperCase()}
+                                  </Badge>
+                                  {application.screening_profile?.is_complete && (
+                                    <Badge variant="outline">
+                                      <FileText className="h-3 w-3 mr-1" />
+                                      Screening Complete
+                                    </Badge>
+                                  )}
                                 </div>
                               </div>
+
+                              <div className="flex items-center gap-2">
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => setSelectedApplication(application)}
+                                    >
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      View Details
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-2xl">
+                                    <DialogHeader>
+                                      <DialogTitle>Application Details - {tenantName}</DialogTitle>
+                                      <DialogDescription>
+                                        Review the complete application and screening information
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    {selectedApplication && renderApplicationDetails(selectedApplication)}
+                                  </DialogContent>
+                                </Dialog>
+
+                                {application.status === 'pending' && (
+                                  <>
+                                    <Button 
+                                      onClick={() => handleAcceptApplication(application)}
+                                      className="bg-green-600 hover:bg-green-700"
+                                      size="sm"
+                                    >
+                                      <Check className="h-4 w-4 mr-2" />
+                                      Accept & Start Lease
+                                    </Button>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => handleDeclineApplication(application.id)}
+                                      className="text-red-600 border-red-200 hover:bg-red-50"
+                                    >
+                                      <X className="h-4 w-4 mr-2" />
+                                      Decline
+                                    </Button>
+                                  </>
+                                )}
+                                
+                                {application.status === 'accepted' && (
+                                  <Button 
+                                    onClick={() => {
+                                      const tenantName = application.screening_profile 
+                                        ? `${application.screening_profile.first_name} ${application.screening_profile.last_name}`
+                                        : application.tenant_profile?.display_name || 'Tenant';
+                                      onStartLease(application.tenant_id, tenantName);
+                                    }}
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                    size="sm"
+                                  >
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    Create Lease
+                                  </Button>
+                                )}
+
+                                {application.status === 'declined' && (
+                                  <Badge variant="destructive">
+                                    Application Declined
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
-                            
-                            <div className="flex items-center gap-2 mb-3">
-                              <Badge variant={getStatusBadgeVariant(application.status)}>
-                                {application.status.toUpperCase()}
-                              </Badge>
-                              {application.screening_profile?.is_complete && (
-                                <Badge variant="outline">
-                                  <FileText className="h-3 w-3 mr-1" />
-                                  Screening Complete
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => setSelectedApplication(application)}
-                                >
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View Full Application
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-2xl">
-                                <DialogHeader>
-                                  <DialogTitle>Application Details - {tenantName}</DialogTitle>
-                                  <DialogDescription>
-                                    Review the complete application and screening information
-                                  </DialogDescription>
-                                </DialogHeader>
-                                {selectedApplication && renderApplicationDetails(selectedApplication)}
-                              </DialogContent>
-                            </Dialog>
-
-                            {application.status === 'pending' && (
-                              <>
-                                <Button 
-                                  onClick={() => handleAcceptApplication(application)}
-                                  className="bg-green-600 hover:bg-green-700"
-                                  size="sm"
-                                >
-                                  <Check className="h-4 w-4 mr-2" />
-                                  Accept & Start Lease
-                                </Button>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => handleDeclineApplication(application.id)}
-                                  className="text-red-600 border-red-200 hover:bg-red-50"
-                                >
-                                  <X className="h-4 w-4 mr-2" />
-                                  Decline
-                                </Button>
-                              </>
-                            )}
-                            
-                            {application.status === 'accepted' && (
-                              <Button 
-                                onClick={() => {
-                                  const tenantName = application.screening_profile 
-                                    ? `${application.screening_profile.first_name} ${application.screening_profile.last_name}`
-                                    : application.tenant_profile?.display_name || 'Tenant';
-                                  onStartLease(application.tenant_id, tenantName);
-                                }}
-                                className="bg-blue-600 hover:bg-blue-700"
-                                size="sm"
-                              >
-                                <FileText className="h-4 w-4 mr-2" />
-                                Create Lease
-                              </Button>
-                            )}
-
-                            {application.status === 'declined' && (
-                              <Badge variant="destructive">
-                                Application Declined
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
