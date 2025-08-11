@@ -7,23 +7,38 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useUserProperties } from "@/hooks/useUserProperties";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-
 const Navbar = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, signOut, isLandlord } = useAuth();
-  const { unreadCount } = useUnreadMessages();
-  const { hasProperties } = useUserProperties();
-
-  const navItems = [
-    { path: "/", label: "Home", icon: Home },
-    { path: "/properties", label: "Properties", icon: Search },
-    { path: "/how-it-works", label: "How It Works", icon: Heart },
-    { path: "/about", label: "About", icon: User },
-  ];
-
-  return (
-    <nav className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50">
+  const {
+    user,
+    signOut,
+    isLandlord
+  } = useAuth();
+  const {
+    unreadCount
+  } = useUnreadMessages();
+  const {
+    hasProperties
+  } = useUserProperties();
+  const navItems = [{
+    path: "/",
+    label: "Home",
+    icon: Home
+  }, {
+    path: "/properties",
+    label: "Properties",
+    icon: Search
+  }, {
+    path: "/how-it-works",
+    label: "How It Works",
+    icon: Heart
+  }, {
+    path: "/about",
+    label: "About",
+    icon: User
+  }];
+  return <nav className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -31,64 +46,42 @@ const Navbar = () => {
             <div className="w-8 h-8 bg-gradient-to-br from-ocean-blue to-success-green rounded-lg flex items-center justify-center">
               <Home className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-foreground">EasyRent</span>
+            <span className="text-xl font-bold text-foreground">SwiftRent</span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  location.pathname === item.path
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                }`}
-              >
+            {navItems.map(item => <Link key={item.path} to={item.path} className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === item.path ? "text-primary" : "text-muted-foreground"}`}>
                 {item.label}
-              </Link>
-            ))}
+              </Link>)}
           </div>
 
           {/* Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-                {user ? (
-                  <>
+                {user ? <>
                     <Button variant="outline" asChild>
                       <Link to="/list-property">List Property</Link>
                     </Button>
                     
-                    {isLandlord && hasProperties ? (
-                      <Button variant="ghost" size="sm" asChild>
+                    {isLandlord && hasProperties ? <Button variant="ghost" size="sm" asChild>
                         <Link to="/dashboard" className="flex items-center relative">
                           <LayoutDashboard className="h-4 w-4 mr-2" />
                           Rental Manager
                         </Link>
-                      </Button>
-                    ) : !isLandlord ? (
-                      <Button variant="ghost" size="sm" asChild>
+                      </Button> : !isLandlord ? <Button variant="ghost" size="sm" asChild>
                         <Link to="/tenant-dashboard" className="flex items-center relative">
                           <LayoutDashboard className="h-4 w-4 mr-2" />
                           My Dashboard
                         </Link>
-                      </Button>
-                    ) : (
-                      <Button variant="ghost" size="sm" asChild>
+                      </Button> : <Button variant="ghost" size="sm" asChild>
                         <Link to="/messages" className="flex items-center relative">
                           <MessageCircle className="h-4 w-4 mr-2" />
                           Messages
-                          {unreadCount > 0 && (
-                            <Badge 
-                              variant="destructive" 
-                              className="ml-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                            >
+                          {unreadCount > 0 && <Badge variant="destructive" className="ml-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
                               {unreadCount > 99 ? '99+' : unreadCount}
-                            </Badge>
-                          )}
+                            </Badge>}
                         </Link>
-                      </Button>
-                    )}
+                      </Button>}
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -98,27 +91,20 @@ const Navbar = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    {!isLandlord || !hasProperties ? (
-                      <>
+                    {!isLandlord || !hasProperties ? <>
                         <DropdownMenuItem asChild>
                           <Link to="/messages" className="flex items-center justify-between">
                             <div className="flex items-center">
                               <MessageCircle className="h-4 w-4 mr-2" />
                               Messages
                             </div>
-                            {unreadCount > 0 && (
-                              <Badge 
-                                variant="destructive" 
-                                className="h-5 w-5 flex items-center justify-center p-0 text-xs"
-                              >
+                            {unreadCount > 0 && <Badge variant="destructive" className="h-5 w-5 flex items-center justify-center p-0 text-xs">
                                 {unreadCount > 99 ? '99+' : unreadCount}
-                              </Badge>
-                            )}
+                              </Badge>}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                      </>
-                    ) : null}
+                      </> : null}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut}>
                       <LogOut className="h-4 w-4 mr-2" />
@@ -126,102 +112,64 @@ const Navbar = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </>
-            ) : (
-              <>
+              </> : <>
                 <Button variant="outline" asChild>
                   <Link to="/list-property">List Property</Link>
                 </Button>
                 <Button asChild>
                   <Link to="/auth">Sign In</Link>
                 </Button>
-              </>
-            )}
+              </>}
           </div>
 
           {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
+          <Button variant="ghost" size="sm" className="md:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             <Menu className="h-5 w-5" />
           </Button>
         </div>
 
         {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-md">
+        {isMobileMenuOpen && <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-md">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              {navItems.map((item) => {
-                const IconComponent = item.icon;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      location.pathname === item.path
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:text-primary hover:bg-secondary"
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
+              {navItems.map(item => {
+            const IconComponent = item.icon;
+            return <Link key={item.path} to={item.path} className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-primary hover:bg-secondary"}`} onClick={() => setIsMobileMenuOpen(false)}>
                     <IconComponent className="h-4 w-4" />
                     <span>{item.label}</span>
-                  </Link>
-                );
-              })}
+                  </Link>;
+          })}
               <div className="pt-4 space-y-2">
-                {user ? (
-                  <>
+                {user ? <>
                     <Button variant="outline" className="w-full" asChild>
                       <Link to="/list-property">List Property</Link>
                     </Button>
-                    {isLandlord && hasProperties ? (
-                      <Button variant="outline" className="w-full" asChild>
+                    {isLandlord && hasProperties ? <Button variant="outline" className="w-full" asChild>
                         <Link to="/dashboard">Rental Manager</Link>
-                      </Button>
-                    ) : !isLandlord ? (
-                      <Button variant="outline" className="w-full" asChild>
+                      </Button> : !isLandlord ? <Button variant="outline" className="w-full" asChild>
                         <Link to="/tenant-dashboard">My Dashboard</Link>
-                      </Button>
-                    ) : (
-                      <Button variant="outline" className="w-full" asChild>
+                      </Button> : <Button variant="outline" className="w-full" asChild>
                         <Link to="/messages" className="flex items-center justify-between">
                           <span>Messages</span>
-                          {unreadCount > 0 && (
-                            <Badge 
-                              variant="destructive" 
-                              className="h-5 w-5 flex items-center justify-center p-0 text-xs"
-                            >
+                          {unreadCount > 0 && <Badge variant="destructive" className="h-5 w-5 flex items-center justify-center p-0 text-xs">
                               {unreadCount > 99 ? '99+' : unreadCount}
-                            </Badge>
-                          )}
+                            </Badge>}
                         </Link>
-                      </Button>
-                    )}
+                      </Button>}
                     <Button className="w-full" onClick={signOut}>
                       Sign Out
                     </Button>
-                  </>
-                ) : (
-                  <>
+                  </> : <>
                     <Button variant="outline" className="w-full" asChild>
                       <Link to="/list-property">List Property</Link>
                     </Button>
                     <Button className="w-full" asChild>
                       <Link to="/auth">Sign In</Link>
                     </Button>
-                  </>
-                )}
+                  </>}
               </div>
             </div>
-          </div>
-        )}
+          </div>}
       </div>
-    </nav>
-  );
+    </nav>;
 };
-
 export default Navbar;
