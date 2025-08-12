@@ -63,10 +63,10 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.send-login-code]
-verify_jwt = true
+verify_jwt = false
 
 [functions.verify-login-code]
-verify_jwt = true
+verify_jwt = false
 
 [functions.notify-viewing-booked]
 verify_jwt = true

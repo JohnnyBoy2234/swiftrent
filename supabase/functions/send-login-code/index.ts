@@ -19,21 +19,33 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
-
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
-    });
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    const { email } = await req.json();
+    if (!email || typeof email !== "string") {
+      return new Response(JSON.stringify({ error: "Email is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
-    // Rate limit: 30 seconds between sends
-    const { data: latest } = await supabase
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
+
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+    // Find user by email (must exist for login)
+    const { data: userRes, error: getUserErr } = await adminClient.auth.admin.getUserByEmail(email);
+    if (getUserErr || !userRes?.user) {
+      return new Response(JSON.stringify({ error: "No account found for this email" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const user = userRes.user;
+
+    // Rate limit: 30 seconds between sends per user
+    const { data: latest } = await adminClient
       .from("verification_codes")
       .select("id, created_at")
       .eq("user_id", user.id)
@@ -44,7 +56,10 @@ serve(async (req) => {
     if (latest) {
       const last = new Date(latest.created_at).getTime();
       if (Date.now() - last < 30_000) {
-        return new Response(JSON.stringify({ error: "Please wait before requesting another code.", retryIn: 30_000 - (Date.now() - last) }), { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } });
+        return new Response(
+          JSON.stringify({ error: "Please wait before requesting another code.", retryIn: 30_000 - (Date.now() - last) }),
+          { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
       }
     }
 
@@ -52,7 +67,7 @@ serve(async (req) => {
     const code_hash = await bcrypt.hash(code, 10);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
-    const { error: insertError } = await supabase.from("verification_codes").insert({
+    const { error: insertError } = await adminClient.from("verification_codes").insert({
       user_id: user.id,
       code_hash,
       expires_at: expiresAt,
@@ -60,11 +75,14 @@ serve(async (req) => {
     });
     if (insertError) {
       console.error("Insert error:", insertError);
-      return new Response(JSON.stringify({ error: "Failed to create verification code" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      return new Response(JSON.stringify({ error: "Failed to create verification code" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     const resend = new Resend(resendApiKey);
-    const to = user.email ?? "";
+    const to = email;
     const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") ?? "verify@swiftrent.co.za";
     const FROM_NAME = Deno.env.get("RESEND_FROM_NAME") ?? "SwiftRent";
     const from = `${FROM_NAME} <${FROM_EMAIL}>`;
@@ -74,7 +92,7 @@ serve(async (req) => {
         <h2>Verify your sign-in</h2>
         <p>Your SwiftRent verification code is:</p>
         <p style="font-size: 28px; font-weight: bold; letter-spacing: 4px;">${code}</p>
-        <p>This code expires in 10 minutes. If you didn\'t request this, you can safely ignore this email.</p>
+        <p>This code expires in 10 minutes. If you didn't request this, you can safely ignore this email.</p>
       </div>
     `;
 
@@ -87,12 +105,21 @@ serve(async (req) => {
 
     if (emailError) {
       console.error("Email error:", emailError);
-      return new Response(JSON.stringify({ error: "Failed to send email" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      return new Response(JSON.stringify({ error: "Failed to send email" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
-    return new Response(JSON.stringify({ sent: true, expiresAt }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    return new Response(JSON.stringify({ sent: true, expiresAt }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   } catch (e) {
     console.error("send-login-code error:", e);
-    return new Response(JSON.stringify({ error: "Unexpected error" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    return new Response(JSON.stringify({ error: "Unexpected error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   }
 });
