@@ -207,9 +207,11 @@ const About = () => {
                 Find Properties
               </Button>
             </Link>
-            <Button size="lg" variant="outline">
-              List Your Property
-            </Button>
+            <Link to="/list-property">
+              <Button size="lg" variant="outline">
+                List Your Property
+              </Button>
+            </Link>
           </div>
         </section>
       </main>
