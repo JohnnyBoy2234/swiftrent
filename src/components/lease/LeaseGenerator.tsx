@@ -49,21 +49,33 @@ export const LeaseGenerator = ({
   const [generating, setGenerating] = useState(false);
   const { user } = useAuth();
 
+  // Status badge with role-aware labels
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      draft: { label: "Draft", variant: "secondary" as const, icon: Clock },
-      awaiting_tenant_signature: { label: "Awaiting Tenant Signature", variant: "default" as const, icon: FileText },
-      awaiting_landlord_signature: { label: "Awaiting Your Signature", variant: "outline" as const, icon: Signature },
-      completed: { label: "Active & Signed", variant: "default" as const, icon: CheckCircle }
-    };
+    const isTenantCtx = user?.id === tenancy.tenant_id;
+    const isLandlordCtx = user?.id === tenancy.landlord_id;
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
-    const Icon = config.icon;
+    let label = "Draft";
+    let variant: "secondary" | "default" | "outline" = "secondary";
+    let IconComp: any = Clock;
+
+    if (status === "awaiting_tenant_signature") {
+      label = isTenantCtx ? "Awaiting Your Signature" : "Awaiting Tenant Signature";
+      variant = "default";
+      IconComp = FileText;
+    } else if (status === "awaiting_landlord_signature") {
+      label = isLandlordCtx ? "Awaiting Your Signature" : "Awaiting Landlord Signature";
+      variant = "outline";
+      IconComp = Signature;
+    } else if (status === "completed") {
+      label = "Active & Signed";
+      variant = "default";
+      IconComp = CheckCircle;
+    }
 
     return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
-        <Icon className="h-3 w-3" />
-        {config.label}
+      <Badge variant={variant} className="flex items-center gap-1">
+        <IconComp className="h-3 w-3" />
+        {label}
       </Badge>
     );
   };
@@ -90,24 +102,42 @@ export const LeaseGenerator = ({
     }
   };
 
+  // Direct download helper
   const downloadLease = async () => {
     try {
-      // Check if we have a document path (new system) or URL (legacy)
-      if (tenancy.lease_document_path) {
-        const { data, error } = await supabase.storage
-          .from('lease-documents')
-          .download(tenancy.lease_document_path);
-
-        if (error) throw error;
-
-        const blob = new Blob([data], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        window.URL.revokeObjectURL(url);
-      } else if (tenancy.lease_document_url) {
-        // Legacy support for direct URLs
-        window.open(tenancy.lease_document_url, '_blank');
+      const title = tenancy.properties?.title || "Lease_Agreement";
+      const ref = tenancy.lease_document_path || tenancy.lease_document_url || "";
+      if (!ref) {
+        toast.error("No document available to download");
+        return;
       }
+
+      if (ref.startsWith("http")) {
+        const a = document.createElement("a");
+        a.href = ref;
+        a.download = `${title.replace(/[^a-z0-9]/gi, "_")}.pdf`;
+        a.target = "_blank";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        return;
+      }
+
+      const { data, error } = await supabase.storage
+        .from('lease-documents')
+        .download(ref);
+
+      if (error) throw error;
+
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${title.replace(/[^a-z0-9]/gi, "_")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading lease:', error);
       toast.error("Failed to download lease document");
@@ -187,7 +217,23 @@ export const LeaseGenerator = ({
           {(tenancy.lease_document_path || tenancy.lease_document_url) && !isCompleted && (
             <Button 
               variant="outline" 
-              onClick={downloadLease}
+              onClick={() => {
+                // For in-progress leases, open the document for viewing
+                if (tenancy.lease_document_path) {
+                  supabase.storage.from('lease-documents').download(tenancy.lease_document_path).then(({ data, error }) => {
+                    if (error) throw error;
+                    const blob = new Blob([data], { type: 'application/pdf' });
+                    const url = window.URL.createObjectURL(blob);
+                    window.open(url, '_blank');
+                    window.URL.revokeObjectURL(url);
+                  }).catch((err) => {
+                    console.error('Error viewing lease:', err);
+                    toast.error("Failed to open document");
+                  });
+                } else if (tenancy.lease_document_url) {
+                  window.open(tenancy.lease_document_url, '_blank');
+                }
+              }}
               className="flex items-center gap-2"
             >
               <Download className="h-4 w-4" />
