@@ -159,7 +159,7 @@ serve(async (req) => {
     if (landlordEmail) {
       sends.push(
         resend.emails.send({ 
-          from: "SwiftRent <noreply@quickrent.co.za>", 
+          from: "SwiftRent <noreply@swiftrent.co.za>", 
           to: [landlordEmail], 
           subject, 
           html: htmlContent 
@@ -182,7 +182,7 @@ serve(async (req) => {
       `;
       sends.push(
         resend.emails.send({
-          from: "SwiftRent <noreply@quickrent.co.za>",
+          from: "SwiftRent <noreply@swiftrent.co.za>",
           to: [tenantEmail],
           subject: `Viewing Confirmed: ${propertyTitle}`,
           html: tenantHtml

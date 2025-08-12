@@ -98,7 +98,7 @@ serve(async (req) => {
     const amountInKobo = Math.round(totalAmount * 100);
 
     // Generate unique reference
-    const reference = `easyrent_${tenancyId}_${Date.now()}`;
+    const reference = `swiftrent_${tenancyId}_${Date.now()}`;
 
     // Initialize Paystack transaction
     const paystackResponse = await fetch("https://api.paystack.co/transaction/initialize", {
