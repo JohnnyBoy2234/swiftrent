@@ -117,12 +117,12 @@ const Index = () => {
             </div>
 
             {/* Quick Filters under search */}
-            <div className="bg-white/95 rounded-lg p-4 shadow-lg max-w-3xl mx-auto mt-4 text-left">
+            <div className="bg-white/95 rounded-lg p-4 shadow-lg max-w-3xl mx-auto mt-4 text-left text-foreground">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
                 <div>
-                  <Label className="text-sm">Bedrooms</Label>
+                  <Label className="text-sm text-foreground">Bedrooms</Label>
                   <Select value={bedrooms} onValueChange={setBedrooms}>
-                    <SelectTrigger className="h-10">
+                    <SelectTrigger className="h-10 text-foreground">
                       <SelectValue placeholder="Any" />
                     </SelectTrigger>
                     <SelectContent>
@@ -133,9 +133,9 @@ const Index = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-sm">Bathrooms</Label>
+                  <Label className="text-sm text-foreground">Bathrooms</Label>
                   <Select value={bathrooms} onValueChange={setBathrooms}>
-                    <SelectTrigger className="h-10">
+                    <SelectTrigger className="h-10 text-foreground">
                       <SelectValue placeholder="Any" />
                     </SelectTrigger>
                     <SelectContent>
@@ -146,8 +146,9 @@ const Index = () => {
                   </Select>
                 </div>
                 <div className="md:col-span-1">
-                  <Label className="text-sm">Price (R{priceRange[0].toLocaleString()} - R{priceRange[1].toLocaleString()})</Label>
+                  <Label className="text-sm text-foreground">Price (R{priceRange[0].toLocaleString()} - R{priceRange[1].toLocaleString()})</Label>
                   <Slider
+                    variant="inverted"
                     value={priceRange}
                     onValueChange={(v) => setPriceRange(v as [number, number])}
                     max={100000}
