@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import heroBackground from "@/assets/hero-background.jpg";
 
 const Index = () => {
   const [searchLocation, setSearchLocation] = useState("");
@@ -85,8 +86,16 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-ocean-blue via-primary to-success-green text-white">
-        <div className="absolute inset-0 bg-black/20"></div>
+      <section className="relative text-white overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${heroBackground})` }}
+        ></div>
+        {/* Premium Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-ocean-blue/90 via-ocean-blue-dark/85 to-success-green/80"></div>
+        {/* Subtle Pattern Overlay */}
+        <div className="absolute inset-0 opacity-10 bg-gradient-to-br from-transparent via-white/5 to-transparent"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -99,7 +108,7 @@ const Index = () => {
             </p>
             
             {/* Search Bar */}
-            <div className="bg-white rounded-lg p-4 shadow-xl max-w-2xl mx-auto">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl max-w-2xl mx-auto border border-white/20">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1" onKeyDown={handleKeyPress}>
                    <AddressAutocomplete
@@ -117,7 +126,7 @@ const Index = () => {
             </div>
 
             {/* Quick Filters under search */}
-            <div className="bg-white/95 rounded-lg p-4 shadow-lg max-w-3xl mx-auto mt-4 text-left text-foreground">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl max-w-3xl mx-auto mt-6 text-left text-foreground border border-white/20">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
                 <div>
                   <Label className="text-sm text-foreground">Bedrooms</Label>
@@ -220,10 +229,10 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center p-6">
+            <Card className="text-center p-8 shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-earth-light/50">
               <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Search className="h-8 w-8 text-primary" />
+                <div className="w-20 h-20 bg-gradient-to-br from-ocean-blue to-ocean-blue-light rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <Search className="h-10 w-10 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">1. Search & Browse</h3>
                 <p className="text-muted-foreground">
@@ -233,10 +242,10 @@ const Index = () => {
               </CardContent>
             </Card>
             
-            <Card className="text-center p-6">
+            <Card className="text-center p-8 shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-earth-light/50">
               <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="h-8 w-8 text-accent" />
+                <div className="w-20 h-20 bg-gradient-to-br from-earth-warm to-earth-warm-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <Users className="h-10 w-10 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">2. Connect Directly</h3>
                 <p className="text-muted-foreground">
@@ -246,10 +255,10 @@ const Index = () => {
               </CardContent>
             </Card>
             
-            <Card className="text-center p-6">
+            <Card className="text-center p-8 shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-earth-light/50">
               <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-success-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Home className="h-8 w-8 text-success-green" />
+                <div className="w-20 h-20 bg-gradient-to-br from-success-green to-success-green-glow rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <Home className="h-10 w-10 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">3. Move In</h3>
                 <p className="text-muted-foreground">
@@ -287,7 +296,8 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-primary to-accent text-white">
+      <section className="py-20 bg-gradient-to-br from-ocean-blue via-ocean-blue-light to-success-green text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Find Your Next Home?</h2>
           <p className="text-xl mb-8 text-white/90">
@@ -300,7 +310,7 @@ const Index = () => {
               </Button>
             </Link>
             <Link to="/list-property">
-              <Button size="lg" variant="outline" className="text-foreground border-white hover:bg-white hover:text-primary">
+              <Button size="lg" variant="outline" className="text-white border-white/80 hover:bg-white hover:text-ocean-blue backdrop-blur-sm bg-white/10">
                 List Your Property
               </Button>
             </Link>

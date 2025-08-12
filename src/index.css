@@ -36,22 +36,36 @@ All colors MUST be HSL.
     --input: 214 31% 91%;
     --ring: 203 89% 45%;
 
-    /* Custom design tokens */
+    /* Enhanced brand color palette from SwiftRent logo */
     --ocean-blue: 203 89% 45%;
     --ocean-blue-dark: 203 89% 35%;
+    --ocean-blue-light: 203 89% 55%;
+    --ocean-blue-glow: 203 89% 65%;
+    
     --earth-warm: 25 85% 65%;
+    --earth-warm-dark: 25 85% 55%;
     --earth-light: 25 85% 95%;
+    --earth-muted: 25 40% 85%;
+    
     --success-green: 142 76% 47%;
+    --success-green-dark: 142 76% 37%;
     --success-green-light: 142 76% 95%;
+    --success-green-glow: 142 76% 57%;
     
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(var(--ocean-blue)), hsl(var(--success-green)));
+    /* Premium gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--ocean-blue)), hsl(var(--ocean-blue-light)), hsl(var(--success-green)));
+    --gradient-hero-overlay: linear-gradient(135deg, hsl(var(--ocean-blue) / 0.9), hsl(var(--ocean-blue-dark) / 0.8));
     --gradient-card: linear-gradient(135deg, hsl(var(--background)), hsl(var(--earth-light)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--success-green)), hsl(var(--success-green-glow)));
+    --gradient-warm: linear-gradient(135deg, hsl(var(--earth-warm)), hsl(var(--earth-warm-dark)));
     
-    /* Shadows */
-    --shadow-soft: 0 4px 20px -4px hsl(var(--ocean-blue) / 0.1);
-    --shadow-medium: 0 8px 30px -8px hsl(var(--ocean-blue) / 0.15);
-    --shadow-strong: 0 12px 40px -12px hsl(var(--ocean-blue) / 0.2);
+    /* Enhanced shadows with brand colors */
+    --shadow-soft: 0 4px 20px -4px hsl(var(--ocean-blue) / 0.12);
+    --shadow-medium: 0 8px 30px -8px hsl(var(--ocean-blue) / 0.18);
+    --shadow-strong: 0 12px 40px -12px hsl(var(--ocean-blue) / 0.25);
+    --shadow-glow: 0 0 40px hsl(var(--ocean-blue-glow) / 0.3);
+    --shadow-warm: 0 8px 25px -6px hsl(var(--earth-warm) / 0.15);
+    --shadow-success: 0 8px 25px -6px hsl(var(--success-green) / 0.15);
     
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
