@@ -127,7 +127,7 @@ export default function TenantDashboard() {
               <Home className="w-5 h-5" />
               Dashboard
             </Button>
-            <Button variant="ghost" className="w-full justify-start gap-3" onClick={() => navigate('/messages')}>
+            <Button variant="ghost" className="w-full justify-start gap-3" onClick={() => navigate('/tenant/messages')}>
               <MessageSquare className="w-5 h-5" />
               Messages
             </Button>
@@ -305,7 +305,7 @@ export default function TenantDashboard() {
                 <CardDescription>Communicate with landlords</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button onClick={() => navigate('/messages')} variant="outline" className="w-full">
+                <Button onClick={() => navigate('/tenant/messages')} variant="outline" className="w-full">
                   Open Messages
                 </Button>
               </CardContent>

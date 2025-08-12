@@ -31,6 +31,7 @@ import ApplyInvite from "./pages/ApplyInvite";
 import ApplicationDetail from "./pages/ApplicationDetail";
 import RentalApplication from "./pages/RentalApplication";
 import ResetPassword from "./pages/ResetPassword";
+import TenantMessages from "./pages/TenantMessages";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,7 @@ const App = () => (
                   <Route path="/apply/invite/:token" element={<RouteGuard><ApplyInvite /></RouteGuard>} />
                   <Route path="/application/:id" element={<RouteGuard><ApplicationDetail /></RouteGuard>} />
                   <Route path="/rental-application/:propertyId" element={<RouteGuard><RentalApplication /></RouteGuard>} />
+                  <Route path="/tenant/messages" element={<RouteGuard><TenantMessages /></RouteGuard>} />
                   <Route path="/apply/:id" element={<PropertyDetail />} />
                   <Route path="/payment-success" element={<RouteGuard><PaymentSuccess /></RouteGuard>} />
                   <Route path="*" element={<NotFound />} />
