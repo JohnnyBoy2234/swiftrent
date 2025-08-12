@@ -218,27 +218,35 @@ export const RentalApplicationForm = ({ propertyId, landlordId, inviteId, onSubm
 
       if (profileError) throw profileError;
 
-      // Save/update screening details
+      // Save/update screening details with upsert on user_id
       const { error: detailsError } = await supabase
         .from('screening_details')
-        .upsert({
-          user_id: user.id,
-          full_name: `${formData.first_name} ${formData.last_name}`,
-          id_number: formData.id_number,
-          phone: formData.phone,
-          employment_status: formData.employment_status,
-          job_title: formData.job_title,
-          company_name: formData.company_name,
-          net_monthly_income: parseFloat(formData.net_monthly_income) || null,
-          current_address: formData.current_address,
-          reason_for_moving: formData.reason_for_moving,
-          previous_landlord_name: formData.previous_landlord_name,
-          previous_landlord_contact: formData.previous_landlord_contact,
-          consent_given: formData.screening_consent,
-          updated_at: new Date().toISOString()
-        });
+        .upsert([
+          {
+            user_id: user.id,
+            full_name: `${formData.first_name} ${formData.last_name}`,
+            id_number: formData.id_number,
+            phone: formData.phone,
+            employment_status: formData.employment_status,
+            job_title: formData.job_title,
+            company_name: formData.company_name,
+            net_monthly_income: parseFloat(formData.net_monthly_income) || null,
+            current_address: formData.current_address,
+            reason_for_moving: formData.reason_for_moving,
+            previous_landlord_name: formData.previous_landlord_name,
+            previous_landlord_contact: formData.previous_landlord_contact,
+            consent_given: formData.screening_consent,
+            updated_at: new Date().toISOString()
+          }
+        ], { onConflict: 'user_id' });
 
       if (detailsError) throw detailsError;
+
+      // Mark tenant as screened
+      await supabase
+        .from('profiles')
+        .update({ is_tenant_screened: true })
+        .eq('user_id', user.id);
 
       // Create or update application
       const applicationData = {

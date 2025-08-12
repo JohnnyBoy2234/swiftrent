@@ -40,6 +40,14 @@ export interface ApplicationWithTenant {
     previous_landlord_contact: string;
     consent_given: boolean;
   };
+  documents?: Array<{
+    id: string;
+    document_type: string;
+    file_path: string;
+    file_type: string;
+    status: string;
+    uploaded_at: string;
+  }>;
 }
 
 export const useLandlordApplications = (propertyId?: string) => {
@@ -72,7 +80,7 @@ export const useLandlordApplications = (propertyId?: string) => {
       // Then fetch related data for each application
       const applicationsWithProfiles = await Promise.all(
         (applicationsData || []).map(async (app) => {
-          const [tenantProfile, screeningProfile, screeningDetails] = await Promise.all([
+          const [tenantProfile, screeningProfile, screeningDetails, documents] = await Promise.all([
             supabase
               .from('profiles')
               .select('display_name, user_id')
@@ -87,7 +95,11 @@ export const useLandlordApplications = (propertyId?: string) => {
               .from('screening_details')
               .select('full_name, id_number, phone, employment_status, job_title, company_name, net_monthly_income, current_address, reason_for_moving, previous_landlord_name, previous_landlord_contact, consent_given')
               .eq('user_id', app.tenant_id)
-              .maybeSingle()
+              .maybeSingle(),
+            supabase
+              .from('documents')
+              .select('id, document_type, file_path, file_type, status, uploaded_at')
+              .eq('user_id', app.tenant_id)
           ]);
 
            return {
@@ -99,7 +111,8 @@ export const useLandlordApplications = (propertyId?: string) => {
                  ? screeningProfile.data.documents as Array<{type: string; url: string; name: string;}>
                  : []
              } : undefined,
-             screening_details: screeningDetails.data
+             screening_details: screeningDetails.data,
+             documents: documents.data || []
            };
         })
       );

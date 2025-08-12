@@ -139,6 +139,18 @@ export function ApplicationsTab({ propertyId, propertyTitle, propertyLocation, o
     }
   };
 
+  const handleDownloadDocument = async (documentId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('landlord-get-document-url', {
+        body: { document_id: documentId }
+      });
+      if (error || !data?.url) throw error || new Error('No download URL');
+      window.open(data.url, '_blank');
+    } catch (e: any) {
+      toast({ title: 'Download failed', description: e.message || 'Unable to get download link', variant: 'destructive' });
+    }
+  };
+
   const renderApplicationDetails = (application: ApplicationWithTenant) => {
     if (!application.screening_profile && !application.screening_details) {
       return (
@@ -231,25 +243,25 @@ export function ApplicationsTab({ propertyId, propertyTitle, propertyLocation, o
         )}
 
         {/* Documents */}
-        {screeningProfile?.documents && screeningProfile.documents.length > 0 && (
+        {application.documents && application.documents.length > 0 && (
           <div>
-            <h4 className="font-medium mb-3">Uploaded Documents</h4>
+            <h4 className="font-medium mb-3">Documents</h4>
             <div className="grid gap-2">
-              {screeningProfile.documents.map((doc, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+              {application.documents.map((doc) => (
+                <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{doc.name}</span>
+                    <span className="text-sm truncate max-w-[200px]">{doc.file_path.split('/').pop()}</span>
                     <Badge variant="outline" className="text-xs">
-                      {doc.type === 'id' ? 'ID Document' : 'Income Document'}
+                      {doc.document_type === 'id' ? 'ID Document' : 'Income Document'}
                     </Badge>
                   </div>
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => window.open(doc.url, '_blank')}
+                    onClick={() => handleDownloadDocument(doc.id)}
                   >
-                    View
+                    Download
                   </Button>
                 </div>
               ))}

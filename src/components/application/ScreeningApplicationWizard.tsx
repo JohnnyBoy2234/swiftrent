@@ -98,6 +98,47 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, propertyId]);
 
+  // Quick apply using saved screening details
+  const quickApply = async () => {
+    if (!user) return;
+    try {
+      setSubmitting(true);
+      // Remove any existing, non-accepted application for this property
+      await supabase
+        .from("applications")
+        .delete()
+        .eq("tenant_id", user.id)
+        .eq("property_id", propertyId)
+        .neq("status", "accepted");
+
+      // Create new application
+      const { error: insertErr } = await supabase
+        .from("applications")
+        .insert({
+          tenant_id: user.id,
+          landlord_id: landlordId,
+          property_id: propertyId,
+          status: "pending",
+        });
+      if (insertErr) throw insertErr;
+
+      toast({
+        title: "Application sent",
+        description: "Your application has been sent using your saved details.",
+      });
+
+      if (onSubmissionComplete) onSubmissionComplete();
+      else navigate("/tenant-dashboard");
+      return true;
+    } catch (e) {
+      console.error("Quick apply error", e);
+      toast({ title: "Could not submit", description: "Please try again.", variant: "destructive" });
+      return false;
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const loadExistingData = async () => {
     if (!user) return;
     setLoading(true);
@@ -116,6 +157,17 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
         if (application.status !== "invited") {
           return;
         }
+      }
+
+      // If tenant already screened, skip form and auto-apply
+      const { data: basicProfile } = await supabase
+        .from("profiles")
+        .select("is_tenant_screened")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (basicProfile?.is_tenant_screened) {
+        await quickApply();
+        return;
       }
 
       // Screening profile
@@ -188,6 +240,16 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
         .upload(fileName, file);
 
       if (error) throw error;
+
+      // Record in documents table for secure landlord access
+      await supabase
+        .from('documents')
+        .insert({
+          user_id: user.id,
+          document_type: documentType,
+          file_path: fileName,
+          file_type: file.type,
+        });
 
       const { data: urlData } = supabase.storage
         .from(bucket)
@@ -310,24 +372,34 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
       });
       if (profileError) throw profileError;
 
-      // Upsert screening details
-      const { error: detailsError } = await supabase.from("screening_details").upsert({
-        user_id: user.id,
-        full_name: `${formData.first_name} ${formData.last_name}`.trim(),
-        id_number: formData.id_number,
-        phone: formData.phone,
-        employment_status: formData.employment_status,
-        job_title: formData.job_title,
-        company_name: formData.company_name,
-        net_monthly_income: parseFloat(formData.net_monthly_income) || null,
-        current_address: formData.current_address,
-        reason_for_moving: formData.reason_for_moving,
-        previous_landlord_name: formData.previous_landlord_name,
-        previous_landlord_contact: formData.previous_landlord_contact,
-        consent_given: formData.screening_consent,
-        updated_at: new Date().toISOString(),
-      });
+      // Upsert screening details (one per user)
+      const { error: detailsError } = await supabase
+        .from("screening_details")
+        .upsert([
+          {
+            user_id: user.id,
+            full_name: `${formData.first_name} ${formData.last_name}`.trim(),
+            id_number: formData.id_number,
+            phone: formData.phone,
+            employment_status: formData.employment_status,
+            job_title: formData.job_title,
+            company_name: formData.company_name,
+            net_monthly_income: parseFloat(formData.net_monthly_income) || null,
+            current_address: formData.current_address,
+            reason_for_moving: formData.reason_for_moving,
+            previous_landlord_name: formData.previous_landlord_name,
+            previous_landlord_contact: formData.previous_landlord_contact,
+            consent_given: formData.screening_consent,
+            updated_at: new Date().toISOString(),
+          },
+        ], { onConflict: 'user_id' });
       if (detailsError) throw detailsError;
+
+      // Mark tenant as screened
+      await supabase
+        .from('profiles')
+        .update({ is_tenant_screened: true })
+        .eq('user_id', user.id);
 
       // Submit application - handle duplicates seamlessly
       // First, remove any existing application to prevent duplicate key errors
