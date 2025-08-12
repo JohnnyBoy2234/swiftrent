@@ -200,23 +200,23 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-gradient-to-br from-background via-earth-light/20 to-ocean-blue/5">
       {/* Sidebar */}
-      <div className="w-64 border-r bg-card">
+      <div className="w-64 border-r bg-gradient-to-b from-white to-earth-light/50 shadow-medium">
         <div className="p-6">
           <div className="flex items-center gap-2 mb-8">
-            <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-              <Home className="w-5 h-5 text-primary-foreground" />
+            <div className="w-8 h-8 bg-gradient-to-br from-ocean-blue to-success-green rounded flex items-center justify-center shadow-soft">
+              <Home className="w-5 h-5 text-white" />
             </div>
             <h1 className="text-xl font-bold">SwiftRent</h1>
           </div>
           
           <nav className="space-y-2">
-            <Button variant="default" className="w-full justify-start gap-3">
+            <Button variant="default" className="w-full justify-start gap-3 bg-gradient-to-r from-ocean-blue to-ocean-blue-light hover:from-ocean-blue-dark hover:to-ocean-blue shadow-soft">
               <Home className="w-5 h-5" />
               Properties
             </Button>
-            <Button variant="ghost" className="w-full justify-start gap-3" onClick={() => navigate('/messages')}>
+            <Button variant="ghost" className="w-full justify-start gap-3 hover:bg-earth-light/50 hover:text-earth-warm-dark" onClick={() => navigate('/messages')}>
               <MessageSquare className="w-5 h-5" />
               Messages
             </Button>
@@ -251,26 +251,26 @@ export default function Dashboard() {
 
           {/* Notifications for Pending Signatures */}
           {pendingSignatures.length > 0 && (
-            <Card className="mb-6 border-orange-200 bg-orange-50">
+            <Card className="mb-6 border-2 border-earth-warm/30 bg-gradient-to-br from-earth-light/60 to-white shadow-warm">
               <CardHeader>
-                <CardTitle className="text-orange-800 flex items-center gap-2">
+                <CardTitle className="text-earth-warm-dark flex items-center gap-2">
                   <PenTool className="h-5 w-5" />
                   Action Required - Lease Signatures Pending
                 </CardTitle>
-                <CardDescription className="text-orange-700">
+                <CardDescription className="text-earth-warm-dark/80">
                   The following leases have been signed by tenants and are ready for your signature.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {pendingSignatures.map((signature) => (
-                    <div key={signature.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                    <div key={signature.id} className="flex items-center justify-between p-3 bg-white/80 backdrop-blur-sm rounded-lg border border-earth-warm/30 shadow-soft">
                       <div>
                         <p className="font-medium">{signature.property_title}</p>
                         <p className="text-sm text-muted-foreground">
                           Tenant: {signature.tenant_name} • Monthly Rent: R{signature.monthly_rent.toLocaleString()}
                         </p>
-                        <p className="text-xs text-orange-600">
+                        <p className="text-xs text-earth-warm-dark">
                           Signed by tenant on {new Date(signature.tenant_signed_at!).toLocaleDateString()}
                         </p>
                       </div>
@@ -279,7 +279,7 @@ export default function Dashboard() {
                           navigate(`/landlord-lease-signing/${signature.id}`);
                           markAsRead(signature.id);
                         }}
-                        className="bg-orange-600 hover:bg-orange-700"
+                        className="bg-gradient-to-r from-earth-warm to-earth-warm-dark hover:from-earth-warm-dark hover:to-earth-warm shadow-soft"
                       >
                         Sign & Finalize
                       </Button>
@@ -330,7 +330,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           ) : (
-            <Card>
+            <Card className="shadow-medium border-ocean-blue/20">
               <Table>
                 <TableHeader>
                   <TableRow>

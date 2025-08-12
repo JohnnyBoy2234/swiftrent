@@ -112,23 +112,23 @@ export default function TenantDashboard() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-gradient-to-br from-background via-earth-light/20 to-success-green/5">
       {/* Sidebar */}
-      <div className="w-64 border-r bg-card">
+      <div className="w-64 border-r bg-gradient-to-b from-white to-ocean-blue/10 shadow-medium">
         <div className="p-6">
           <div className="flex items-center gap-2 mb-8">
-            <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-              <Home className="w-5 h-5 text-primary-foreground" />
+            <div className="w-8 h-8 bg-gradient-to-br from-success-green to-ocean-blue rounded flex items-center justify-center shadow-soft">
+              <Home className="w-5 h-5 text-white" />
             </div>
             <h1 className="text-xl font-bold">SwiftRent</h1>
           </div>
           
           <nav className="space-y-2">
-            <Button variant="default" className="w-full justify-start gap-3">
+            <Button variant="default" className="w-full justify-start gap-3 bg-gradient-to-r from-success-green to-success-green-glow hover:from-success-green-dark hover:to-success-green shadow-soft">
               <Home className="w-5 h-5" />
               Dashboard
             </Button>
-            <Button variant="ghost" className="w-full justify-start gap-3" onClick={() => navigate('/tenant/messages')}>
+            <Button variant="ghost" className="w-full justify-start gap-3 hover:bg-ocean-blue/10 hover:text-ocean-blue-dark" onClick={() => navigate('/tenant/messages')}>
               <MessageSquare className="w-5 h-5" />
               Messages
             </Button>
@@ -219,7 +219,7 @@ export default function TenantDashboard() {
             ) : (
               <div className="grid gap-4">
                 {pendingLeases.map((lease) => (
-                  <Card key={lease.id} className="border-l-4 border-l-orange-500">
+                  <Card key={lease.id} className="border-l-4 border-l-earth-warm bg-gradient-to-r from-white to-earth-light/30 shadow-medium">
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <div>

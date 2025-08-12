@@ -188,7 +188,7 @@ export default function PropertyManagement() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-6 bg-gradient-to-br from-background via-earth-light/20 to-success-green/5 min-h-screen">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button 
@@ -203,9 +203,9 @@ export default function PropertyManagement() {
       </div>
 
       {/* Property Header */}
-      <div className="flex items-start gap-4 p-6 bg-card rounded-lg border">
-        <div className="p-3 bg-primary/10 rounded-lg">
-          <Home className="h-8 w-8 text-primary" />
+      <div className="flex items-start gap-4 p-6 bg-gradient-to-r from-white to-earth-light/40 rounded-2xl border border-ocean-blue/20 shadow-medium">
+        <div className="p-4 bg-gradient-to-br from-ocean-blue to-success-green rounded-2xl shadow-soft">
+          <Home className="h-8 w-8 text-white" />
         </div>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">{property.title}</h1>
@@ -221,7 +221,7 @@ export default function PropertyManagement() {
 
       {/* Tabs Navigation */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-7 bg-gradient-to-r from-earth-light/40 to-ocean-blue/10 border border-ocean-blue/20 shadow-soft">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <Home className="h-4 w-4" />
             Overview

@@ -91,18 +91,18 @@ export default function Properties() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-earth-light/30 to-ocean-blue/5">
       <div className="container mx-auto p-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-primary mb-2">Find Your Perfect Home</h1>
+        <div className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-ocean-blue/10 via-white to-success-green/10 border border-ocean-blue/20 shadow-soft">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-ocean-blue to-success-green bg-clip-text text-transparent mb-2">Find Your Perfect Home</h1>
           <p className="text-lg text-muted-foreground">
             Discover {properties.length} available properties across South Africa
           </p>
         </div>
 
         {/* Search Bar */}
-        <Card className="mb-6">
+        <Card className="mb-6 shadow-medium border-ocean-blue/20 bg-gradient-to-r from-white to-earth-light/30">
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1 relative">
@@ -139,7 +139,7 @@ export default function Properties() {
         {/* Advanced Filters */}
         <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
           <CollapsibleContent>
-            <Card className="mb-6">
+            <Card className="mb-6 shadow-medium border-success-green/20 bg-gradient-to-br from-white to-success-green-light/40">
               <CardHeader>
                 <CardTitle>Advanced Filters</CardTitle>
               </CardHeader>
