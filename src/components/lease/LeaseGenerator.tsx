@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Download, Signature, Clock, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Tenancy {
   id: string;
@@ -46,6 +47,7 @@ export const LeaseGenerator = ({
   onSigningRequested 
 }: LeaseGeneratorProps) => {
   const [generating, setGenerating] = useState(false);
+  const { user } = useAuth();
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -113,9 +115,15 @@ export const LeaseGenerator = ({
   };
 
   const canGenerate = tenancy.lease_status === 'draft';
-  const canSign = ['awaiting_tenant_signature', 'awaiting_landlord_signature'].includes(tenancy.lease_status);
+  const isTenant = user?.id === tenancy.tenant_id;
+  const isLandlord = user?.id === tenancy.landlord_id;
   const isCompleted = tenancy.lease_status === 'completed';
   const canDownloadSigned = isCompleted && (tenancy.lease_document_path || tenancy.lease_document_url);
+  const canSignForUser = (
+    tenancy.lease_status === 'awaiting_tenant_signature' && isTenant
+  ) || (
+    tenancy.lease_status === 'awaiting_landlord_signature' && isLandlord
+  );
 
   return (
     <Card>
@@ -198,7 +206,7 @@ export const LeaseGenerator = ({
             </Button>
           )}
 
-          {canSign && !isCompleted && (
+          {canSignForUser && !isCompleted && (
             <Button 
               onClick={onSigningRequested}
               className="flex items-center gap-2"

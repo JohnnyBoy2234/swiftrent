@@ -125,7 +125,7 @@ export const UploadLeaseWorkflow = ({
           security_deposit: 0, // Will be filled in later
           start_date: new Date().toISOString().split('T')[0],
           end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-          lease_status: 'generated',
+          lease_status: 'awaiting_tenant_signature',
           lease_document_path: documentUrl // Changed from lease_document_url to lease_document_path
         })
         .select()
