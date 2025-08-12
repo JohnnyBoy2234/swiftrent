@@ -50,10 +50,9 @@ export const LeaseGenerator = ({
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       draft: { label: "Draft", variant: "secondary" as const, icon: Clock },
-      generated: { label: "Awaiting Tenant Signature", variant: "default" as const, icon: FileText },
-      landlord_signed: { label: "Awaiting Tenant Signature", variant: "outline" as const, icon: Signature },
-      tenant_signed: { label: "Awaiting Your Signature", variant: "outline" as const, icon: Signature },
-      fully_signed: { label: "Active & Signed", variant: "default" as const, icon: CheckCircle }
+      awaiting_tenant_signature: { label: "Awaiting Tenant Signature", variant: "default" as const, icon: FileText },
+      awaiting_landlord_signature: { label: "Awaiting Your Signature", variant: "outline" as const, icon: Signature },
+      completed: { label: "Active & Signed", variant: "default" as const, icon: CheckCircle }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
@@ -75,18 +74,9 @@ export const LeaseGenerator = ({
         body: { tenancyId: tenancy.id }
       });
 
+      // Edge function will update lease_document_path and set status to awaiting_tenant_signature
+      // No direct status update here to avoid race conditions
       if (error) throw error;
-
-      // Update tenancy status
-      const { error: updateError } = await supabase
-        .from('tenancies')
-        .update({ 
-          lease_status: 'generated',
-          lease_document_path: data.documentPath // Updated to use documentPath
-        })
-        .eq('id', tenancy.id);
-
-      if (updateError) throw updateError;
 
       toast.success("Lease document generated successfully");
       onLeaseGenerated?.();
@@ -123,8 +113,8 @@ export const LeaseGenerator = ({
   };
 
   const canGenerate = tenancy.lease_status === 'draft';
-  const canSign = ['generated', 'landlord_signed', 'tenant_signed'].includes(tenancy.lease_status);
-  const isCompleted = tenancy.lease_status === 'fully_signed';
+  const canSign = ['awaiting_tenant_signature', 'awaiting_landlord_signature'].includes(tenancy.lease_status);
+  const isCompleted = tenancy.lease_status === 'completed';
   const canDownloadSigned = isCompleted && (tenancy.lease_document_path || tenancy.lease_document_url);
 
   return (

@@ -66,7 +66,7 @@ const LeaseSigningPage = () => {
         .from('tenancies')
         .update({ 
             tenant_signed_at: new Date().toISOString(),
-            lease_status: 'tenant_signed' // Tenant has signed, awaiting landlord
+            lease_status: 'awaiting_landlord_signature' // Tenant has signed, awaiting landlord
         })
         .eq('id', tenancyId);
 

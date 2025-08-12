@@ -736,6 +736,7 @@ export type Database = {
       tenancies: {
         Row: {
           created_at: string
+          custom_clauses: Json
           end_date: string | null
           id: string
           landlord_id: string
@@ -756,6 +757,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_clauses?: Json
           end_date?: string | null
           id?: string
           landlord_id: string
@@ -776,6 +778,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_clauses?: Json
           end_date?: string | null
           id?: string
           landlord_id?: string

@@ -61,26 +61,29 @@ export const LeaseSigningDialog = ({
         throw new Error("You are not authorized to sign this lease");
       }
 
-      // Update tenancy with signature
+      // Update tenancy with signature and advance status
       const updateData: any = {};
       
       if (isLandlord) {
         updateData.landlord_signature_url = uploadData.path;
         updateData.landlord_signed_at = new Date().toISOString();
-        
-        if (tenancy.lease_status === 'generated') {
-          updateData.lease_status = 'landlord_signed';
-        } else if (tenancy.lease_status === 'tenant_signed') {
+        // If tenant already signed, complete the lease; otherwise, wait for tenant
+        if (tenancy.lease_status === 'awaiting_landlord_signature') {
           updateData.lease_status = 'completed';
+          updateData.status = 'active';
+        } else if (tenancy.lease_status === 'awaiting_tenant_signature') {
+          // Landlord signed first; still awaiting tenant
+          updateData.lease_status = 'awaiting_tenant_signature';
         }
       } else if (isTenant) {
         updateData.tenant_signature_url = uploadData.path;
         updateData.tenant_signed_at = new Date().toISOString();
-        
-        if (tenancy.lease_status === 'generated') {
-          updateData.lease_status = 'tenant_signed';
-        } else if (tenancy.lease_status === 'landlord_signed') {
+        // After tenant signs, move to awaiting landlord signature unless already signed by landlord
+        if (tenancy.lease_status === 'awaiting_tenant_signature') {
+          updateData.lease_status = 'awaiting_landlord_signature';
+        } else if (tenancy.lease_status === 'awaiting_landlord_signature') {
           updateData.lease_status = 'completed';
+          updateData.status = 'active';
         }
       }
 

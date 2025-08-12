@@ -21,6 +21,7 @@ import { useTenantNotifications } from '@/hooks/useTenantNotifications';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { TenantApplicationsSection } from '@/components/tenant/TenantApplicationsSection';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function TenantDashboard() {
   const { user, isLandlord, signOut } = useAuth();
@@ -50,18 +51,36 @@ export default function TenantDashboard() {
     navigate(`/lease-signing/${tenancyId}`);
   };
 
-  const handleDownloadLease = (leaseUrl: string, propertyTitle: string) => {
-    // Create a temporary anchor element to trigger download
-    const link = document.createElement('a');
-    link.href = leaseUrl;
-    link.download = `Lease_Agreement_${propertyTitle.replace(/[^a-z0-9]/gi, '_')}.pdf`;
-    link.target = '_blank';
-    
-    // Add to DOM, click, then remove
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+const handleDownloadLease = async (leaseRef: string, propertyTitle: string) => {
+  try {
+    if (!leaseRef) return;
+    if (leaseRef.startsWith('http')) {
+      const link = document.createElement('a');
+      link.href = leaseRef;
+      link.download = `Lease_Agreement_${propertyTitle.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+    const { data, error } = await supabase.storage
+      .from('lease-documents')
+      .download(leaseRef);
+    if (error) throw error;
+    const blob = new Blob([data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Lease_Agreement_${propertyTitle.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  } catch (e) {
+    console.error('Download failed', e);
+  }
+};
 
   const handleNotificationClick = (notification: any) => {
     markAsRead(notification.id);
@@ -70,20 +89,18 @@ export default function TenantDashboard() {
     }
   };
 
-  const getLeaseStatusBadge = (status: string) => {
-    switch (status) {
-      case 'generated':
-        return <Badge variant="secondary">Awaiting Your Signature</Badge>;
-      case 'landlord_signed':
-        return <Badge variant="default">Awaiting Your Signature</Badge>;
-      case 'tenant_signed':
-        return <Badge variant="outline">Awaiting Landlord Signature</Badge>;
-      case 'fully_signed':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Active & Signed</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
+const getLeaseStatusBadge = (status: string) => {
+  switch (status) {
+    case 'awaiting_tenant_signature':
+      return <Badge variant="secondary">Awaiting Your Signature</Badge>;
+    case 'awaiting_landlord_signature':
+      return <Badge variant="outline">Awaiting Landlord Signature</Badge>;
+    case 'completed':
+      return <Badge variant="default" className="bg-green-100 text-green-800">Active & Signed</Badge>;
+    default:
+      return <Badge variant="outline">{status}</Badge>;
+  }
+};
 
   if (loading) {
     return (
@@ -186,7 +203,7 @@ export default function TenantDashboard() {
 
           {/* Pending Leases Section */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Pending Lease Signatures</h2>
+<h2 className="text-xl font-semibold mb-4">Pending Lease Actions</h2>
             {pendingLeases.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-8">

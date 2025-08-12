@@ -64,7 +64,7 @@ export const useLandlordNotifications = () => {
           )
         `)
         .eq('landlord_id', user.id)
-        .eq('lease_status', 'tenant_signed')
+.eq('lease_status', 'awaiting_landlord_signature')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -106,7 +106,7 @@ export const useLandlordNotifications = () => {
           )
         `)
         .eq('landlord_id', user.id)
-        .eq('lease_status', 'tenant_signed')
+.eq('lease_status', 'awaiting_landlord_signature')
         .order('tenant_signed_at', { ascending: false });
 
       if (error) throw error;

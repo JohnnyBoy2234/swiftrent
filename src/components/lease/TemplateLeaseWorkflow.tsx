@@ -112,6 +112,15 @@ export const TemplateLeaseWorkflow = ({
       console.log("Selected tenant for lease:", selectedTenant);
       
       // First create a tenancy record
+      // Build custom clauses payload from selected common clauses and custom text
+      const selectedClauseObjects = leaseData.selectedClauses.map((id) => {
+        const clause = commonClauses.find(c => c.id === id);
+        return clause ? { id: clause.id, title: clause.title, description: clause.description } : { id, title: id, description: '' };
+      });
+      const additionalCustom = leaseData.customClauses?.trim()
+        ? [{ id: 'custom', title: 'Additional Custom Clauses', description: leaseData.customClauses.trim() }]
+        : [];
+      const customClausesPayload = [...selectedClauseObjects, ...additionalCustom];
 
       const { data: tenancy, error: tenancyError } = await supabase
         .from('tenancies')
@@ -123,7 +132,8 @@ export const TemplateLeaseWorkflow = ({
           security_deposit: parseFloat(leaseData.securityDeposit),
           start_date: leaseData.startDate,
           end_date: leaseData.leaseType === 'month-to-month' ? null : leaseData.endDate,
-          lease_status: 'draft'
+          lease_status: 'draft',
+          custom_clauses: customClausesPayload
         })
         .select()
         .single();
@@ -151,19 +161,8 @@ export const TemplateLeaseWorkflow = ({
 
       console.log("Lease generated successfully:", data);
 
-      // Update tenancy with document URL
-      const { error: updateError } = await supabase
-        .from('tenancies')
-        .update({ 
-          lease_document_url: data.documentUrl,
-          lease_status: 'generated'
-        })
-        .eq('id', tenancy.id);
-
-      if (updateError) {
-        console.error('Error updating tenancy:', updateError);
-        throw new Error(`Failed to update tenancy: ${updateError.message}`);
-      }
+      // Backend function updates tenancy with lease_document_path and sets status to 'awaiting_tenant_signature'
+      // No additional update needed here.
 
       // TODO: Send notification to tenant about lease ready for signing
       // This would typically send an email or in-app notification to the tenant

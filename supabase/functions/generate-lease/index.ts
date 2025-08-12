@@ -115,6 +115,32 @@ serve(async (req) => {
 
     y -= 20;
 
+    // Custom Clauses
+    const customClauses = Array.isArray(tenancy.custom_clauses) ? tenancy.custom_clauses : [];
+    if (customClauses.length > 0) {
+      if (y < 120) {
+        const newPage = pdfDoc.addPage();
+        y = newPage.getHeight() - 50;
+      }
+      drawText("CUSTOM CLAUSES", fontSize, true);
+      customClauses.forEach((clause: any, index: number) => {
+        const title = safeString(clause?.title ?? clause?.name ?? `Clause ${index + 1}`);
+        const description = safeString(
+          clause?.description ?? clause?.text ?? clause?.body ?? clause?.content ?? String(clause)
+        );
+        drawText(`${index + 1}. ${title}`, 12, true);
+        description.split('\n').forEach((line: string) => {
+          if (y < 80) {
+            const nextPage = pdfDoc.addPage();
+            y = nextPage.getHeight() - 50;
+          }
+          drawText(line, 10);
+        });
+        y -= 10;
+      });
+      y -= 20;
+    }
+
     // Signature areas
     if (y < 100) {
       const newPage = pdfDoc.addPage();
@@ -143,10 +169,13 @@ serve(async (req) => {
 
     if (uploadError) throw uploadError;
 
-    // Update the tenancy record with the PDF PATH
+    // Update the tenancy record with the PDF PATH and set status to awaiting tenant signature
     const { error: updateError } = await supabaseClient
       .from("tenancies")
-      .update({ lease_document_path: filePath })
+      .update({ 
+        lease_document_path: filePath,
+        lease_status: 'awaiting_tenant_signature'
+      })
       .eq("id", tenancyId);
 
     if (updateError) throw updateError;

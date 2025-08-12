@@ -66,7 +66,8 @@ const LandlordLeaseSigningPage = () => {
         .from('tenancies')
         .update({ 
             landlord_signed_at: new Date().toISOString(),
-            status: 'active' // Final step, lease becomes active
+            lease_status: 'completed',
+            status: 'active'
         })
         .eq('id', tenancyId);
 

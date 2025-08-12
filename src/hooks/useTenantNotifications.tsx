@@ -25,6 +25,7 @@ export interface PendingLease {
   end_date: string | null;
   lease_status: string;
   lease_document_url: string | null;
+  lease_document_path?: string | null;
   created_at: string;
   property_title: string;
   property_location: string;
@@ -64,7 +65,7 @@ export const useTenantNotifications = () => {
           )
         `)
         .eq('tenant_id', user.id)
-        .in('lease_status', ['generated', 'landlord_signed'])
+.in('lease_status', ['awaiting_tenant_signature'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -106,7 +107,7 @@ export const useTenantNotifications = () => {
           )
         `)
         .eq('tenant_id', user.id)
-        .in('lease_status', ['generated', 'landlord_signed'])
+.in('lease_status', ['awaiting_tenant_signature'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -121,7 +122,7 @@ export const useTenantNotifications = () => {
         start_date: tenancy.start_date,
         end_date: tenancy.end_date,
         lease_status: tenancy.lease_status,
-        lease_document_url: tenancy.lease_document_url,
+        lease_document_url: tenancy.lease_document_url || null,
         created_at: tenancy.created_at,
         property_title: tenancy.properties?.title || 'Unknown Property',
         property_location: tenancy.properties?.location || 'Address not available',
