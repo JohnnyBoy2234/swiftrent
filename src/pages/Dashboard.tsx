@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Property, Tenancy } from '@/types/dashboard';
 import { useLandlordNotifications } from '@/hooks/useLandlordNotifications';
+import { SignedLeasesList } from '@/components/lease/SignedLeasesList';
 
 interface Inquiry {
   id: string;
@@ -409,6 +410,10 @@ export default function Dashboard() {
               </Table>
             </Card>
           )}
+          {/* Signed Leases */}
+          <div className="mt-8">
+            <SignedLeasesList role="landlord" />
+          </div>
         </div>
       </div>
     </div>

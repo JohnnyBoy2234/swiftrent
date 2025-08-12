@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { TenantApplicationsSection } from '@/components/tenant/TenantApplicationsSection';
 import { supabase } from '@/integrations/supabase/client';
+import { SignedLeasesList } from '@/components/lease/SignedLeasesList';
 
 export default function TenantDashboard() {
   const { user, isLandlord, signOut } = useAuth();
@@ -277,6 +278,11 @@ export default function TenantDashboard() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Signed Leases */}
+          <div className="mb-8">
+            <SignedLeasesList role="tenant" />
           </div>
 
           {/* My Applications */}
