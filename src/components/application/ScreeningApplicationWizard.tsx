@@ -357,19 +357,21 @@ export function ScreeningApplicationWizard({ propertyId, landlordId, inviteId, o
     setSubmitting(true);
     try {
       // Upsert screening profile with documents
-      const { error: profileError } = await supabase.from("screening_profiles").upsert({
-        user_id: user.id,
-        first_name: formData.first_name,
-        middle_name: formData.middle_name,
-        last_name: formData.last_name,
-        has_pets: formData.has_pets,
-        pet_details: formData.pet_details,
-        screening_consent: formData.screening_consent,
-        screening_consent_date: new Date().toISOString(),
-        is_complete: true,
-        documents: uploadedDocuments as any,
-        updated_at: new Date().toISOString(),
-      });
+      const { error: profileError } = await supabase.from("screening_profiles").upsert([
+        {
+          user_id: user.id,
+          first_name: formData.first_name,
+          middle_name: formData.middle_name,
+          last_name: formData.last_name,
+          has_pets: formData.has_pets,
+          pet_details: formData.pet_details,
+          screening_consent: formData.screening_consent,
+          screening_consent_date: new Date().toISOString(),
+          is_complete: true,
+          documents: uploadedDocuments as any,
+          updated_at: new Date().toISOString(),
+        },
+      ], { onConflict: 'user_id' });
       if (profileError) throw profileError;
 
       // Upsert screening details (one per user)

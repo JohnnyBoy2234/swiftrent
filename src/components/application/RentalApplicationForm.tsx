@@ -203,18 +203,20 @@ export const RentalApplicationForm = ({ propertyId, landlordId, inviteId, onSubm
       // Save/update screening profile
       const { error: profileError } = await supabase
         .from('screening_profiles')
-        .upsert({
-          user_id: user.id,
-          first_name: formData.first_name,
-          middle_name: formData.middle_name,
-          last_name: formData.last_name,
-          has_pets: formData.has_pets,
-          pet_details: formData.pet_details,
-          screening_consent: formData.screening_consent,
-          screening_consent_date: new Date().toISOString(),
-          is_complete: true,
-          updated_at: new Date().toISOString()
-        });
+        .upsert([
+          {
+            user_id: user.id,
+            first_name: formData.first_name,
+            middle_name: formData.middle_name,
+            last_name: formData.last_name,
+            has_pets: formData.has_pets,
+            pet_details: formData.pet_details,
+            screening_consent: formData.screening_consent,
+            screening_consent_date: new Date().toISOString(),
+            is_complete: true,
+            updated_at: new Date().toISOString()
+          }
+        ], { onConflict: 'user_id' });
 
       if (profileError) throw profileError;
 
