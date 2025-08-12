@@ -119,7 +119,7 @@ export default function TenantDashboard() {
             <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
               <Home className="w-5 h-5 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-bold">EasyRent</h1>
+            <h1 className="text-xl font-bold">SwiftRent</h1>
           </div>
           
           <nav className="space-y-2">

@@ -10,7 +10,7 @@ const HowItWorks = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-foreground mb-4">How EasyRent Works</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-4">How SwiftRent Works</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Connecting landlords and tenants directly has never been easier. Follow these simple steps to find your perfect rental.
           </p>
@@ -126,7 +126,7 @@ const HowItWorks = () => {
         {/* Benefits */}
         <section className="py-16 bg-secondary/30 rounded-lg">
           <div className="max-w-5xl mx-auto px-8">
-            <h2 className="text-3xl font-bold text-center mb-12">Why Choose EasyRent?</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">Why Choose SwiftRent?</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">

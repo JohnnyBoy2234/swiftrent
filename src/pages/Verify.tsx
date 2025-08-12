@@ -17,7 +17,7 @@ export default function Verify() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = 'Verify your email - EasyRent';
+    document.title = 'Verify your email - SwiftRent';
   }, []);
 
   useEffect(() => {

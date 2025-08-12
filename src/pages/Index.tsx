@@ -148,7 +148,7 @@ const Index = () => {
       <section className="py-16 bg-secondary/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">How EasyRent Works</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">How SwiftRent Works</h2>
             <p className="text-lg text-muted-foreground">
               Simple, direct, and transparent rental connections
             </p>
@@ -226,7 +226,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Find Your Next Home?</h2>
           <p className="text-xl mb-8 text-white/90">
-            Join thousands of satisfied customers who found their perfect rental through EasyRent
+            Join thousands of satisfied customers who found their perfect rental through SwiftRent
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/properties">
@@ -252,7 +252,7 @@ const Index = () => {
                 <div className="w-8 h-8 bg-gradient-to-br from-ocean-blue to-success-green rounded-lg flex items-center justify-center">
                   <Home className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xl font-bold">EasyRent</span>
+                <span className="text-xl font-bold">SwiftRent</span>
               </div>
               <p className="text-muted-foreground">
                 Connecting landlords and tenants directly across South Africa.
@@ -288,7 +288,7 @@ const Index = () => {
           </div>
           
           <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
-            <p>&copy; 2024 EasyRent. All rights reserved.</p>
+            <p>&copy; 2024 SwiftRent. All rights reserved.</p>
           </div>
         </div>
       </footer>

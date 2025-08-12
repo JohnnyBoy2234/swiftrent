@@ -184,7 +184,7 @@ export default function ListProperty() {
 
       toast({
         title: "🎉 Property Listed Successfully!",
-        description: "Your property is now live on EasyRent and visible to potential tenants."
+        description: "Your property is now live on SwiftRent and visible to potential tenants."
       });
 
       navigate('/dashboard');

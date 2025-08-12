@@ -84,7 +84,7 @@ serve(async (req) => {
     const resend = new Resend(resendApiKey);
     const to = email;
     const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") ?? "onboarding@resend.dev";
-    const FROM_NAME = Deno.env.get("RESEND_FROM_NAME") ?? "EasyRent";
+    const FROM_NAME = Deno.env.get("RESEND_FROM_NAME") ?? "SwiftRent";
     const from = `${FROM_NAME} <${FROM_EMAIL}>`;
 
 

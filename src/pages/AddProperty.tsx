@@ -147,7 +147,7 @@ export default function AddProperty() {
 
       toast({
         title: "Property added successfully!",
-        description: "Your property is now listed on EasyRent."
+        description: "Your property is now listed on SwiftRent."
       });
 
       navigate('/dashboard');

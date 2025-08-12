@@ -38,7 +38,7 @@ const About = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-foreground mb-4">About EasyRent</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-4">About SwiftRent</h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             We're revolutionizing the South African rental market by connecting landlords and tenants directly, 
             eliminating unnecessary fees and creating genuine connections.
@@ -51,7 +51,7 @@ const About = () => {
             <div>
               <h2 className="text-3xl font-bold mb-6">Our Mission</h2>
               <p className="text-lg text-muted-foreground mb-6">
-                At EasyRent, we believe finding the perfect rental home shouldn't be complicated or expensive. 
+                At SwiftRent, we believe finding the perfect rental home shouldn't be complicated or expensive. 
                 Our mission is to create a transparent, direct connection between property owners and renters 
                 across South Africa.
               </p>
@@ -197,7 +197,7 @@ const About = () => {
 
         {/* CTA */}
         <section className="text-center">
-          <h2 className="text-3xl font-bold mb-4">Join the EasyRent Community</h2>
+          <h2 className="text-3xl font-bold mb-4">Join the SwiftRent Community</h2>
           <p className="text-xl text-muted-foreground mb-8">
             Whether you're looking for a home or renting out your property, we're here to help.
           </p>

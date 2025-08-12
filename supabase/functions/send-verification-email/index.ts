@@ -63,7 +63,7 @@ serve(async (req) => {
     const verificationUrl = `${Deno.env.get('SUPABASE_URL')?.replace('/v1', '')}/verify-email?token=${token}`;
 
     // Send verification email
-    const emailSubject = isResend ? 'QuickRent - Verify Your Email (Resent)' : 'QuickRent - Verify Your Email';
+    const emailSubject = isResend ? 'SwiftRent - Verify Your Email (Resent)' : 'SwiftRent - Verify Your Email';
     const emailResponse = await resend.emails.send({
       from: 'QuickRent <onboarding@resend.dev>',
       to: [email],

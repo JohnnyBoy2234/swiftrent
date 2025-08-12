@@ -302,7 +302,7 @@ export default function Auth() {
       <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">QuickRent</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">SwiftRent</h1>
             <p className="text-muted-foreground mt-2">Email Verification Required</p>
           </div>
 
@@ -355,7 +355,7 @@ export default function Auth() {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">QuickRent</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">SwiftRent</h1>
           <p className="text-muted-foreground mt-2">Sign in to your account or create a new one</p>
         </div>
 
