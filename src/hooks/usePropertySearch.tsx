@@ -39,7 +39,7 @@ export function usePropertySearch(properties: Property[]) {
     propertyType: searchParams.get('type') || 'All',
     priceRange: [
       parseInt(searchParams.get('minPrice') || '0'),
-      parseInt(searchParams.get('maxPrice') || '50000')
+      parseInt(searchParams.get('maxPrice') || '100000')
     ],
     bedrooms: searchParams.get('bedrooms') || 'Any',
     bathrooms: searchParams.get('bathrooms') || 'Any',
@@ -54,7 +54,7 @@ export function usePropertySearch(properties: Property[]) {
     if (filters.searchTerm) params.set('search', filters.searchTerm);
     if (filters.propertyType !== 'All') params.set('type', filters.propertyType);
     if (filters.priceRange[0] > 0) params.set('minPrice', filters.priceRange[0].toString());
-    if (filters.priceRange[1] < 50000) params.set('maxPrice', filters.priceRange[1].toString());
+    if (filters.priceRange[1] < 100000) params.set('maxPrice', filters.priceRange[1].toString());
     if (filters.bedrooms !== 'Any') params.set('bedrooms', filters.bedrooms);
     if (filters.bathrooms !== 'Any') params.set('bathrooms', filters.bathrooms);
     if (filters.selectedAmenities.length > 0) params.set('amenities', filters.selectedAmenities.join(','));
@@ -120,7 +120,7 @@ export function usePropertySearch(properties: Property[]) {
     setFilters({
       searchTerm: '',
       propertyType: 'All',
-      priceRange: [0, 50000],
+      priceRange: [0, 100000],
       bedrooms: 'Any',
       bathrooms: 'Any',
       selectedAmenities: [],

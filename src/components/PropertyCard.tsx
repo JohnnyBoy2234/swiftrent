@@ -1,8 +1,8 @@
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Heart, MapPin, Bed, Bath, Car } from "lucide-react";
-import { useState } from "react";
+
+import { MapPin, Bed, Bath, Car } from "lucide-react";
+
 import { useNavigate } from "react-router-dom";
 
 interface PropertyCardProps {
@@ -30,15 +30,22 @@ const PropertyCard = ({
   type,
   featured = false,
 }: PropertyCardProps) => {
-  const [isLiked, setIsLiked] = useState(false);
   const navigate = useNavigate();
 
-  const handleViewDetails = () => {
-    navigate(`/property/${id}`);
-  };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+    <Card 
+      className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+      role="button"
+      tabIndex={0}
+      onClick={() => navigate(`/property/${id}`)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          navigate(`/property/${id}`);
+        }
+      }}
+    >
       <div className="relative overflow-hidden rounded-t-lg">
         <img
           src={image}
@@ -50,18 +57,6 @@ const PropertyCard = ({
             Featured
           </Badge>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`absolute top-3 right-3 p-2 ${
-            isLiked
-              ? "bg-red-500 text-white hover:bg-red-600"
-              : "bg-white/80 hover:bg-white"
-          }`}
-          onClick={() => setIsLiked(!isLiked)}
-        >
-          <Heart className="h-4 w-4" fill={isLiked ? "currentColor" : "none"} />
-        </Button>
       </div>
 
       <CardContent className="p-4">
@@ -100,9 +95,6 @@ const PropertyCard = ({
         </div>
       </CardContent>
 
-      <CardFooter className="p-4 pt-0">
-        <Button className="w-full" onClick={handleViewDetails}>View Details</Button>
-      </CardFooter>
     </Card>
   );
 };

@@ -150,7 +150,7 @@ export default function Properties() {
                   <Slider
                     value={filters.priceRange}
                     onValueChange={(value) => updateFilters({ priceRange: value as [number, number] })}
-                    max={50000}
+                    max={100000}
                     step={1000}
                     className="w-full"
                   />

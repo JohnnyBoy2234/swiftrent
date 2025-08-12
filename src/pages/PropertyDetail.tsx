@@ -373,7 +373,7 @@ export default function PropertyDetail() {
             <Card>
               <CardContent className="p-0">
                 {property.images && property.images.length > 0 ? (
-                  <Carousel className="w-full">
+                  <Carousel className="w-full" opts={{ loop: true }}>
                     <CarouselContent>
                       {property.images.map((image, index) => (
                         <CarouselItem key={index}>
@@ -579,25 +579,6 @@ export default function PropertyDetail() {
                 )}
 
                 
-                 {user && property.landlord_id !== user.id ? (
-                   <Button 
-                     variant="outline" 
-                     className="w-full"
-                     onClick={handleCallLandlord}
-                   >
-                     <Phone className="h-4 w-4 mr-2" />
-                     Call Landlord
-                   </Button>
-                ) : !user ? (
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => navigate('/auth')}
-                  >
-                    <Phone className="h-4 w-4 mr-2" />
-                    Sign In to Call
-                  </Button>
-                ) : null}
               </CardContent>
             </Card>
 

@@ -6,10 +6,27 @@ import PropertyCard from "@/components/PropertyCard";
 import { Search, Home, Shield, Users, Star, ArrowRight, CheckCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 
 const Index = () => {
   const [searchLocation, setSearchLocation] = useState("");
   const navigate = useNavigate();
+
+  const [bedrooms, setBedrooms] = useState("Any");
+  const [bathrooms, setBathrooms] = useState("Any");
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
+
+  const applyFilters = () => {
+    const params = new URLSearchParams();
+    if (searchLocation.trim()) params.set('search', searchLocation.trim());
+    if (bedrooms !== 'Any') params.set('bedrooms', bedrooms);
+    if (bathrooms !== 'Any') params.set('bathrooms', bathrooms);
+    if (priceRange[0] > 0) params.set('minPrice', String(priceRange[0]));
+    if (priceRange[1] < 100000) params.set('maxPrice', String(priceRange[1]));
+    navigate(`/properties?${params.toString()}`);
+  };
 
   const handleSearch = () => {
     if (searchLocation.trim()) {
@@ -96,6 +113,53 @@ const Index = () => {
                   <Search className="h-5 w-5 mr-2" />
                   Search Properties
                 </Button>
+              </div>
+            </div>
+
+            {/* Quick Filters under search */}
+            <div className="bg-white/95 rounded-lg p-4 shadow-lg max-w-3xl mx-auto mt-4 text-left">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+                <div>
+                  <Label className="text-sm">Bedrooms</Label>
+                  <Select value={bedrooms} onValueChange={setBedrooms}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Any" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['Any','1','2','3','4','5+'].map((b) => (
+                        <SelectItem key={b} value={b}>{b}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm">Bathrooms</Label>
+                  <Select value={bathrooms} onValueChange={setBathrooms}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Any" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['Any','1','2','3','4+'].map((b) => (
+                        <SelectItem key={b} value={b}>{b}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="md:col-span-1">
+                  <Label className="text-sm">Price (R{priceRange[0].toLocaleString()} - R{priceRange[1].toLocaleString()})</Label>
+                  <Slider
+                    value={priceRange}
+                    onValueChange={(v) => setPriceRange(v as [number, number])}
+                    max={100000}
+                    step={1000}
+                    className="mt-2"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button className="w-full h-10" onClick={applyFilters}>
+                    Apply Filters
+                  </Button>
+                </div>
               </div>
             </div>
             

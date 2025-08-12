@@ -131,10 +131,13 @@ export default function TenantDashboard() {
               <MessageSquare className="w-5 h-5" />
               Messages
             </Button>
-            <Button variant="ghost" className="w-full justify-start gap-3">
-              <FileText className="w-5 h-5" />
-              My Leases
-            </Button>
+            <Button variant="ghost" className="w-full justify-start gap-3" onClick={() => {
+              const el = document.getElementById('leases-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}>
+               <FileText className="w-5 h-5" />
+               My Leases
+             </Button>
             <Button variant="ghost" className="w-full justify-start gap-3">
               <DollarSign className="w-5 h-5" />
               Payments
@@ -202,7 +205,7 @@ export default function TenantDashboard() {
           )}
 
           {/* Pending Leases Section */}
-          <div className="mb-8">
+          <div className="mb-8" id="leases-section">
             <h2 className="text-xl font-semibold mb-4">Pending Lease Actions</h2>
             {pendingLeases.length === 0 ? (
               <Card>
@@ -252,7 +255,7 @@ export default function TenantDashboard() {
                               className="bg-green-600 hover:bg-green-700"
                             >
                               <Download className="h-4 w-4 mr-2" />
-                              View Signed Lease
+                              Download PDF
                             </Button>
                             <Button>
                               Make First Payment & Security Deposit
