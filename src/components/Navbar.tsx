@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, Heart, User, Menu, LogOut, LayoutDashboard, MessageCircle } from "lucide-react";
+import { Home, Search, Heart, User, Menu, LogOut, LayoutDashboard, MessageCircle, Bell } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useUserProperties } from "@/hooks/useUserProperties";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useNotifications } from "@/hooks/useNotifications";
 const Navbar = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -16,8 +17,9 @@ const Navbar = () => {
     isLandlord
   } = useAuth();
   const {
-    unreadCount
+    unreadCount: messageUnread
   } = useUnreadMessages();
+  const { notifications, unreadCount: notifUnread, markAsRead } = useNotifications();
   const {
     hasProperties
   } = useUserProperties();
@@ -77,12 +79,52 @@ const Navbar = () => {
                         <Link to="/messages" className="flex items-center relative">
                           <MessageCircle className="h-4 w-4 mr-2" />
                           Messages
-                          {unreadCount > 0 && <Badge variant="destructive" className="ml-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                              {unreadCount > 99 ? '99+' : unreadCount}
+                          {messageUnread > 0 && <Badge variant="destructive" className="ml-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                              {messageUnread > 99 ? '99+' : messageUnread}
                             </Badge>}
                         </Link>
                       </Button>}
                 
+                {/* Notifications */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative">
+                      <Bell className="h-5 w-5" />
+                      {notifUnread > 0 && (
+                        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] h-5 min-w-[20px] px-1">
+                          {notifUnread > 99 ? '99+' : notifUnread}
+                        </span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-80 p-0">
+                    <div className="px-3 py-2 border-b border-border">
+                      <p className="text-sm font-medium">Notifications</p>
+                    </div>
+                    {notifications.length === 0 ? (
+                      <div className="px-3 py-6 text-sm text-muted-foreground">No notifications</div>
+                    ) : (
+                      <div className="max-h-96 overflow-auto">
+                        {notifications.slice(0, 8).map((n) => (
+                          <DropdownMenuItem key={n.id} asChild>
+                            <Link
+                              to={n.link_url || '#'}
+                              className={`block w-full text-left px-3 py-2 ${n.is_read ? 'opacity-70' : ''}`}
+                              onClick={() => markAsRead(n.id)}
+                            >
+                              <div className="text-sm leading-snug">{n.message}</div>
+                              <div className="text-[11px] text-muted-foreground mt-1">
+                                {new Date(n.created_at).toLocaleString()}
+                              </div>
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* User menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost">
@@ -91,20 +133,24 @@ const Navbar = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    {!isLandlord || !hasProperties ? <>
+                    {!isLandlord || !hasProperties ? (
+                      <>
                         <DropdownMenuItem asChild>
                           <Link to="/messages" className="flex items-center justify-between">
                             <div className="flex items-center">
                               <MessageCircle className="h-4 w-4 mr-2" />
                               Messages
                             </div>
-                            {unreadCount > 0 && <Badge variant="destructive" className="h-5 w-5 flex items-center justify-center p-0 text-xs">
-                                {unreadCount > 99 ? '99+' : unreadCount}
-                              </Badge>}
+                            {messageUnread > 0 && (
+                              <Badge variant="destructive" className="h-5 w-5 flex items-center justify-center p-0 text-xs">
+                                {messageUnread > 99 ? '99+' : messageUnread}
+                              </Badge>
+                            )}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                      </> : null}
+                      </>
+                    ) : null}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut}>
                       <LogOut className="h-4 w-4 mr-2" />
@@ -150,8 +196,8 @@ const Navbar = () => {
                       </Button> : <Button variant="outline" className="w-full" asChild>
                         <Link to="/messages" className="flex items-center justify-between">
                           <span>Messages</span>
-                          {unreadCount > 0 && <Badge variant="destructive" className="h-5 w-5 flex items-center justify-center p-0 text-xs">
-                              {unreadCount > 99 ? '99+' : unreadCount}
+                          {messageUnread > 0 && <Badge variant="destructive" className="h-5 w-5 flex items-center justify-center p-0 text-xs">
+                              {messageUnread > 99 ? '99+' : messageUnread}
                             </Badge>}
                         </Link>
                       </Button>}

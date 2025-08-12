@@ -401,6 +401,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          link_url: string | null
+          message: string
+          metadata: Json | null
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link_url?: string | null
+          message: string
+          metadata?: Json | null
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link_url?: string | null
+          message?: string
+          metadata?: Json | null
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -998,6 +1031,16 @@ export type Database = {
       create_admin_account: {
         Args: { email_param: string; display_name_param: string }
         Returns: Json
+      }
+      create_notification: {
+        Args: {
+          _user_id: string
+          _message: string
+          _link_url: string
+          _type?: string
+          _metadata?: Json
+        }
+        Returns: undefined
       }
       has_active_booking: {
         Args: { property_uuid: string; tenant_uuid: string }
