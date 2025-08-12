@@ -120,19 +120,35 @@ export function TenancyForm({ isOpen, onClose, onSuccess, tenancy }: TenancyForm
   };
 
   const fetchTenants = async () => {
+    if (!user) return;
     try {
-      const { data, error } = await supabase
+      // Fetch tenants who have applied to this landlord's properties
+      const { data: apps, error: appsError } = await supabase
+        .from('applications')
+        .select('tenant_id')
+        .eq('landlord_id', user.id);
+
+      if (appsError) throw appsError;
+
+      const tenantIds = Array.from(new Set((apps || []).map((a: any) => a.tenant_id).filter(Boolean)));
+      if (tenantIds.length === 0) {
+        setTenants([]);
+        return;
+      }
+
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('user_id, display_name, phone, id_verified')
-        .eq('id_verified', true);
+        .in('user_id', tenantIds);
 
-      if (error) throw error;
-      setTenants(data || []);
+      if (profilesError) throw profilesError;
+      // Only show verified tenants in the selector (same behavior as before)
+      setTenants((profilesData as any[])?.filter(p => p.id_verified) || []);
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to fetch verified tenants"
+        description: "Failed to fetch tenants"
       });
     }
   };
