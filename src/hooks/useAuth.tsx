@@ -95,20 +95,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: role
         });
         
-        // Create user profile (email_verified defaults to false)
+        // Create user profile (temporarily set email_verified to true)
         await supabase.from('profiles').insert({
           user_id: data.user.id,
           display_name: data.user.email?.split('@')[0] || 'User',
-          email_verified: false
+          email_verified: true
         });
 
-        // Send verification email
-        await supabase.functions.invoke('send-verification-email', {
-          body: {
-            email: data.user.email,
-            userId: data.user.id
-          }
-        });
+        // Temporarily disabled email verification email sending
 
       } catch (roleError) {
         console.error('Error creating user role/profile or sending verification email:', roleError);
@@ -129,25 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error };
     }
 
-    // Check if user is verified
-    if (data.user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('email_verified')
-        .eq('user_id', data.user.id)
-        .single();
-
-      if (!profile?.email_verified) {
-        // Sign out the user since they're not verified
-        await supabase.auth.signOut();
-        return { 
-          error: { 
-            message: 'Please verify your email before signing in. Check your inbox for the verification link.',
-            name: 'EmailNotVerified'
-          } 
-        };
-      }
-    }
+    // Temporarily bypass email verification checks during sign in
     
     return { error: null };
   };
