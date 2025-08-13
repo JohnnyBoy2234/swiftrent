@@ -120,13 +120,12 @@ const Index = () => {
         <div className="absolute inset-0 opacity-10 bg-gradient-to-br from-transparent via-white/5 to-transparent"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 mt-4 md:mt-0">
               Find Your Perfect
               <span className="block text-earth-warm">Rental Home</span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-white/90">
-              Connect directly with landlords and tenants across South Africa. 
-              No middleman, no extra fees.
+              Find your perfect rental home in South Africa — connecting landlords and tenants directly with state-of-the-art technology. No agents. Zero commission. Full control.
             </p>
             
             {/* Property24-style Search Bar */}
