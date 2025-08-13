@@ -3,6 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 import PropertyCard from "@/components/PropertyCard";
+import { PropertySearchBar } from "@/components/search/PropertySearchBar";
+import { MoreFiltersModal } from "@/components/search/MoreFiltersModal";
 import { Search, Home, Shield, Users, Star, ArrowRight, CheckCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -13,11 +15,19 @@ import heroBackground from "@/assets/hero-background.jpg";
 
 const Index = () => {
   const [searchLocation, setSearchLocation] = useState("");
+  const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const navigate = useNavigate();
 
   const [bedrooms, setBedrooms] = useState("Any");
   const [bathrooms, setBathrooms] = useState("Any");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
+
+  // Advanced filters state
+  const [advancedFilters, setAdvancedFilters] = useState({
+    propertyTypes: [] as string[],
+    amenities: [] as string[],
+    availableFrom: null as Date | null,
+  });
 
   const applyFilters = () => {
     const params = new URLSearchParams();
@@ -26,6 +36,18 @@ const Index = () => {
     if (bathrooms !== 'Any') params.set('bathrooms', bathrooms);
     if (priceRange[0] > 0) params.set('minPrice', String(priceRange[0]));
     if (priceRange[1] < 100000) params.set('maxPrice', String(priceRange[1]));
+    
+    // Add advanced filters
+    if (advancedFilters.propertyTypes.length > 0) {
+      params.set('propertyTypes', advancedFilters.propertyTypes.join(','));
+    }
+    if (advancedFilters.amenities.length > 0) {
+      params.set('amenities', advancedFilters.amenities.join(','));
+    }
+    if (advancedFilters.availableFrom) {
+      params.set('availableFrom', advancedFilters.availableFrom.toISOString().split('T')[0]);
+    }
+    
     navigate(`/properties?${params.toString()}`);
   };
 
@@ -107,71 +129,47 @@ const Index = () => {
               No middleman, no extra fees.
             </p>
             
-            {/* Search Bar */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl max-w-2xl mx-auto border border-white/20">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1" onKeyDown={handleKeyPress}>
-                   <AddressAutocomplete
-                     value={searchLocation}
-                     onChange={setSearchLocation}
-                     placeholder="Enter location (e.g., Sandton, Cape Town)"
-                     className="h-12 text-lg border-0 focus-visible:ring-2 focus-visible:ring-primary text-black"
-                   />
-                </div>
-                <Button size="lg" className="h-12 px-8" onClick={handleSearch}>
-                  <Search className="h-5 w-5 mr-2" />
-                  Search Properties
-                </Button>
-              </div>
-            </div>
+            {/* Property24-style Search Bar */}
+            <PropertySearchBar
+              filters={{
+                location: searchLocation,
+                minPrice: priceRange[0] > 0 ? priceRange[0].toString() : "",
+                maxPrice: priceRange[1] < 100000 ? priceRange[1].toString() : "",
+                bedrooms: bedrooms
+              }}
+              onFiltersChange={(newFilters) => {
+                if (newFilters.location !== undefined) setSearchLocation(newFilters.location);
+                if (newFilters.minPrice !== undefined || newFilters.maxPrice !== undefined) {
+                  const minPrice = newFilters.minPrice ? parseInt(newFilters.minPrice) : (priceRange[0] > 0 ? priceRange[0] : 0);
+                  const maxPrice = newFilters.maxPrice ? parseInt(newFilters.maxPrice) : (priceRange[1] < 100000 ? priceRange[1] : 100000);
+                  setPriceRange([minPrice, maxPrice]);
+                }
+                if (newFilters.bedrooms !== undefined) setBedrooms(newFilters.bedrooms);
+              }}
+              onMoreFiltersClick={() => setMoreFiltersOpen(true)}
+              onSearch={handleSearch}
+            />
 
-            {/* Quick Filters under search */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl max-w-3xl mx-auto mt-6 text-left text-foreground border border-white/20">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
-                <div>
-                  <Label className="text-sm text-foreground">Bedrooms</Label>
-                  <Select value={bedrooms} onValueChange={setBedrooms}>
-                    <SelectTrigger className="h-10 text-foreground">
-                      <SelectValue placeholder="Any" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {['Any','1','2','3','4','5+'].map((b) => (
-                        <SelectItem key={b} value={b}>{b}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-sm text-foreground">Bathrooms</Label>
-                  <Select value={bathrooms} onValueChange={setBathrooms}>
-                    <SelectTrigger className="h-10 text-foreground">
-                      <SelectValue placeholder="Any" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {['Any','1','2','3','4+'].map((b) => (
-                        <SelectItem key={b} value={b}>{b}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="md:col-span-1">
-                  <Label className="text-sm text-foreground">Price (R{priceRange[0].toLocaleString()} - R{priceRange[1].toLocaleString()})</Label>
-                  <Slider
-                    variant="inverted"
-                    value={priceRange}
-                    onValueChange={(v) => setPriceRange(v as [number, number])}
-                    max={100000}
-                    step={1000}
-                    className="mt-2"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <Button className="w-full h-10" onClick={applyFilters}>
-                    Apply Filters
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <MoreFiltersModal
+              open={moreFiltersOpen}
+              onClose={() => setMoreFiltersOpen(false)}
+              filters={advancedFilters}
+              onFiltersChange={(newFilters) => {
+                setAdvancedFilters(prev => ({ ...prev, ...newFilters }));
+              }}
+              onApplyFilters={applyFilters}
+              onClearFilters={() => {
+                setAdvancedFilters({
+                  propertyTypes: [],
+                  amenities: [],
+                  availableFrom: null
+                });
+                setSearchLocation("");
+                setBedrooms("Any");
+                setBathrooms("Any");
+                setPriceRange([0, 100000]);
+              }}
+            />
             
             <div className="mt-8 flex flex-wrap justify-center gap-6 text-white/90">
               <div className="flex items-center">
