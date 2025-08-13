@@ -321,16 +321,33 @@ export default function Auth() {
       const { error } = await resetPassword(forgotPasswordEmail);
       
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Failed to Send Reset Email",
-          description: error.message || "Unable to send password reset email. Please try again.",
-        });
+        // Handle rate limiting specifically
+        if (error.message?.includes('rate') || error.message?.includes('too many') || error.message?.includes('seconds')) {
+          toast({
+            variant: "destructive",
+            title: "Too Many Requests",
+            description: "Please wait a moment before requesting another reset email. For security, there's a limit on how often reset emails can be sent.",
+          });
+        } else if (error.message?.includes('User not found')) {
+          // Still show success message for security (don't reveal if email exists)
+          setResetEmailSent(true);
+          toast({
+            title: "Reset Email Sent!",
+            description: "If an account with that email exists, we have sent a password reset link. Please check your email and spam folder.",
+            duration: 7000,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Failed to Send Reset Email",
+            description: error.message || "Unable to send password reset email. Please try again.",
+          });
+        }
       } else {
         setResetEmailSent(true);
         toast({
           title: "Reset Email Sent!",
-          description: "If an account with that email exists, we have sent a password reset link.",
+          description: "If an account with that email exists, we have sent a password reset link. Please check your email and spam folder.",
           duration: 7000,
         });
       }
