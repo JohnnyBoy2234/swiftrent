@@ -309,6 +309,50 @@ export default function PropertyDetail() {
     });
   };
 
+  const handleShare = async () => {
+    if (!property) return;
+
+    const shareData = {
+      title: "Check out this property on EasyRent",
+      text: `${property.location} - R${property.price.toLocaleString()} per month. See more details here:`,
+      url: window.location.href
+    };
+
+    // Check if Web Share API is supported (mobile/modern browsers)
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (error: any) {
+        // User cancelled the share or an error occurred
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+          // Fall back to clipboard
+          fallbackToClipboard();
+        }
+      }
+    } else {
+      // Fall back to clipboard for desktop browsers
+      fallbackToClipboard();
+    }
+  };
+
+  const fallbackToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copied to clipboard!",
+        description: "The property link has been copied to your clipboard."
+      });
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      toast({
+        variant: "destructive",
+        title: "Share failed",
+        description: "Unable to share or copy the link. Please copy the URL manually."
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -346,7 +390,7 @@ export default function PropertyDetail() {
             <Heart className={`h-4 w-4 mr-2 ${isLiked ? 'fill-current text-red-500' : ''}`} />
             {isLiked ? 'Saved' : 'Save'}
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleShare}>
             <Share2 className="h-4 w-4 mr-2" />
             Share
           </Button>
