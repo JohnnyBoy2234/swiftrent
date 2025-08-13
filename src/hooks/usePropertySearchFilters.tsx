@@ -7,6 +7,7 @@ export interface PropertySearchFilters {
   minPrice: string;
   maxPrice: string;
   bedrooms: string;
+  bathrooms: string;
   
   // Advanced modal filters
   propertyTypes: string[];
@@ -19,6 +20,7 @@ const defaultFilters: PropertySearchFilters = {
   minPrice: '',
   maxPrice: '',
   bedrooms: 'Any',
+  bathrooms: 'Any',
   propertyTypes: [],
   amenities: [],
   availableFrom: null,
@@ -35,6 +37,7 @@ export function usePropertySearchFilters() {
       minPrice: searchParams.get('minPrice') || '',
       maxPrice: searchParams.get('maxPrice') || '',
       bedrooms: searchParams.get('bedrooms') || 'Any',
+      bathrooms: searchParams.get('bathrooms') || 'Any',
       propertyTypes: searchParams.get('propertyTypes')?.split(',').filter(Boolean) || [],
       amenities: searchParams.get('amenities')?.split(',').filter(Boolean) || [],
       availableFrom: searchParams.get('availableFrom') ? new Date(searchParams.get('availableFrom')!) : null,
@@ -72,6 +75,10 @@ export function usePropertySearchFilters() {
       params.set('bedrooms', filters.bedrooms);
     }
     
+    if (filters.bathrooms !== 'Any') {
+      params.set('bathrooms', filters.bathrooms);
+    }
+    
     if (filters.propertyTypes.length > 0) {
       params.set('propertyTypes', filters.propertyTypes.join(','));
     }
@@ -95,6 +102,7 @@ export function usePropertySearchFilters() {
       (filters.minPrice && filters.minPrice !== '0') ||
       filters.maxPrice !== '' ||
       filters.bedrooms !== 'Any' ||
+      filters.bathrooms !== 'Any' ||
       filters.propertyTypes.length > 0 ||
       filters.amenities.length > 0 ||
       filters.availableFrom !== null

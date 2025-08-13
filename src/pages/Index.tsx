@@ -135,7 +135,8 @@ const Index = () => {
                 location: searchLocation,
                 minPrice: priceRange[0] > 0 ? priceRange[0].toString() : "",
                 maxPrice: priceRange[1] < 100000 ? priceRange[1].toString() : "",
-                bedrooms: bedrooms
+                bedrooms: bedrooms,
+                bathrooms: bathrooms
               }}
               onFiltersChange={(newFilters) => {
                 if (newFilters.location !== undefined) setSearchLocation(newFilters.location);
@@ -145,6 +146,7 @@ const Index = () => {
                   setPriceRange([minPrice, maxPrice]);
                 }
                 if (newFilters.bedrooms !== undefined) setBedrooms(newFilters.bedrooms);
+                if (newFilters.bathrooms !== undefined) setBathrooms(newFilters.bathrooms);
               }}
               onMoreFiltersClick={() => setMoreFiltersOpen(true)}
               onSearch={handleSearch}
