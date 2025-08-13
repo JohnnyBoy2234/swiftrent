@@ -9,6 +9,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, role?: 'tenant' | 'landlord') => Promise<{ error: any; isNewUser?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithGoogle: (role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
+  signInWithApple: (role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
   signInWithProvider: (provider: 'google' | 'apple' | 'facebook', role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   resendVerificationEmail: (email: string) => Promise<{ error: any }>;
@@ -144,6 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async (role: 'tenant' | 'landlord' = 'tenant') => signInWithProvider('google', role);
+  const signInWithApple = async (role: 'tenant' | 'landlord' = 'tenant') => signInWithProvider('apple', role);
 
   const resetPassword = async (email: string) => {
     const redirectUrl = `${window.location.origin}/reset-password`;
@@ -195,6 +197,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signIn,
     signInWithGoogle,
+    signInWithApple,
     signInWithProvider,
     resetPassword,
     resendVerificationEmail,
