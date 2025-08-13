@@ -63,13 +63,11 @@ export const PropertySearchBar = ({
   };
 
   const getBedroomsLabel = () => {
-    const option = bedroomOptions.find(opt => opt.value === filters.bedrooms);
-    return option ? `${option.label === 'Any' ? 'Any' : option.label} Bedroom${option.label !== 'Any' && option.label !== '1+' ? 's' : ''}` : "Bedrooms";
+    return "Bedrooms";
   };
 
   const getBathroomsLabel = () => {
-    const option = bathroomOptions.find(opt => opt.value === filters.bathrooms);
-    return option ? `${option.label === 'Any' ? 'Any' : option.label} Bathroom${option.label !== 'Any' && option.label !== '1+' ? 's' : ''}` : "Bathrooms";
+    return "Bathrooms";
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
