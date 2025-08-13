@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,6 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, CheckCircle2, Eye, EyeOff, ArrowLeft, Mail } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -66,7 +65,6 @@ export default function Auth() {
   const { user, signUp, signIn, signInWithGoogle, resetPassword, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [searchParams] = useSearchParams();
 
   const [signUpData, setSignUpData] = useState({
     email: '',
@@ -252,8 +250,6 @@ export default function Auth() {
     }
   };
 
-
-
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -369,7 +365,7 @@ export default function Auth() {
                       variant="ghost" 
                       className="w-full"
                     >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      <ArrowLeft className="h-4 w-4 mr-2" />
                       Back to Sign In
                     </Button>
                   </div>
@@ -416,7 +412,6 @@ export default function Auth() {
     );
   }
 
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
@@ -450,7 +445,6 @@ export default function Auth() {
                     </svg>
                     Continue with Google
                   </Button>
-
 
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -536,7 +530,6 @@ export default function Auth() {
                     </svg>
                     Continue with Google
                   </Button>
-
 
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
