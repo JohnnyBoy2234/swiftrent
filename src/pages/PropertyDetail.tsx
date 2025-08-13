@@ -333,7 +333,7 @@ export default function PropertyDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-ocean-blue/5 via-background to-earth-warm/10">
       <div className="container mx-auto p-6 max-w-6xl">
         {/* Navigation */}
         <div className="flex items-center gap-4 mb-6">
@@ -370,7 +370,7 @@ export default function PropertyDetail() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Image Gallery */}
-            <Card>
+            <Card className="bg-gradient-to-br from-card/80 via-card to-ocean-blue/5 border-ocean-blue/20 shadow-elegant">
               <CardContent className="p-0">
                 {property.images && property.images.length > 0 ? (
                   <Carousel className="w-full" opts={{ loop: true }}>
@@ -400,14 +400,14 @@ export default function PropertyDetail() {
 
             {/* Property Details */}
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-ocean-blue/10 to-earth-warm/10 border border-ocean-blue/20">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="features">Features</TabsTrigger>
                 <TabsTrigger value="location">Location</TabsTrigger>
               </TabsList>
               
               <TabsContent value="overview">
-                <Card>
+                <Card className="bg-gradient-to-br from-card/80 via-card to-earth-warm/5 border-earth-warm/20 shadow-elegant">
                   <CardHeader>
                     <CardTitle>Property Description</CardTitle>
                   </CardHeader>
@@ -415,22 +415,22 @@ export default function PropertyDetail() {
                     <p className="text-muted-foreground leading-relaxed">{property.description}</p>
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                      <div className="text-center p-4 bg-muted rounded-lg">
-                        <Bed className="h-8 w-8 mx-auto mb-2 text-primary" />
+                      <div className="text-center p-4 bg-gradient-to-br from-ocean-blue/10 to-ocean-blue/5 border border-ocean-blue/20 rounded-lg shadow-sm">
+                        <Bed className="h-8 w-8 mx-auto mb-2 text-ocean-blue" />
                         <div className="font-semibold">{property.bedrooms}</div>
                         <div className="text-sm text-muted-foreground">Bedrooms</div>
                       </div>
-                      <div className="text-center p-4 bg-muted rounded-lg">
-                        <Bath className="h-8 w-8 mx-auto mb-2 text-primary" />
+                      <div className="text-center p-4 bg-gradient-to-br from-earth-warm/10 to-earth-warm/5 border border-earth-warm/20 rounded-lg shadow-sm">
+                        <Bath className="h-8 w-8 mx-auto mb-2 text-earth-warm" />
                         <div className="font-semibold">{property.bathrooms}</div>
                         <div className="text-sm text-muted-foreground">Bathrooms</div>
                       </div>
-                      <div className="text-center p-4 bg-muted rounded-lg">
-                        <Car className="h-8 w-8 mx-auto mb-2 text-primary" />
+                      <div className="text-center p-4 bg-gradient-to-br from-success-green/10 to-success-green/5 border border-success-green/20 rounded-lg shadow-sm">
+                        <Car className="h-8 w-8 mx-auto mb-2 text-success-green" />
                         <div className="font-semibold">{property.parking_spaces}</div>
                         <div className="text-sm text-muted-foreground">Parking</div>
                       </div>
-                      <div className="text-center p-4 bg-muted rounded-lg">
+                      <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-lg shadow-sm">
                         <Home className="h-8 w-8 mx-auto mb-2 text-primary" />
                         <div className="font-semibold">{property.size_sqm || 'N/A'}</div>
                         <div className="text-sm text-muted-foreground">Size (sqm)</div>
@@ -441,7 +441,7 @@ export default function PropertyDetail() {
               </TabsContent>
               
               <TabsContent value="features">
-                <Card>
+                <Card className="bg-gradient-to-br from-card/80 via-card to-success-green/5 border-success-green/20 shadow-elegant">
                   <CardHeader>
                     <CardTitle>Property Features</CardTitle>
                   </CardHeader>
@@ -485,7 +485,7 @@ export default function PropertyDetail() {
               </TabsContent>
               
               <TabsContent value="location">
-                <Card>
+                <Card className="bg-gradient-to-br from-card/80 via-card to-ocean-blue/5 border-ocean-blue/20 shadow-elegant">
                   <CardHeader>
                     <CardTitle>Location</CardTitle>
                   </CardHeader>
@@ -506,16 +506,16 @@ export default function PropertyDetail() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Contact Landlord */}
-            <Card>
+            <Card className="bg-gradient-to-br from-ocean-blue/5 via-card to-earth-warm/5 border-ocean-blue/30 shadow-elegant">
               <CardHeader>
                 <CardTitle>Contact</CardTitle>
                 <CardDescription>Message the landlord or book a viewing</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {property.profiles && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                      <User className="h-5 w-5 text-white" />
+                   <div className="flex items-center gap-3">
+                     <div className="w-10 h-10 bg-gradient-to-br from-ocean-blue to-ocean-blue-dark rounded-full flex items-center justify-center shadow-md">
+                       <User className="h-5 w-5 text-white" />
                     </div>
                     <div>
                       <div className="font-semibold">{property.profiles.display_name}</div>
@@ -585,7 +585,7 @@ export default function PropertyDetail() {
 
             {/* Sign In Prompt for Non-Authenticated Users */}
             {!user && (
-              <Card>
+              <Card className="bg-gradient-to-br from-earth-warm/5 via-card to-ocean-blue/5 border-earth-warm/30 shadow-elegant">
                 <CardHeader>
                   <CardTitle>Get Started</CardTitle>
                 <CardDescription>Sign in to message the landlord or book a viewing</CardDescription>
@@ -607,7 +607,7 @@ export default function PropertyDetail() {
 
             {/* Property Owner Notice */}
             {user && property.landlord_id === user.id && (
-              <Card>
+              <Card className="bg-gradient-to-br from-success-green/5 via-card to-success-green/10 border-success-green/30 shadow-elegant">
                 <CardHeader>
                   <CardTitle>Property Management</CardTitle>
                 </CardHeader>
@@ -624,10 +624,10 @@ export default function PropertyDetail() {
 
             {/* Current Viewing Status */}
             {user && property.landlord_id !== user.id && activeBooking && (
-              <Card>
+              <Card className="bg-gradient-to-br from-ocean-blue/5 via-card to-ocean-blue/10 border-ocean-blue/30 shadow-elegant">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
+                    <Calendar className="h-5 w-5 text-ocean-blue" />
                     Your Scheduled Viewing
                   </CardTitle>
                 </CardHeader>
@@ -653,7 +653,7 @@ export default function PropertyDetail() {
             )}
 
             {/* Property Info */}
-            <Card>
+            <Card className="bg-gradient-to-br from-earth-warm/5 via-card to-earth-warm/10 border-earth-warm/30 shadow-elegant">
               <CardHeader>
                 <CardTitle>Property Information</CardTitle>
               </CardHeader>
