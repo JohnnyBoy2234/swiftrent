@@ -63,7 +63,7 @@ const validatePassword = (password: string): { isValid: boolean; errors: string[
 };
 
 export default function Auth() {
-  const { user, signUp, signIn, signInWithGoogle, signInWithApple, resendVerificationEmail, loading } = useAuth();
+  const { user, signUp, signIn, signInWithGoogle, signInWithApple, resetPassword, resendVerificationEmail, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -88,6 +88,10 @@ export default function Auth() {
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
   const [resendLoading, setResendLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
 
   // Redirect if already logged in or handle verification success
   useEffect(() => {
@@ -307,6 +311,151 @@ export default function Auth() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate email
+    const emailValid = validateEmail(forgotPasswordEmail);
+    if (!emailValid.isValid) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Email",
+        description: emailValid.error,
+      });
+      return;
+    }
+
+    setForgotPasswordLoading(true);
+    
+    try {
+      const { error } = await resetPassword(forgotPasswordEmail);
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Failed to Send Reset Email",
+          description: error.message || "Unable to send password reset email. Please try again.",
+        });
+      } else {
+        setResetEmailSent(true);
+        toast({
+          title: "Reset Email Sent!",
+          description: "If an account with that email exists, we have sent a password reset link.",
+          duration: 7000,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+      });
+    } finally {
+      setForgotPasswordLoading(false);
+    }
+  };
+
+  const resetForgotPasswordState = () => {
+    setShowForgotPassword(false);
+    setForgotPasswordEmail('');
+    setResetEmailSent(false);
+    setForgotPasswordLoading(false);
+  };
+
+  // Show forgot password form if needed
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-6">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">SwiftRent</h1>
+            <p className="text-muted-foreground mt-2">Reset Your Password</p>
+          </div>
+
+          <Card>
+            <CardHeader className="text-center">
+              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Mail className="w-6 h-6 text-primary" />
+              </div>
+              <CardTitle>{resetEmailSent ? "Check Your Email" : "Forgot Password?"}</CardTitle>
+              <CardDescription>
+                {resetEmailSent 
+                  ? "If an account with that email exists, we have sent you a password reset link."
+                  : "Enter your email address and we'll send you a link to reset your password."
+                }
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {resetEmailSent ? (
+                <div className="space-y-4">
+                  <Alert>
+                    <CheckCircle2 className="h-4 w-4" />
+                    <AlertDescription>
+                      Please check your email for a password reset link. The link will expire in 1 hour for security.
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <div className="space-y-3">
+                    <Button 
+                      onClick={() => setResetEmailSent(false)}
+                      variant="outline" 
+                      className="w-full"
+                    >
+                      Send Another Reset Link
+                    </Button>
+                    
+                    <Button 
+                      onClick={resetForgotPasswordState}
+                      variant="ghost" 
+                      className="w-full"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back to Sign In
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="forgot-email">Email Address</Label>
+                      <Input
+                        id="forgot-email"
+                        type="email"
+                        value={forgotPasswordEmail}
+                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                        required
+                        placeholder="Enter your email address"
+                        disabled={forgotPasswordLoading}
+                      />
+                    </div>
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      disabled={forgotPasswordLoading}
+                    >
+                      {forgotPasswordLoading ? 'Sending Reset Link...' : 'Send Reset Link'}
+                    </Button>
+                  </form>
+                  
+                  <Button 
+                    onClick={resetForgotPasswordState}
+                    variant="ghost" 
+                    className="w-full"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Sign In
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   // Show verification message if needed
   if (showVerificationMessage) {
     return (
@@ -462,6 +611,17 @@ export default function Auth() {
                       {signInLoading ? 'Signing in...' : 'Sign In'}
                     </Button>
                   </form>
+                  
+                  <div className="text-center">
+                    <Button 
+                      type="button"
+                      variant="link" 
+                      className="text-sm text-primary hover:underline p-0"
+                      onClick={() => setShowForgotPassword(true)}
+                    >
+                      Forgot your password?
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
               
