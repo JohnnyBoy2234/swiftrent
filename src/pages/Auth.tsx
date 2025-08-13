@@ -63,7 +63,7 @@ const validatePassword = (password: string): { isValid: boolean; errors: string[
 };
 
 export default function Auth() {
-  const { user, signUp, signIn, signInWithGoogle, resetPassword, resendVerificationEmail, loading } = useAuth();
+  const { user, signUp, signIn, signInWithGoogle, resetPassword, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -85,36 +85,17 @@ export default function Auth() {
   const [activeTab, setActiveTab] = useState('signin');
   const [signInLoading, setSignInLoading] = useState(false);
   const [signUpLoading, setSignUpLoading] = useState(false);
-  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
-  const [verificationEmail, setVerificationEmail] = useState('');
-  const [resendLoading, setResendLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
 
-  // Redirect if already logged in or handle verification success
+  // Redirect if already logged in
   useEffect(() => {
     if (user && !loading) {
       navigate('/dashboard');
     }
-    
-    // Check for verification success
-    const emailVerified = localStorage.getItem('emailVerified');
-    const verificationMessage = localStorage.getItem('verificationMessage');
-    
-    if (emailVerified === 'true' && verificationMessage) {
-      toast({
-        title: "Email Verified!",
-        description: verificationMessage,
-        duration: 5000,
-      });
-      
-      // Clean up localStorage
-      localStorage.removeItem('emailVerified');
-      localStorage.removeItem('verificationMessage');
-    }
-  }, [user, loading, navigate, toast]);
+  }, [user, loading, navigate]);
 
   // Real-time email validation
   const validateEmailInput = (email: string, isSignUp: boolean = false) => {
@@ -191,13 +172,12 @@ export default function Auth() {
     }
 
     if (isNewUser) {
-      setVerificationEmail(signUpData.email);
-      setShowVerificationMessage(true);
       toast({
         title: "Account Created!",
-        description: "Please check your email for a verification link to activate your account.",
-        duration: 7000,
+        description: "You can now sign in to your account.",
+        duration: 5000,
       });
+      setActiveTab('signin');
     }
     
     setSignUpLoading(false);
@@ -234,11 +214,7 @@ export default function Auth() {
     if (error) {
       let errorMessage = 'Invalid email or password';
       
-      if (error.name === 'EmailNotVerified') {
-        setVerificationEmail(signInData.email);
-        setShowVerificationMessage(true);
-        errorMessage = error.message;
-      } else if (error.message?.includes('Invalid login credentials')) {
+      if (error.message?.includes('Invalid login credentials')) {
         errorMessage = 'Invalid email or password. Please check your credentials.';
       } else if (error.message?.includes('Too many requests')) {
         errorMessage = 'Too many login attempts. Please wait a moment before trying again.';
@@ -277,29 +253,6 @@ export default function Auth() {
   };
 
 
-  const handleResendVerification = async () => {
-    if (!verificationEmail) return;
-    
-    setResendLoading(true);
-    try {
-      const { error } = await resendVerificationEmail(verificationEmail);
-      
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Failed to Resend",
-          description: error.message || "Could not resend verification email. Please try again.",
-        });
-      } else {
-        toast({
-          title: "Email Sent!",
-          description: "Verification email has been resent. Please check your inbox.",
-        });
-      }
-    } finally {
-      setResendLoading(false);
-    }
-  };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -463,60 +416,6 @@ export default function Auth() {
     );
   }
 
-  // Show verification message if needed
-  if (showVerificationMessage) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-6">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">SwiftRent</h1>
-            <p className="text-muted-foreground mt-2">Email Verification Required</p>
-          </div>
-
-          <Card>
-            <CardHeader className="text-center">
-              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Mail className="w-6 h-6 text-primary" />
-              </div>
-              <CardTitle>Check Your Email</CardTitle>
-              <CardDescription>
-                We've sent a verification link to <strong>{verificationEmail}</strong>
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  Please click the verification link in your email to activate your account. 
-                  The link will expire in 24 hours.
-                </AlertDescription>
-              </Alert>
-              
-              <div className="space-y-3">
-                <Button 
-                  onClick={handleResendVerification}
-                  disabled={resendLoading}
-                  variant="outline" 
-                  className="w-full"
-                >
-                  {resendLoading ? 'Sending...' : 'Resend Verification Email'}
-                </Button>
-                
-                <Button 
-                  onClick={() => setShowVerificationMessage(false)}
-                  variant="ghost" 
-                  className="w-full"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Sign In
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">

@@ -12,7 +12,6 @@ interface AuthContextType {
   signInWithApple: (role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
   signInWithProvider: (provider: 'google' | 'apple' | 'facebook', role?: 'tenant' | 'landlord') => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
-  resendVerificationEmail: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isLandlord: boolean;
 }
@@ -96,14 +95,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: role
         });
         
-        // Create user profile (temporarily set email_verified to true)
+        // Create user profile
         await supabase.from('profiles').insert({
           user_id: data.user.id,
           display_name: data.user.email?.split('@')[0] || 'User',
           email_verified: true
         });
-
-        // Temporarily disabled email verification email sending
 
       } catch (roleError) {
         console.error('Error creating user role/profile or sending verification email:', roleError);
@@ -124,7 +121,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error };
     }
 
-    // Temporarily bypass email verification checks during sign in
     
     return { error: null };
   };
@@ -156,36 +152,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
-  const resendVerificationEmail = async (email: string) => {
-    try {
-      // Get user by email
-      const { data: userData, error: userError } = await supabase
-        .from('profiles')
-        .select('user_id, email_verified')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (userError || !userData) {
-        return { error: { message: 'User not found' } };
-      }
-
-      if (userData.email_verified) {
-        return { error: { message: 'Email is already verified' } };
-      }
-
-      const { error } = await supabase.functions.invoke('send-verification-email', {
-        body: {
-          email: email,
-          userId: userData.user_id,
-          isResend: true
-        }
-      });
-
-      return { error };
-    } catch (error: any) {
-      return { error: { message: error.message } };
-    }
-  };
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -201,7 +167,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithApple,
     signInWithProvider,
     resetPassword,
-    resendVerificationEmail,
     signOut,
     isLandlord
   };
