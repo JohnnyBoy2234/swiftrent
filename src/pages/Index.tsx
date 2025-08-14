@@ -20,13 +20,13 @@ const Index = () => {
 
   const [propertyType, setPropertyType] = useState("Any");
   const [bedrooms, setBedrooms] = useState("Any");
-  const [bathrooms, setBathrooms] = useState("Any");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
 
   // Advanced filters state
   const [advancedFilters, setAdvancedFilters] = useState({
     propertyTypes: [] as string[],
     amenities: [] as string[],
+    bathrooms: "Any" as string,
     availableFrom: null as Date | null,
   });
 
@@ -34,7 +34,6 @@ const Index = () => {
     const params = new URLSearchParams();
     if (searchLocation.trim()) params.set('search', searchLocation.trim());
     if (bedrooms !== 'Any') params.set('bedrooms', bedrooms);
-    if (bathrooms !== 'Any') params.set('bathrooms', bathrooms);
     if (priceRange[0] > 0) params.set('minPrice', String(priceRange[0]));
     if (priceRange[1] < 100000) params.set('maxPrice', String(priceRange[1]));
     
@@ -44,6 +43,9 @@ const Index = () => {
     }
     if (advancedFilters.amenities.length > 0) {
       params.set('amenities', advancedFilters.amenities.join(','));
+    }
+    if (advancedFilters.bathrooms !== 'Any') {
+      params.set('bathrooms', advancedFilters.bathrooms);
     }
     if (advancedFilters.availableFrom) {
       params.set('availableFrom', advancedFilters.availableFrom.toISOString().split('T')[0]);
@@ -136,8 +138,7 @@ const Index = () => {
                 propertyType: propertyType,
                 minPrice: priceRange[0] > 0 ? priceRange[0].toString() : "",
                 maxPrice: priceRange[1] < 100000 ? priceRange[1].toString() : "",
-                bedrooms: bedrooms,
-                bathrooms: bathrooms
+                bedrooms: bedrooms
               }}
               onFiltersChange={(newFilters) => {
                 if (newFilters.location !== undefined) setSearchLocation(newFilters.location);
@@ -148,7 +149,6 @@ const Index = () => {
                   setPriceRange([minPrice, maxPrice]);
                 }
                 if (newFilters.bedrooms !== undefined) setBedrooms(newFilters.bedrooms);
-                if (newFilters.bathrooms !== undefined) setBathrooms(newFilters.bathrooms);
               }}
               onMoreFiltersClick={() => setMoreFiltersOpen(true)}
               onSearch={handleSearch}
@@ -166,12 +166,12 @@ const Index = () => {
                 setAdvancedFilters({
                   propertyTypes: [],
                   amenities: [],
+                  bathrooms: "Any",
                   availableFrom: null
                 });
                 setSearchLocation("");
                 setPropertyType("Any");
                 setBedrooms("Any");
-                setBathrooms("Any");
                 setPriceRange([0, 100000]);
               }}
             />

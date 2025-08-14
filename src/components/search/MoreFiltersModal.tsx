@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -10,6 +11,7 @@ import { format } from "date-fns";
 interface AdvancedFilters {
   propertyTypes: string[];
   amenities: string[];
+  bathrooms: string;
   availableFrom: Date | null;
 }
 
@@ -46,6 +48,14 @@ export const MoreFiltersModal = ({
     { value: "Fibre Ready", label: "Fibre Ready" }
   ];
 
+  const bathroomOptions = [
+    { value: "Any", label: "Any" },
+    { value: "1", label: "1+" },
+    { value: "2", label: "2+" },
+    { value: "3", label: "3+" },
+    { value: "4", label: "4+" }
+  ];
+
   const handlePropertyTypeChange = (type: string, checked: boolean) => {
     const newTypes = checked 
       ? [...filters.propertyTypes, type]
@@ -63,6 +73,7 @@ export const MoreFiltersModal = ({
   const getActiveFiltersCount = () => {
     return filters.propertyTypes.length + 
            filters.amenities.length + 
+           (filters.bathrooms !== "Any" && filters.bathrooms ? 1 : 0) +
            (filters.availableFrom ? 1 : 0);
   };
 
@@ -130,6 +141,26 @@ export const MoreFiltersModal = ({
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Bathrooms Section */}
+          <div>
+            <h3 className="text-lg font-medium text-foreground mb-4">Bathrooms</h3>
+            <Select 
+              value={filters.bathrooms || "Any"} 
+              onValueChange={(value) => onFiltersChange({ bathrooms: value })}
+            >
+              <SelectTrigger className="w-full md:w-48 bg-background border-input">
+                <SelectValue placeholder="Any" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border">
+                {bathroomOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value} className="hover:bg-muted/50">
+                    {option.label} {option.label !== 'Any' ? 'Bathroom' + (option.label !== '1+' ? 's' : '') : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Availability Section */}

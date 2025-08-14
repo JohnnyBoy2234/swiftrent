@@ -12,7 +12,6 @@ interface SearchFilters {
   minPrice: string;
   maxPrice: string;
   bedrooms: string;
-  bathrooms: string;
 }
 
 interface PropertySearchBarProps {
@@ -31,7 +30,6 @@ export const PropertySearchBar = ({
   const [propertyTypeOpen, setPropertyTypeOpen] = useState(false);
   const [priceOpen, setPriceOpen] = useState(false);
   const [bedroomsOpen, setBedroomsOpen] = useState(false);
-  const [bathroomsOpen, setBathroomsOpen] = useState(false);
 
   const propertyTypeOptions = [
     { value: "Any", label: "Any Property Type" },
@@ -74,18 +72,29 @@ export const PropertySearchBar = ({
   };
 
   const getPropertyTypeLabel = () => {
-    if (filters.propertyType === "Any" || !filters.propertyType) return "Property Type";
-    return filters.propertyType;
+    const hasSelection = filters.propertyType !== "Any" && filters.propertyType;
+    if (hasSelection) {
+      return (
+        <div className="flex flex-col items-start">
+          <span className="text-xs text-muted-foreground">Property Type</span>
+          <span className="text-sm font-medium">{filters.propertyType}</span>
+        </div>
+      );
+    }
+    return "Property Type";
   };
 
   const getBedroomsLabel = () => {
-    if (filters.bedrooms === "Any" || !filters.bedrooms) return "Bedrooms";
-    return filters.bedrooms + "+";
-  };
-
-  const getBathroomsLabel = () => {
-    if (filters.bathrooms === "Any" || !filters.bathrooms) return "Bathrooms";
-    return filters.bathrooms + "+";
+    const hasSelection = filters.bedrooms !== "Any" && filters.bedrooms;
+    if (hasSelection) {
+      return (
+        <div className="flex flex-col items-start">
+          <span className="text-xs text-muted-foreground">Bedrooms</span>
+          <span className="text-sm font-medium">{filters.bedrooms}+</span>
+        </div>
+      );
+    }
+    return "Bedrooms";
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -97,41 +106,41 @@ export const PropertySearchBar = ({
   return (
     <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20">
       {/* Location Search - Top Section */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-3 border-b border-gray-200">
         <div onKeyDown={handleKeyPress}>
           <AddressAutocomplete
             value={filters.location}
             onChange={(value) => onFiltersChange({ location: value })}
             placeholder="Search city or suburb..."
-            className="h-12 text-base border-0 focus-visible:ring-2 focus-visible:ring-primary text-foreground bg-white w-full"
+            className="h-10 text-sm border-0 focus-visible:ring-2 focus-visible:ring-primary text-foreground bg-white w-full"
           />
         </div>
       </div>
 
       {/* Filters - Bottom Section */}
-      <div className="p-4">
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+      <div className="p-3">
+        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
           {/* Property Type Dropdown */}
           <Popover open={propertyTypeOpen} onOpenChange={setPropertyTypeOpen}>
             <PopoverTrigger asChild>
               <Button 
                 variant="outline" 
-                className={`h-12 px-4 min-w-[140px] justify-between bg-white hover:bg-muted/50 border-input ${
-                  filters.propertyType !== "Any" && filters.propertyType ? 'bg-primary text-primary-foreground' : 'text-foreground'
+                className={`h-10 px-3 min-w-[110px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${
+                  filters.propertyType !== "Any" && filters.propertyType ? 'bg-primary text-white' : 'text-foreground'
                 }`}
               >
-                <span className="truncate">{getPropertyTypeLabel()}</span>
-                <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
+                <span className="truncate w-full">{getPropertyTypeLabel()}</span>
+                <ChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-48 p-2 bg-popover border border-border z-50" align="start">
+            <PopoverContent className="w-48 p-2 bg-white border border-border z-50" align="start">
               <div className="space-y-1">
                 {propertyTypeOptions.map((option) => (
                   <Button
                     key={option.value}
                     variant="ghost"
                     size="sm"
-                    className="w-full justify-start hover:bg-muted/50"
+                    className="w-full justify-start hover:bg-muted/50 text-sm"
                     onClick={() => {
                       onFiltersChange({ propertyType: option.value });
                       setPropertyTypeOpen(false);
@@ -149,13 +158,13 @@ export const PropertySearchBar = ({
             <PopoverTrigger asChild>
               <Button 
                 variant="outline" 
-                className="h-12 px-4 min-w-[140px] justify-between bg-white hover:bg-muted/50 text-foreground border-input"
+                className="h-10 px-3 min-w-[110px] justify-start text-left bg-white hover:bg-primary hover:text-white text-foreground border-input text-sm"
               >
-                <span className="truncate">{getPriceLabel()}</span>
-                <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
+                <span className="truncate w-full">{getPriceLabel()}</span>
+                <ChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-4 bg-popover border border-border z-50" align="start">
+            <PopoverContent className="w-80 p-4 bg-white border border-border z-50" align="start">
               <div className="space-y-4">
                 <h4 className="font-medium text-foreground">Price Range</h4>
                 <div className="grid grid-cols-2 gap-3">
@@ -166,7 +175,7 @@ export const PropertySearchBar = ({
                       placeholder="Any"
                       value={filters.minPrice || ""}
                       onChange={(e) => onFiltersChange({ minPrice: e.target.value })}
-                      className="h-10"
+                      className="h-9 text-sm"
                     />
                   </div>
                   <div>
@@ -176,7 +185,7 @@ export const PropertySearchBar = ({
                       placeholder="Any"
                       value={filters.maxPrice || ""}
                       onChange={(e) => onFiltersChange({ maxPrice: e.target.value })}
-                      className="h-10"
+                      className="h-9 text-sm"
                     />
                   </div>
                 </div>
@@ -184,7 +193,7 @@ export const PropertySearchBar = ({
                   <Button 
                     size="sm" 
                     onClick={() => setPriceOpen(false)}
-                    className="bg-primary hover:bg-primary/90"
+                    className="bg-primary hover:bg-primary/90 text-sm"
                   >
                     Apply
                   </Button>
@@ -198,22 +207,22 @@ export const PropertySearchBar = ({
             <PopoverTrigger asChild>
               <Button 
                 variant="outline" 
-                className={`h-12 px-4 min-w-[140px] justify-between bg-white hover:bg-muted/50 border-input ${
-                  filters.bedrooms !== "Any" && filters.bedrooms ? 'bg-primary text-primary-foreground' : 'text-foreground'
+                className={`h-10 px-3 min-w-[110px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${
+                  filters.bedrooms !== "Any" && filters.bedrooms ? 'bg-primary text-white' : 'text-foreground'
                 }`}
               >
-                <span className="truncate">{getBedroomsLabel()}</span>
-                <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
+                <span className="truncate w-full">{getBedroomsLabel()}</span>
+                <ChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-48 p-2 bg-popover border border-border z-50" align="start">
+            <PopoverContent className="w-48 p-2 bg-white border border-border z-50" align="start">
               <div className="space-y-1">
                 {bedroomOptions.map((option) => (
                   <Button
                     key={option.value}
                     variant="ghost"
                     size="sm"
-                    className="w-full justify-start hover:bg-muted/50"
+                    className="w-full justify-start hover:bg-muted/50 text-sm"
                     onClick={() => {
                       onFiltersChange({ bedrooms: option.value });
                       setBedroomsOpen(false);
@@ -226,56 +235,23 @@ export const PropertySearchBar = ({
             </PopoverContent>
           </Popover>
 
-          {/* Bathrooms Dropdown */}
-          <Popover open={bathroomsOpen} onOpenChange={setBathroomsOpen}>
-            <PopoverTrigger asChild>
-              <Button 
-                variant="outline" 
-                className={`h-12 px-4 min-w-[140px] justify-between bg-white hover:bg-muted/50 border-input ${
-                  filters.bathrooms !== "Any" && filters.bathrooms ? 'bg-primary text-primary-foreground' : 'text-foreground'
-                }`}
-              >
-                <span className="truncate">{getBathroomsLabel()}</span>
-                <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-2 bg-popover border border-border z-50" align="start">
-              <div className="space-y-1">
-                {bathroomOptions.map((option) => (
-                  <Button
-                    key={option.value}
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start hover:bg-muted/50"
-                    onClick={() => {
-                      onFiltersChange({ bathrooms: option.value });
-                      setBathroomsOpen(false);
-                    }}
-                  >
-                    {option.label} {option.label !== 'Any' ? 'Bathroom' + (option.label !== '1+' ? 's' : '') : ''}
-                  </Button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-
           {/* More Filters Button */}
           <Button
             variant="outline"
-            className="h-12 px-4 bg-white hover:bg-muted/50 text-foreground border-input"
+            className="h-10 px-3 bg-white hover:bg-primary hover:text-white text-foreground border-input text-sm"
             onClick={onMoreFiltersClick}
           >
-            <SlidersHorizontal className="h-4 w-4 mr-2" />
+            <SlidersHorizontal className="h-3 w-3 mr-1" />
             More Filters
           </Button>
 
           {/* Search Button */}
           <Button 
-            size="lg" 
-            className="h-12 px-8 bg-primary hover:bg-primary/90 text-primary-foreground sm:ml-auto"
+            size="sm" 
+            className="h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground text-sm sm:ml-auto"
             onClick={onSearch}
           >
-            <Search className="h-5 w-5 mr-2" />
+            <Search className="h-4 w-4 mr-1" />
             Search
           </Button>
         </div>
