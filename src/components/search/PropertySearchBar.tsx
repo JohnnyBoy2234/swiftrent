@@ -85,10 +85,22 @@ export const PropertySearchBar = ({
   const getPriceLabel = () => {
     const min = formatPrice(filters.minPrice);
     const max = formatPrice(filters.maxPrice);
-    if (!min && !max) return "Price";
-    if (!min) return `Up to ${max}`;
-    if (!max) return `From ${min}`;
-    return `${min} - ${max}`;
+    
+    const hasSelection = (filters.minPrice && filters.minPrice !== "0") || (filters.maxPrice && filters.maxPrice !== "0");
+    if (hasSelection) {
+      let priceRange = "";
+      if (!min) priceRange = `Up to ${max}`;
+      else if (!max) priceRange = `From ${min}`;
+      else priceRange = `${min} - ${max}`;
+      
+      return (
+        <div className="flex flex-col items-start">
+          <span className="text-xs text-slate-300">Price</span>
+          <span className="text-sm font-normal">{priceRange}</span>
+        </div>
+      );
+    }
+    return "Price";
   };
   const getPropertyTypeLabel = () => {
     const hasSelection = filters.propertyType !== "Any" && filters.propertyType;
@@ -153,7 +165,7 @@ export const PropertySearchBar = ({
           {/* Price Range Dropdown */}
           <Popover open={priceOpen} onOpenChange={setPriceOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="h-10 px-3 flex-1 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white text-foreground border-input text-sm">
+              <Button variant="outline" className={`h-10 px-3 flex-1 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${((filters.minPrice && filters.minPrice !== "0") || (filters.maxPrice && filters.maxPrice !== "0")) ? 'bg-primary text-white' : 'text-foreground'}`}>
                 <span className="truncate w-full">{getPriceLabel()}</span>
                 <ChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
               </Button>
