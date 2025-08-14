@@ -94,7 +94,7 @@ export const PropertySearchBar = ({
     const hasSelection = filters.propertyType !== "Any" && filters.propertyType;
     if (hasSelection) {
       return <div className="flex flex-col items-start">
-          <span className="text-xs text-muted-foreground/70">Property Type</span>
+          <span className="text-xs text-gray-400">Property Type</span>
           <span className="text-sm font-normal">{filters.propertyType}</span>
         </div>;
     }
