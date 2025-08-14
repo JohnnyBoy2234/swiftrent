@@ -103,11 +103,12 @@ export const PropertySearchBar = ({
     return "Price";
   };
   const getPropertyTypeLabel = () => {
-    const hasSelection = filters.propertyType !== "Any" && filters.propertyType;
-    if (hasSelection) {
+    const selectedTypes = filters.propertyType ? filters.propertyType.split(',').filter(type => type !== "Any" && type.trim() !== "") : [];
+    if (selectedTypes.length > 0) {
+      const displayText = selectedTypes.length === 1 ? selectedTypes[0] : `${selectedTypes.length} Selected`;
       return <div className="flex flex-col items-start">
           <span className="text-xs text-slate-300">Property Type</span>
-          <span className="text-sm font-normal">{filters.propertyType}</span>
+          <span className="text-sm font-normal">{displayText}</span>
         </div>;
     }
     return "Property Type";
@@ -150,14 +151,33 @@ export const PropertySearchBar = ({
             </PopoverTrigger>
             <PopoverContent className="w-48 p-2 bg-white border border-border z-50" align="start">
               <div className="space-y-1">
-                {propertyTypeOptions.map(option => <Button key={option.value} variant="ghost" size="sm" onClick={() => {
-                onFiltersChange({
-                  propertyType: option.value
-                });
-                setPropertyTypeOpen(false);
-              }} className="w-full justify-start hover:bg-muted/50 text-sm text-gray-950">
+                {propertyTypeOptions.map(option => {
+                  const selectedTypes = filters.propertyType ? filters.propertyType.split(',').filter(type => type.trim() !== "") : [];
+                  const isSelected = selectedTypes.includes(option.value);
+                  
+                  return <Button 
+                    key={option.value} 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      if (option.value === "Any") {
+                        onFiltersChange({ propertyType: "Any" });
+                      } else {
+                        let newSelectedTypes;
+                        if (isSelected) {
+                          newSelectedTypes = selectedTypes.filter(type => type !== option.value);
+                        } else {
+                          newSelectedTypes = [...selectedTypes.filter(type => type !== "Any"), option.value];
+                        }
+                        onFiltersChange({ 
+                          propertyType: newSelectedTypes.length === 0 ? "Any" : newSelectedTypes.join(',')
+                        });
+                      }
+                    }} 
+                    className={`w-full justify-start hover:bg-primary hover:text-white text-sm text-gray-950 ${isSelected ? 'bg-primary/10 text-primary' : ''}`}>
                     {option.label}
-                  </Button>)}
+                  </Button>;
+                })}
               </div>
             </PopoverContent>
           </Popover>
@@ -206,7 +226,7 @@ export const PropertySearchBar = ({
             </PopoverTrigger>
             <PopoverContent className="w-48 p-2 bg-white border border-border z-50" align="start">
               <div className="space-y-1">
-                {bedroomOptions.map(option => <Button key={option.value} variant="ghost" size="sm" className="w-full justify-start hover:bg-muted/50 text-sm" onClick={() => {
+                {bedroomOptions.map(option => <Button key={option.value} variant="ghost" size="sm" className="w-full justify-start hover:bg-primary hover:text-white text-sm" onClick={() => {
                 onFiltersChange({
                   bedrooms: option.value
                 });
