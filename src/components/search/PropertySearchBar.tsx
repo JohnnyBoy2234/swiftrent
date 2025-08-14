@@ -89,8 +89,9 @@ export const PropertySearchBar = ({
     const hasSelection = (filters.minPrice && filters.minPrice !== "0") || (filters.maxPrice && filters.maxPrice !== "0");
     if (hasSelection) {
       let priceRange = "";
-      if (!min) priceRange = `Up to ${max}`;
-      else if (!max) priceRange = `From ${min}`;
+      if (!min && !max) priceRange = "Any";
+      else if (!min) priceRange = `Up to ${max}`;
+      else if (!max || filters.maxPrice === "") priceRange = `From ${min}`;
       else priceRange = `${min} - ${max}`;
       
       return (
@@ -196,15 +197,63 @@ export const PropertySearchBar = ({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm text-muted-foreground mb-1 block">Min Price</label>
-                    <Input type="number" placeholder="Any" value={filters.minPrice || ""} onChange={e => onFiltersChange({
-                    minPrice: e.target.value
-                  })} className="h-9 text-sm" />
+                    <Input 
+                      type="number" 
+                      placeholder="Any" 
+                      value={filters.minPrice || ""} 
+                      onChange={e => {
+                        const value = e.target.value;
+                        const maxPrice = filters.maxPrice ? parseInt(filters.maxPrice) : null;
+                        const newMinPrice = value ? parseInt(value) : null;
+                        
+                        // If max price exists and new min is higher, adjust max
+                        if (maxPrice && newMinPrice && newMinPrice > maxPrice) {
+                          onFiltersChange({
+                            minPrice: value,
+                            maxPrice: value
+                          });
+                        } else {
+                          onFiltersChange({
+                            minPrice: value
+                          });
+                        }
+                      }} 
+                      className="h-9 text-sm" 
+                    />
                   </div>
                   <div>
                     <label className="text-sm text-muted-foreground mb-1 block">Max Price</label>
-                    <Input type="number" placeholder="Any" value={filters.maxPrice || ""} onChange={e => onFiltersChange({
-                    maxPrice: e.target.value
-                  })} className="h-9 text-sm" />
+                    <Input 
+                      type="number" 
+                      placeholder="Any" 
+                      value={filters.maxPrice || ""} 
+                      onChange={e => {
+                        const value = e.target.value;
+                        const minPrice = filters.minPrice ? parseInt(filters.minPrice) : null;
+                        const newMaxPrice = value ? parseInt(value) : null;
+                        
+                        // If value is empty, allow it (means "any" max price)
+                        if (!value) {
+                          onFiltersChange({
+                            maxPrice: ""
+                          });
+                          return;
+                        }
+                        
+                        // If min price exists and new max is lower, adjust min
+                        if (minPrice && newMaxPrice && newMaxPrice < minPrice) {
+                          onFiltersChange({
+                            minPrice: value,
+                            maxPrice: value
+                          });
+                        } else {
+                          onFiltersChange({
+                            maxPrice: value
+                          });
+                        }
+                      }} 
+                      className="h-9 text-sm" 
+                    />
                   </div>
                 </div>
                 <div className="flex justify-end">
