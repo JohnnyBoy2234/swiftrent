@@ -76,8 +76,8 @@ export const PropertySearchBar = ({
     if (hasSelection) {
       return (
         <div className="flex flex-col items-start">
-          <span className="text-xs text-muted-foreground">Property Type</span>
-          <span className="text-sm font-medium">{filters.propertyType}</span>
+          <span className="text-xs text-muted-foreground/70">Property Type</span>
+          <span className="text-sm font-normal">{filters.propertyType}</span>
         </div>
       );
     }
@@ -89,8 +89,8 @@ export const PropertySearchBar = ({
     if (hasSelection) {
       return (
         <div className="flex flex-col items-start">
-          <span className="text-xs text-muted-foreground">Bedrooms</span>
-          <span className="text-sm font-medium">{filters.bedrooms}+</span>
+          <span className="text-xs text-muted-foreground/70">Bedrooms</span>
+          <span className="text-sm font-normal">{filters.bedrooms}+</span>
         </div>
       );
     }
@@ -125,7 +125,7 @@ export const PropertySearchBar = ({
             <PopoverTrigger asChild>
               <Button 
                 variant="outline" 
-                className={`h-10 px-3 min-w-[110px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${
+                className={`h-10 px-3 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${
                   filters.propertyType !== "Any" && filters.propertyType ? 'bg-primary text-white' : 'text-foreground'
                 }`}
               >
@@ -158,7 +158,7 @@ export const PropertySearchBar = ({
             <PopoverTrigger asChild>
               <Button 
                 variant="outline" 
-                className="h-10 px-3 min-w-[110px] justify-start text-left bg-white hover:bg-primary hover:text-white text-foreground border-input text-sm"
+                className="h-10 px-3 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white text-foreground border-input text-sm"
               >
                 <span className="truncate w-full">{getPriceLabel()}</span>
                 <ChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
@@ -207,7 +207,7 @@ export const PropertySearchBar = ({
             <PopoverTrigger asChild>
               <Button 
                 variant="outline" 
-                className={`h-10 px-3 min-w-[110px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${
+                className={`h-10 px-3 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${
                   filters.bedrooms !== "Any" && filters.bedrooms ? 'bg-primary text-white' : 'text-foreground'
                 }`}
               >
@@ -238,7 +238,7 @@ export const PropertySearchBar = ({
           {/* More Filters Button */}
           <Button
             variant="outline"
-            className="h-10 px-3 bg-white hover:bg-primary hover:text-white text-foreground border-input text-sm"
+            className="h-10 px-3 min-w-[130px] bg-white hover:bg-primary hover:text-white text-foreground border-input text-sm"
             onClick={onMoreFiltersClick}
           >
             <SlidersHorizontal className="h-3 w-3 mr-1" />
@@ -248,7 +248,7 @@ export const PropertySearchBar = ({
           {/* Search Button */}
           <Button 
             size="sm" 
-            className="h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground text-sm sm:ml-auto"
+            className="h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground text-sm"
             onClick={onSearch}
           >
             <Search className="h-4 w-4 mr-1" />
