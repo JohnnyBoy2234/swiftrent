@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { NavLink, useSearchParams } from 'react-router-dom';
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 
 export default function Messages() {
   const { user, isLandlord } = useAuth();
@@ -109,101 +110,22 @@ export default function Messages() {
     }
   }, [searchParams, conversations]);
 
-  // Render with sidebar for landlords, without for tenants
+  // Render with responsive layout for landlords, without for tenants
   if (isLandlord) {
     return (
-      <div className="min-h-screen bg-background flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-card border-r border-border">
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-8">
-              <Building2 className="h-6 w-6 text-primary" />
-              <h2 className="text-xl font-bold">Rental Manager</h2>
-            </div>
-            
-            <nav className="space-y-2">
-              <NavLink
-                to="/dashboard"
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`
-                }
-              >
-                <Building2 className="h-4 w-4" />
-                Properties
-              </NavLink>
-              
-              <NavLink
-                to="/messages"
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`
-                }
-              >
-                <MessageCircle className="h-4 w-4" />
-                Messages
-                {conversations.reduce((total, conv) => total + (conv.unread_count || 0), 0) > 0 && (
-                  <Badge variant="destructive" className="ml-auto h-5 w-5 p-0 text-xs flex items-center justify-center">
-                    {conversations.reduce((total, conv) => total + (conv.unread_count || 0), 0)}
-                  </Badge>
-                )}
-              </NavLink>
-              
-              <NavLink
-                to="/payments"
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`
-                }
-              >
-                <CreditCard className="h-4 w-4" />
-                Payments
-              </NavLink>
-              
-              <NavLink
-                to="/alerts"
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`
-                }
-              >
-                <Bell className="h-4 w-4" />
-                Alerts
-              </NavLink>
-            </nav>
+      <DashboardLayout title="Messages">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="h-6 w-6 text-primary" />
+            <h2 className="text-lg font-semibold">Conversations</h2>
           </div>
+          <Badge variant="secondary" className="text-xs">
+            {conversations.reduce((total, conv) => total + (conv.unread_count || 0), 0)} unread
+          </Badge>
         </div>
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col">
-          <div className="border-b border-border p-6">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="h-6 w-6 text-primary" />
-                <h1 className="text-2xl font-bold">Messages</h1>
-              </div>
-              <Badge variant="secondary">
-                {conversations.reduce((total, conv) => total + (conv.unread_count || 0), 0)} unread
-              </Badge>
-            </div>
-          </div>
-
-          <div className="flex-1 p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
-              {/* Conversations List */}
-              <div className={`${showConversations ? 'block' : 'hidden lg:block'} lg:col-span-1`}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 h-[calc(100vh-12rem)]">
+          {/* Conversations List */}
+          <div className={`${showConversations ? 'block' : 'hidden lg:block'} lg:col-span-1`}>
                 <Card className="h-full">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -279,10 +201,10 @@ export default function Messages() {
                     </ScrollArea>
                   </CardContent>
                 </Card>
-              </div>
+            </div>
 
-              {/* Chat Window */}
-              <div className={`${!showConversations ? 'block' : 'hidden lg:block'} lg:col-span-2`}>
+            {/* Chat Window */}
+            <div className={`${!showConversations ? 'block' : 'hidden lg:block'} lg:col-span-2`}>
                 {selectedConversation ? (
                   <Card className="h-full flex flex-col">
                     {/* Chat Header */}
@@ -421,13 +343,11 @@ export default function Messages() {
                         Choose a conversation from the list to start messaging
                       </p>
                     </div>
-                  </Card>
-                )}
-              </div>
-            </div>
+              </Card>
+            )}
           </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
