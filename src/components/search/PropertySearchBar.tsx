@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 interface SearchFilters {
   location: string;
+  propertyType: string;
   minPrice: string;
   maxPrice: string;
   bedrooms: string;
@@ -27,9 +28,19 @@ export const PropertySearchBar = ({
   onMoreFiltersClick, 
   onSearch 
 }: PropertySearchBarProps) => {
+  const [propertyTypeOpen, setPropertyTypeOpen] = useState(false);
   const [priceOpen, setPriceOpen] = useState(false);
   const [bedroomsOpen, setBedroomsOpen] = useState(false);
   const [bathroomsOpen, setBathroomsOpen] = useState(false);
+
+  const propertyTypeOptions = [
+    { value: "Any", label: "Any Property Type" },
+    { value: "House", label: "House" },
+    { value: "Apartment", label: "Apartment" },
+    { value: "Townhouse", label: "Townhouse" },
+    { value: "Studio", label: "Studio" },
+    { value: "Duplex", label: "Duplex" }
+  ];
 
   const bedroomOptions = [
     { value: "Any", label: "Any" },
@@ -62,12 +73,19 @@ export const PropertySearchBar = ({
     return `${min} - ${max}`;
   };
 
+  const getPropertyTypeLabel = () => {
+    if (filters.propertyType === "Any" || !filters.propertyType) return "Property Type";
+    return filters.propertyType;
+  };
+
   const getBedroomsLabel = () => {
-    return "Bedrooms";
+    if (filters.bedrooms === "Any" || !filters.bedrooms) return "Bedrooms";
+    return filters.bedrooms + "+";
   };
 
   const getBathroomsLabel = () => {
-    return "Bathrooms";
+    if (filters.bathrooms === "Any" || !filters.bathrooms) return "Bathrooms";
+    return filters.bathrooms + "+";
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -93,6 +111,39 @@ export const PropertySearchBar = ({
       {/* Filters - Bottom Section */}
       <div className="p-4">
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          {/* Property Type Dropdown */}
+          <Popover open={propertyTypeOpen} onOpenChange={setPropertyTypeOpen}>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                className={`h-12 px-4 min-w-[140px] justify-between bg-white hover:bg-muted/50 border-input ${
+                  filters.propertyType !== "Any" && filters.propertyType ? 'bg-primary text-primary-foreground' : 'text-foreground'
+                }`}
+              >
+                <span className="truncate">{getPropertyTypeLabel()}</span>
+                <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-2 bg-popover border border-border z-50" align="start">
+              <div className="space-y-1">
+                {propertyTypeOptions.map((option) => (
+                  <Button
+                    key={option.value}
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start hover:bg-muted/50"
+                    onClick={() => {
+                      onFiltersChange({ propertyType: option.value });
+                      setPropertyTypeOpen(false);
+                    }}
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+
           {/* Price Range Dropdown */}
           <Popover open={priceOpen} onOpenChange={setPriceOpen}>
             <PopoverTrigger asChild>
@@ -147,7 +198,9 @@ export const PropertySearchBar = ({
             <PopoverTrigger asChild>
               <Button 
                 variant="outline" 
-                className="h-12 px-4 min-w-[140px] justify-between bg-white hover:bg-muted/50 text-foreground border-input"
+                className={`h-12 px-4 min-w-[140px] justify-between bg-white hover:bg-muted/50 border-input ${
+                  filters.bedrooms !== "Any" && filters.bedrooms ? 'bg-primary text-primary-foreground' : 'text-foreground'
+                }`}
               >
                 <span className="truncate">{getBedroomsLabel()}</span>
                 <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
@@ -178,7 +231,9 @@ export const PropertySearchBar = ({
             <PopoverTrigger asChild>
               <Button 
                 variant="outline" 
-                className="h-12 px-4 min-w-[140px] justify-between bg-white hover:bg-muted/50 text-foreground border-input"
+                className={`h-12 px-4 min-w-[140px] justify-between bg-white hover:bg-muted/50 border-input ${
+                  filters.bathrooms !== "Any" && filters.bathrooms ? 'bg-primary text-primary-foreground' : 'text-foreground'
+                }`}
               >
                 <span className="truncate">{getBathroomsLabel()}</span>
                 <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />

@@ -18,6 +18,7 @@ const Index = () => {
   const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const navigate = useNavigate();
 
+  const [propertyType, setPropertyType] = useState("Any");
   const [bedrooms, setBedrooms] = useState("Any");
   const [bathrooms, setBathrooms] = useState("Any");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
@@ -132,6 +133,7 @@ const Index = () => {
             <PropertySearchBar
               filters={{
                 location: searchLocation,
+                propertyType: propertyType,
                 minPrice: priceRange[0] > 0 ? priceRange[0].toString() : "",
                 maxPrice: priceRange[1] < 100000 ? priceRange[1].toString() : "",
                 bedrooms: bedrooms,
@@ -139,6 +141,7 @@ const Index = () => {
               }}
               onFiltersChange={(newFilters) => {
                 if (newFilters.location !== undefined) setSearchLocation(newFilters.location);
+                if (newFilters.propertyType !== undefined) setPropertyType(newFilters.propertyType);
                 if (newFilters.minPrice !== undefined || newFilters.maxPrice !== undefined) {
                   const minPrice = newFilters.minPrice ? parseInt(newFilters.minPrice) : (priceRange[0] > 0 ? priceRange[0] : 0);
                   const maxPrice = newFilters.maxPrice ? parseInt(newFilters.maxPrice) : (priceRange[1] < 100000 ? priceRange[1] : 100000);
@@ -166,6 +169,7 @@ const Index = () => {
                   availableFrom: null
                 });
                 setSearchLocation("");
+                setPropertyType("Any");
                 setBedrooms("Any");
                 setBathrooms("Any");
                 setPriceRange([0, 100000]);
