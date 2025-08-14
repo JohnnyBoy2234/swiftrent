@@ -123,8 +123,9 @@ const Index = () => {
         <div className="absolute inset-0 opacity-10 bg-gradient-to-br from-transparent via-white/5 to-transparent"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-3xl md:text-5xl font-bold mb-6 mt-4 md:mt-0">
-              Renting the way it should be
+            <h1 className="text-3xl md:text-5xl font-bold mb-6 mt-4 md:mt-0 block text-light-gray">
+              Find Your Perfect
+              <span className="block text-earth-warm">Rental Home</span>
             </h1>
             <p className="text-lg md:text-xl mb-8 text-white/90">
               Find your perfect rental home in South Africa — connecting landlords and tenants directly with state-of-the-art technology. No agents. Zero commission. Full control.
