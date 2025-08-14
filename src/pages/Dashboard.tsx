@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Home, MessageSquare, BarChart3, Eye, Users, Calendar, MoreHorizontal, PenTool } from 'lucide-react';
+import { Plus, Home, Eye, PenTool } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Property, Tenancy } from '@/types/dashboard';
 import { useLandlordNotifications } from '@/hooks/useLandlordNotifications';
 import { SignedLeasesList } from '@/components/lease/SignedLeasesList';
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 
 interface Inquiry {
   id: string;
@@ -199,55 +200,16 @@ export default function Dashboard() {
     }
   };
 
-  return (
-    <div className="flex min-h-screen bg-gradient-to-br from-background via-earth-light/20 to-ocean-blue/5">
-      {/* Sidebar */}
-      <div className="w-64 border-r bg-gradient-to-b from-white to-earth-light/50 shadow-medium">
-        <div className="p-6">
-          <div className="flex items-center gap-2 mb-8">
-            <div className="w-8 h-8 bg-gradient-to-br from-ocean-blue to-success-green rounded flex items-center justify-center shadow-soft">
-              <Home className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-xl font-bold">SwiftRent</h1>
-          </div>
-          
-          <nav className="space-y-2">
-            <Button variant="default" className="w-full justify-start gap-3 bg-gradient-to-r from-ocean-blue to-ocean-blue-light hover:from-ocean-blue-dark hover:to-ocean-blue shadow-soft">
-              <Home className="w-5 h-5" />
-              Properties
-            </Button>
-            <Button variant="ghost" className="w-full justify-start gap-3 hover:bg-earth-light/50 hover:text-earth-warm-dark" onClick={() => navigate('/messages')}>
-              <MessageSquare className="w-5 h-5" />
-              Messages
-            </Button>
-            <Button variant="ghost" className="w-full justify-start gap-3">
-              <BarChart3 className="w-5 h-5" />
-              Payments
-            </Button>
-            <Button variant="ghost" className="w-full justify-start gap-3">
-              <Eye className="w-5 h-5" />
-              Alerts
-            </Button>
-          </nav>
-        </div>
-      </div>
+  const actions = (
+    <Button onClick={() => navigate('/dashboard/add-property')} className="flex items-center gap-2">
+      <Plus className="h-4 w-4" />
+      <span className="hidden sm:inline">Add Property</span>
+    </Button>
+  );
 
-      {/* Main Content */}
-      <div className="flex-1">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">Properties</h1>
-            <div className="flex gap-3">
-              <Button onClick={() => navigate('/dashboard/add-property')} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Add a property
-              </Button>
-              <Button variant="outline" onClick={signOut}>
-                Sign Out
-              </Button>
-            </div>
-          </div>
+  return (
+    <DashboardLayout title="Properties" actions={actions}>
+      <div className="space-y-6">{/* Content moved from main div */}
 
           {/* Notifications for Pending Signatures */}
           {pendingSignatures.length > 0 && (
@@ -290,47 +252,52 @@ export default function Dashboard() {
             </Card>
           )}
 
-          {/* Property Filters */}
-          <div className="flex gap-2 mb-6">
-            <Button
-              variant={filter === 'all' ? 'default' : 'outline'}
-              onClick={() => setFilter('all')}
-              className="rounded-full"
-            >
-              All ({propertiesWithCounts.length})
-            </Button>
-            <Button
-              variant={filter === 'for-rent' ? 'default' : 'outline'}
-              onClick={() => setFilter('for-rent')}
-              className="rounded-full"
-            >
-              For rent ({propertiesWithCounts.filter(p => p.status === 'available').length})
-            </Button>
-            <Button
-              variant={filter === 'off-market' ? 'default' : 'outline'}
-              onClick={() => setFilter('off-market')}
-              className="rounded-full"
-            >
-              Off-market ({propertiesWithCounts.filter(p => p.status === 'rented' || p.status === 'occupied').length})
-            </Button>
-          </div>
+        {/* Property Filters */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          <Button
+            variant={filter === 'all' ? 'default' : 'outline'}
+            onClick={() => setFilter('all')}
+            className="rounded-full text-xs sm:text-sm"
+            size="sm"
+          >
+            All ({propertiesWithCounts.length})
+          </Button>
+          <Button
+            variant={filter === 'for-rent' ? 'default' : 'outline'}
+            onClick={() => setFilter('for-rent')}
+            className="rounded-full text-xs sm:text-sm"
+            size="sm"
+          >
+            For rent ({propertiesWithCounts.filter(p => p.status === 'available').length})
+          </Button>
+          <Button
+            variant={filter === 'off-market' ? 'default' : 'outline'}
+            onClick={() => setFilter('off-market')}
+            className="rounded-full text-xs sm:text-sm"
+            size="sm"
+          >
+            Off-market ({propertiesWithCounts.filter(p => p.status === 'rented' || p.status === 'occupied').length})
+          </Button>
+        </div>
 
-          {/* Properties Table */}
-          {propertiesWithCounts.length === 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>No Properties Yet</CardTitle>
-                <CardDescription>Get started by adding your first property</CardDescription>
-              </CardHeader>
-              <CardContent className="text-center py-8">
-                <Button onClick={() => navigate('/dashboard/add-property')} className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Your First Property
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="shadow-medium border-ocean-blue/20">
+        {/* Properties Table - Mobile responsive */}
+        {propertiesWithCounts.length === 0 ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>No Properties Yet</CardTitle>
+              <CardDescription>Get started by adding your first property</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center py-8">
+              <Button onClick={() => navigate('/dashboard/add-property')} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add Your First Property
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Desktop Table View */}
+            <Card className="shadow-medium border-ocean-blue/20 hidden lg:block">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -409,13 +376,84 @@ export default function Dashboard() {
                 </TableBody>
               </Table>
             </Card>
-          )}
-          {/* Signed Leases */}
-          <div className="mt-8">
-            <SignedLeasesList role="landlord" />
-          </div>
+
+            {/* Mobile Card View */}
+            <div className="space-y-4 lg:hidden">
+              {filteredProperties.map((property) => (
+                <Card 
+                  key={property.id}
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => navigate(`/manage-property/${property.id}`)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Home className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium truncate">{property.title}</div>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            <Badge variant={getStatusBadgeVariant(getPropertyStatus(property))} className="text-xs">
+                              {getPropertyStatus(property)}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/manage-property/${property.id}`);
+                        }}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Rent:</span>
+                        <div className="font-medium">
+                          {property.status === 'available' ? (
+                            `R${property.price.toLocaleString()}`
+                          ) : (
+                            '-'
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Interest:</span>
+                        <div className="font-medium">
+                          {property.inquiriesCount} inquiries
+                        </div>
+                        <div className="text-muted-foreground text-xs">
+                          {property.applicationsCount} applications
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {property.activeTenancy?.lease_status && (
+                      <div className="mt-3 pt-3 border-t">
+                        <span className="text-muted-foreground text-sm">Lease: </span>
+                        <Badge variant="outline" className="text-xs">
+                          {property.activeTenancy.lease_status === 'signed' ? 'Active' : 
+                           property.activeTenancy.lease_status === 'pending' ? 'Pending' : 'Draft'}
+                        </Badge>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
+        )}
+        {/* Signed Leases */}
+        <div className="mt-8">
+          <SignedLeasesList role="landlord" />
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

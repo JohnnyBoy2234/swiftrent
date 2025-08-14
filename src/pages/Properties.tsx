@@ -242,20 +242,20 @@ export default function Properties() {
           )}
         </div>
 
-        {/* Property Grid */}
+        {/* Property Grid - Mobile responsive */}
         {filteredProperties.length === 0 ? (
-          <Card className="p-12 text-center">
-            <Home className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">No properties found</h3>
-            <p className="text-muted-foreground mb-4">
+          <Card className="p-8 lg:p-12 text-center">
+            <Home className="h-12 w-12 lg:h-16 lg:w-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg lg:text-xl font-semibold mb-2">No properties found</h3>
+            <p className="text-sm lg:text-base text-muted-foreground mb-4">
               Try adjusting your search criteria or browse all available properties.
             </p>
-            <Button onClick={clearFilters}>
+            <Button onClick={clearFilters} size="sm">
               Show All Properties
             </Button>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
             {filteredProperties.map((property) => (
               <PropertyCard
                 key={property.id}
