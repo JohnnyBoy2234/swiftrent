@@ -60,7 +60,6 @@ export default function LocationStep({ control, errors }: LocationStepProps) {
             control={control}
             rules={{ 
               required: 'Title is required',
-              minLength: { value: 10, message: 'Title should be at least 10 characters' },
               maxLength: { value: 100, message: 'Title should not exceed 100 characters' }
             }}
             render={({ field }) => (
