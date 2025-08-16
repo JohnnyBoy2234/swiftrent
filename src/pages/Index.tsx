@@ -114,7 +114,7 @@ const Index = () => {
       <section className="relative text-white overflow-hidden">
         {/* Background Image */}
         <div 
-          className="absolute inset-0 bg-contain sm:bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-110 sm:scale-100"
           style={{ backgroundImage: `url(${heroBackground})` }}
         ></div>
         {/* Premium Gradient Overlay */}
