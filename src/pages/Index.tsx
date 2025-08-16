@@ -114,17 +114,18 @@ const Index = () => {
       <section className="relative text-white overflow-hidden">
         {/* Background Image */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat md:bg-cover"
           style={{ backgroundImage: `url(${heroBackground})` }}
         ></div>
         {/* Premium Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-ocean-blue/90 via-ocean-blue-dark/85 to-success-green/80"></div>
         {/* Subtle Pattern Overlay */}
         <div className="absolute inset-0 opacity-10 bg-gradient-to-br from-transparent via-white/5 to-transparent"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 min-h-[70vh] sm:min-h-[80vh] lg:min-h-screen flex items-center">
           <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-3xl md:text-5xl font-bold mb-6 mt-4 md:mt-0 block text-light-gray">
-              Renting the way it should be
+            <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold mb-4 sm:mb-6 mt-2 sm:mt-4 lg:mt-0 block text-white leading-tight">
+              <span className="block text-white">Renting the way</span>
+              <span className="block text-earth-warm">it should be</span>
             </h1>
             <p className="text-lg md:text-xl mb-8 text-white/90">
               Find your perfect rental home in South Africa — connecting landlords and tenants directly with state-of-the-art technology. No agents. Zero commission. Full control.

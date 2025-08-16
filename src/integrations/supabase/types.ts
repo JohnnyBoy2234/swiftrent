@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -1018,9 +1018,9 @@ export type Database = {
       }
       can_create_application: {
         Args: {
-          viewing_uuid: string
           landlord_uuid: string
           tenant_uuid: string
+          viewing_uuid: string
         }
         Returns: boolean
       }
@@ -1029,32 +1029,32 @@ export type Database = {
         Returns: boolean
       }
       create_admin_account: {
-        Args: { email_param: string; display_name_param: string }
+        Args: { display_name_param: string; email_param: string }
         Returns: Json
       }
       create_notification: {
         Args: {
-          _user_id: string
-          _message: string
           _link_url: string
-          _type?: string
+          _message: string
           _metadata?: Json
+          _type?: string
+          _user_id: string
         }
         Returns: undefined
       }
       has_active_booking: {
         Args: { property_uuid: string; tenant_uuid: string }
         Returns: {
+          end_time: string
           has_booking: boolean
           slot_id: string
           start_time: string
-          end_time: string
         }[]
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
         }
         Returns: boolean
       }
@@ -1068,8 +1068,8 @@ export type Database = {
       }
       update_viewing_booking: {
         Args: {
-          old_slot_uuid: string
           new_slot_uuid: string
+          old_slot_uuid: string
           tenant_uuid: string
         }
         Returns: boolean

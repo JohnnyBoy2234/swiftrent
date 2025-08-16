@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
-import { ChevronDown, SlidersHorizontal, Search } from "lucide-react";
+import { ChevronDown, SlidersHorizontal, Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 interface SearchFilters {
   location: string;
@@ -27,6 +28,13 @@ export const PropertySearchBar = ({
   const [propertyTypeOpen, setPropertyTypeOpen] = useState(false);
   const [priceOpen, setPriceOpen] = useState(false);
   const [bedroomsOpen, setBedroomsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const propertyTypeOptions = [{
     value: "Any",
     label: "Any Property Type"
@@ -129,19 +137,22 @@ export const PropertySearchBar = ({
       onSearch();
     }
   };
-  return <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20">
+  return <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 w-full max-w-4xl mx-auto">
       {/* Location Search - Top Section */}
-      <div className="p-3 border-b border-gray-200">
+      <div className="p-3 sm:p-4 border-b border-gray-200">
         <div onKeyDown={handleKeyPress}>
-          <AddressAutocomplete value={filters.location} onChange={value => onFiltersChange({
-          location: value
-        })} placeholder="Search city or suburb..." className="h-10 text-sm border-0 focus-visible:ring-2 focus-visible:ring-primary text-foreground bg-white w-full" />
+          <AddressAutocomplete 
+            value={filters.location} 
+            onChange={value => onFiltersChange({ location: value })} 
+            placeholder="Search city or suburb..." 
+            className="h-12 sm:h-10 text-base sm:text-sm border-0 focus-visible:ring-2 focus-visible:ring-primary text-foreground bg-white w-full" 
+          />
         </div>
       </div>
 
       {/* Filters - Bottom Section */}
-      <div className="p-3">
-        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+      <div className="p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 items-stretch sm:items-center">
           {/* Property Type Dropdown */}
           <Popover open={propertyTypeOpen} onOpenChange={setPropertyTypeOpen}>
             <PopoverTrigger asChild>
