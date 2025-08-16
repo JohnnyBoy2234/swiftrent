@@ -194,57 +194,7 @@ const Index = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 bg-secondary/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">How SwiftRent Works</h2>
-            <p className="text-lg text-muted-foreground">
-              Simple, direct, and transparent rental connections
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center p-8 shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-earth-light/50">
-              <CardContent className="pt-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-ocean-blue to-ocean-blue-light rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <Search className="h-10 w-10 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">1. Search & Browse</h3>
-                <p className="text-muted-foreground">
-                  Browse thousands of verified properties across South Africa. 
-                  Use filters to find exactly what you're looking for.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="text-center p-8 shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-earth-light/50">
-              <CardContent className="pt-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-earth-warm to-earth-warm-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <Users className="h-10 w-10 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">2. Connect Directly</h3>
-                <p className="text-muted-foreground">
-                  Contact landlords directly through our platform. 
-                  No middleman, no extra fees or commissions.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="text-center p-8 shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-earth-light/50">
-              <CardContent className="pt-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-success-green to-success-green-glow rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <Home className="h-10 w-10 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">3. Move In</h3>
-                <p className="text-muted-foreground">
-                  Arrange viewings, negotiate terms, and move into your 
-                  perfect rental home with confidence.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+      
 
       {/* Featured Properties */}
       <section className="py-16 bg-background">
