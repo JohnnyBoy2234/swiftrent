@@ -188,6 +188,132 @@ const Index = () => {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">How SwiftRent Works</h2>
+            <p className="text-lg text-muted-foreground">
+              Simple steps to find your home or rent your property
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            {/* For Tenants */}
+            <Card className="shadow-lg border-ocean-blue/20 bg-gradient-to-br from-white to-ocean-blue/5">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-soft bg-gradient-to-br from-ocean-blue to-ocean-blue-light">
+                    <Home className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-ocean-blue-dark">For Tenants</h3>
+                    <p className="text-sm text-muted-foreground">Find your perfect home</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="flex gap-4">
+                    <div className="w-8 h-8 bg-gradient-to-br from-ocean-blue to-ocean-blue-light rounded-full flex items-center justify-center flex-shrink-0">
+                      <Search className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">Search & Find</h4>
+                      <p className="text-sm text-muted-foreground">Browse thousands of verified properties with photos and details</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <div className="w-8 h-8 bg-gradient-to-br from-earth-warm to-earth-warm-dark rounded-full flex items-center justify-center flex-shrink-0">
+                      <Users className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">Connect & View</h4>
+                      <p className="text-sm text-muted-foreground">Message landlords directly and book property viewings</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <div className="w-8 h-8 bg-gradient-to-br from-success-green to-success-green-glow rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">Apply & Move In</h4>
+                      <p className="text-sm text-muted-foreground">Submit your application online and sign your lease digitally</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6 pt-4 border-t">
+                  <Link to="/properties">
+                    <Button className="w-full bg-ocean-blue hover:bg-ocean-blue-dark text-white">
+                      Start Searching
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* For Landlords */}
+            <Card className="shadow-lg border-success-green/20 bg-gradient-to-br from-white to-success-green/5">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-soft bg-gradient-to-br from-success-green to-success-green-glow">
+                    <Shield className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-success-green-dark">For Landlords</h3>
+                    <p className="text-sm text-muted-foreground">List your property easily</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="flex gap-4">
+                    <div className="w-8 h-8 bg-gradient-to-br from-success-green to-success-green-glow rounded-full flex items-center justify-center flex-shrink-0">
+                      <Home className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">List Your Property</h4>
+                      <p className="text-sm text-muted-foreground">Add property details, upload photos, and set your price</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <div className="w-8 h-8 bg-gradient-to-br from-earth-warm to-earth-warm-dark rounded-full flex items-center justify-center flex-shrink-0">
+                      <Users className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">Meet Tenants</h4>
+                      <p className="text-sm text-muted-foreground">Receive applications and choose your ideal tenant</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <div className="w-8 h-8 bg-gradient-to-br from-ocean-blue to-ocean-blue-light rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">Rent & Manage</h4>
+                      <p className="text-sm text-muted-foreground">Sign lease agreements and collect rent payments online</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6 pt-4 border-t">
+                  <Link to="/list-property">
+                    <Button className="w-full bg-success-green hover:bg-success-green-dark text-white">
+                      List Property
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Featured Properties */}
       <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
