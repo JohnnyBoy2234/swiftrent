@@ -119,7 +119,7 @@ const Index = () => {
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold mb-4 sm:mb-6 mt-2 sm:mt-4 lg:mt-0 block text-white leading-tight">
               <span className="block text-white">Renting the way</span>
-              <span className="block text-ocean-blue">it should be</span>
+              <span className="block text-success-green">it should be</span>
             </h1>
             <p className="text-lg md:text-xl mb-8 text-white/90">
               Find your perfect rental home in South Africa — connecting landlords and tenants directly with state-of-the-art technology. No agents. Zero commission. Full control.
