@@ -11,7 +11,6 @@ import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import heroBackground from "@/assets/hero-background.jpg";
 
 const Index = () => {
   const [searchLocation, setSearchLocation] = useState("");
@@ -112,11 +111,6 @@ const Index = () => {
       
       {/* Hero Section */}
       <section className="relative text-white overflow-hidden">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-110 sm:scale-100"
-          style={{ backgroundImage: `url(${heroBackground})` }}
-        ></div>
         {/* Premium Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-ocean-blue/90 via-ocean-blue-dark/85 to-success-green/80"></div>
         {/* Subtle Pattern Overlay */}
