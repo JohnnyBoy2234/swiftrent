@@ -1,9 +1,18 @@
 import React, { useMemo, type FC } from "react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"; // Adjust imports
-import { Button } from "@/components/ui/button"; // Adjust imports
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Adjust imports
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronDown } from "lucide-react";
-import type { SearchFilters } from "@/types/filters";
+
+// This assumes you have a SearchFilters type defined elsewhere, e.g., in PropertySearchBar.tsx
+// If not, you should define it.
+interface SearchFilters {
+  location: string;
+  propertyType: string;
+  minPrice: string;
+  maxPrice: string;
+  bedrooms: string;
+}
 
 const propertyPrice = [
     { value: "", label: "Any" },
@@ -59,9 +68,12 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ filters, onFiltersChange, price
         <Popover open={priceOpen} onOpenChange={setPriceOpen}>
             <PopoverTrigger asChild>
                 <Button
+                  type="button"
                   variant="outline"
-                  // prevent default / stop propagation when opening the popover
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPriceOpen(!priceOpen);
+                  }}
                   className={`h-10 px-3 flex-1 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${((filters.minPrice && filters.minPrice !== "") || (filters.maxPrice && filters.maxPrice !== "")) ? 'bg-primary text-white' : 'text-foreground'}`}
                 >
                     <span className="truncate w-full">{getPriceLabel()}</span>
@@ -69,31 +81,23 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ filters, onFiltersChange, price
                 </Button>
             </PopoverTrigger>
 
-            {/* stop propagation on the popover content so selects don't trigger outer clicks */}
             <PopoverContent
               className="w-80 p-4 bg-white border border-border z-50"
               align="start"
               onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
             >
-                <div className="space-y-4" onPointerDown={(e) => e.stopPropagation()}>
+                <div className="space-y-4">
                     <h4 className="font-medium text-foreground">Price Range</h4>
                     <div className="grid grid-cols-2 gap-3">
-
-                        {/* --- Min Price Select --- */}
                         <div>
                             <label className="text-sm text-muted-foreground mb-1 block">Min Price</label>
-                            <Select value={filters.minPrice || ""} onValueChange={(v) => { /* prevent bubbling */ handleMinPriceChange(v); }}>
-                                <SelectTrigger className="h-9 text-sm" onPointerDown={(e) => e.stopPropagation()}>
+                            <Select value={filters.minPrice || ""} onValueChange={handleMinPriceChange}>
+                                <SelectTrigger className="h-9 text-sm">
                                     <SelectValue placeholder="Any" />
                                 </SelectTrigger>
-                                <SelectContent onPointerDown={(e) => e.stopPropagation()}>
+                                <SelectContent>
                                     {propertyPrice.map(option => (
-                                        <SelectItem
-                                          key={`min-${option.value}`}
-                                          value={option.value}
-                                          onClick={(e) => { e.stopPropagation(); }} // extra guard
-                                        >
+                                        <SelectItem key={`min-${option.value}`} value={option.value}>
                                             {option.label}
                                         </SelectItem>
                                     ))}
@@ -101,30 +105,24 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ filters, onFiltersChange, price
                             </Select>
                         </div>
 
-                        {/* --- Max Price Select --- */}
                         <div>
                             <label className="text-sm text-muted-foreground mb-1 block">Max Price</label>
-                            <Select value={filters.maxPrice || ""} onValueChange={(v) => { handleMaxPriceChange(v); }}>
-                                <SelectTrigger className="h-9 text-sm" onPointerDown={(e) => e.stopPropagation()}>
+                            <Select value={filters.maxPrice || ""} onValueChange={handleMaxPriceChange}>
+                                <SelectTrigger className="h-9 text-sm">
                                     <SelectValue placeholder="Any" />
                                 </SelectTrigger>
-                                <SelectContent onPointerDown={(e) => e.stopPropagation()}>
+                                <SelectContent>
                                     {maxPriceOptions.map(option => (
-                                        <SelectItem
-                                          key={`max-${option.value}`}
-                                          value={option.value}
-                                          onClick={(e) => { e.stopPropagation(); }}
-                                        >
+                                        <SelectItem key={`max-${option.value}`} value={option.value}>
                                             {option.label}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
-
                     </div>
                     <div className="flex justify-end">
-                        <Button size="sm" onClick={() => setPriceOpen(false)} className="bg-primary hover:bg-primary/90 text-sm">
+                        <Button type="button" size="sm" onClick={() => setPriceOpen(false)} className="bg-primary hover:bg-primary/90 text-sm">
                             Apply
                         </Button>
                     </div>
