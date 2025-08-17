@@ -145,25 +145,17 @@ const Navbar = () => {
             <div className="p-4 border-t border-border space-y-2">
               {user ? (
                 <>
-                  <Button variant="outline" className="w-full" asChild><Link to="/list-property">List Property</Link></Button>
-                  {isLandlord && hasProperties ? (
+                  {isLandlord ? (
                     <Button variant="outline" className="w-full" asChild><Link to="/dashboard">Rental Manager</Link></Button>
-                  ) : !isLandlord ? (
-                    <Button variant="outline" className="w-full" asChild><Link to="/tenant-dashboard">My Dashboard</Link></Button>
                   ) : (
-                    <Button variant="outline" className="w-full" asChild>
-                      <Link to="/messages" className="flex items-center justify-between w-full">
-                        <span>Messages</span>
-                        {messageUnread > 0 && <Badge variant="destructive" className="h-5 w-5 flex items-center justify-center p-0 text-xs">{messageUnread > 99 ? '99+' : messageUnread}</Badge>}
-                      </Link>
-                    </Button>
+                    <Button variant="outline" className="w-full" asChild><Link to="/tenant-dashboard">My Dashboard</Link></Button>
                   )}
                   <Button className="w-full" onClick={signOut}><LogOut className="h-4 w-4 mr-2"/>Sign Out</Button>
                 </>
               ) : (
                 <>
                   <Button variant="outline" className="w-full" asChild><Link to="/list-property">List Property</Link></Button>
-                  <Button className="w-full" asChild><Link to="/auth">Sign In</Link></Button>
+                  <Button className="w-full" asChild onClick={() =>setIsMobileMenuOpen(false)}><Link to="/auth">Sign In</Link></Button>
                 </>
               )}
             </div>
