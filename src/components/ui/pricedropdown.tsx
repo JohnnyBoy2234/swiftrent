@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, type FC } from "react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"; // Adjust imports
 import { Button } from "@/components/ui/button"; // Adjust imports
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Adjust imports
 import { ChevronDown } from "lucide-react";
+import type { SearchFilters } from "@/types/filters";
 
 // Assumed to be defined elsewhere in your project
 const propertyPrice = [
@@ -18,8 +19,16 @@ const propertyPrice = [
     { value: "1000000", label: "R 1 000 000" },
 ];
 
+interface PriceDropdownProps {
+  filters: SearchFilters;
+  onFiltersChange: (patch: Partial<SearchFilters>) => void;
+  priceOpen: boolean;
+  setPriceOpen: (open: boolean) => void;
+  getPriceLabel: () => React.ReactNode;
+}
+
 // The main component
-const PriceDropdown = ({ filters, onFiltersChange, priceOpen, setPriceOpen, getPriceLabel }) => {
+const PriceDropdown: FC<PriceDropdownProps> = ({ filters, onFiltersChange, priceOpen, setPriceOpen, getPriceLabel }) => {
 
     // Memoize the filtered max price options for better performance
     const maxPriceOptions = useMemo(() => {
