@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import  PriceDropdown  from "@/components/ui/pricedropdown";
 import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 import { ChevronDown, SlidersHorizontal, Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -86,31 +87,6 @@ export const PropertySearchBar = ({
     value: "4",
     label: "4+"
   }];
-  const formatPrice = (value: string) => {
-    if (!value || value === "0") return "";
-    return `R${parseInt(value).toLocaleString()}`;
-  };
-  const getPriceLabel = () => {
-    const min = formatPrice(filters.minPrice);
-    const max = formatPrice(filters.maxPrice);
-    
-    const hasSelection = (filters.minPrice && filters.minPrice !== "0") || (filters.maxPrice && filters.maxPrice !== "0");
-    if (hasSelection) {
-      let priceRange = "";
-      if (!min && !max) priceRange = "Any";
-      else if (!min) priceRange = `Up to ${max}`;
-      else if (!max || filters.maxPrice === "") priceRange = `From ${min}`;
-      else priceRange = `${min} - ${max}`;
-      
-      return (
-        <div className="flex flex-col items-start">
-          <span className="text-xs text-slate-300">Price</span>
-          <span className="text-sm font-normal">{priceRange}</span>
-        </div>
-      );
-    }
-    return "Price";
-  };
   const getPropertyTypeLabel = () => {
     const selectedTypes = filters.propertyType ? filters.propertyType.split(',').filter(type => type !== "Any" && type.trim() !== "") : [];
     if (selectedTypes.length > 0) {
@@ -122,6 +98,65 @@ export const PropertySearchBar = ({
     }
     return "Property Type";
   };
+  /**
+ * Formats a numeric string into a South African Rand currency format.
+ * e.g., "500000" becomes "R 500,000"
+ * Returns an empty string if the value is invalid or zero.
+ * @param {string} value The numeric string to format.
+ * @returns {string} The formatted currency string.
+ */
+const formatPrice = (value) => {
+  // Return empty if the value is null, undefined, or an empty string.
+  if (!value) return "";
+
+  const numberValue = parseInt(value, 10);
+  
+  // Use Intl.NumberFormat for reliable, locale-aware formatting.
+  const formattedNumber = new Intl.NumberFormat('en-ZA').format(numberValue);
+  
+  return `R ${formattedNumber}`;
+};
+
+
+/**
+ * Generates the display label for the price filter button based on
+ * the current min and max price filters.
+ * @returns {React.ReactNode} JSX for the label or a plain string.
+ */
+const getPriceLabel = () => {
+  // Get the formatted min and max price strings.
+  const min = formatPrice(filters.minPrice);
+  const max = formatPrice(filters.maxPrice);
+  
+  // Determine if a meaningful selection has been made.
+  const hasMinSelection = filters.minPrice && filters.minPrice !== "";
+  const hasMaxSelection = filters.maxPrice && filters.maxPrice !== "";
+
+  let priceRangeText = "Any";
+
+  if (!hasMinSelection && hasMaxSelection) {
+    priceRangeText = `Up to ${max}`;
+  } else if (hasMinSelection && !hasMaxSelection) {
+    priceRangeText = `From ${min}`;
+  } else if (hasMinSelection && hasMaxSelection) {
+    // If min and max are the same, just show one value.
+    if (min === max) {
+      priceRangeText = min;
+    } else {
+      priceRangeText = `${min} - ${max}`;
+    }
+  }
+  if (!hasMinSelection && !hasMaxSelection) {
+    return "Price";
+  }
+
+  return (
+    <div className="flex flex-col items-start text-left">
+      <span className="text-xs text-slate-400">Price</span>
+      <span className="font-normal">{priceRangeText}</span>
+    </div>
+  );
+};
   const getBedroomsLabel = () => {
     const hasSelection = filters.bedrooms !== "Any" && filters.bedrooms;
     if (hasSelection) {
@@ -194,7 +229,14 @@ export const PropertySearchBar = ({
             </PopoverContent>
           </Popover>
 
-          {/* Price Range Dropdown */}
+                <PriceDropdown 
+  filters={filters} 
+  onFiltersChange={onFiltersChange} 
+  priceOpen={priceOpen} 
+  setPriceOpen={setPriceOpen} 
+  getPriceLabel={getPriceLabel}
+/>
+          {/* Price Range Dropdown
           <Popover open={priceOpen} onOpenChange={setPriceOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline" className={`h-10 px-3 flex-1 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${((filters.minPrice && filters.minPrice !== "0") || (filters.maxPrice && filters.maxPrice !== "0")) ? 'bg-primary text-white' : 'text-foreground'}`}>
@@ -274,7 +316,7 @@ export const PropertySearchBar = ({
                 </div>
               </div>
             </PopoverContent>
-          </Popover>
+          </Popover> */}
 
           {/* Bedrooms Dropdown */}
           <Popover open={bedroomsOpen} onOpenChange={setBedroomsOpen}>
