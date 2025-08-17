@@ -43,43 +43,51 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Admin Routes - Completely separated, no navbar */}
+            {/* Admin Routes - No Navbar */}
             <Route path="/admin" element={<RouteGuard><AdminDashboard /></RouteGuard>} />
             <Route path="/admin/dashboard" element={<RouteGuard><AdminDashboard /></RouteGuard>} />
             <Route path="/admin/management" element={<RouteGuard><AdminManagement /></RouteGuard>} />
             <Route path="/admin/documents" element={<RouteGuard><DocumentReview /></RouteGuard>} />
-            
-            {/* Regular app routes with navbar */}
-            <Route path="/*" element={
-              <>
-                <Navbar />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/properties" element={<RouteGuard><Properties /></RouteGuard>} />
-                  <Route path="/how-it-works" element={<HowItWorks />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/dashboard" element={<RouteGuard><Dashboard /></RouteGuard>} />
-                  <Route path="/tenant-dashboard" element={<RouteGuard><TenantDashboard /></RouteGuard>} />
-                  <Route path="/lease-signing/:tenancyId" element={<RouteGuard><LeaseSigningPage /></RouteGuard>} />
-                  <Route path="/landlord-lease-signing/:tenancyId" element={<RouteGuard><LandlordLeaseSigningPage /></RouteGuard>} />
-                  <Route path="/dashboard/add-property" element={<RouteGuard><AddProperty /></RouteGuard>} />
-                  <Route path="/list-property" element={<RouteGuard><ListProperty /></RouteGuard>} />
-                  <Route path="/property/:id" element={<PropertyDetail />} />
-                  <Route path="/manage-property/:id" element={<RouteGuard><PropertyManagement /></RouteGuard>} />
-                  
-                  <Route path="/messages" element={<RouteGuard><Messages /></RouteGuard>} />
-                  <Route path="/apply/invite/:token" element={<RouteGuard><ApplyInvite /></RouteGuard>} />
-                  <Route path="/application/:id" element={<RouteGuard><ApplicationDetail /></RouteGuard>} />
-                  <Route path="/rental-application/:propertyId" element={<RouteGuard><RentalApplication /></RouteGuard>} />
-                  <Route path="/tenant/messages" element={<RouteGuard><TenantMessages /></RouteGuard>} />
-                  <Route path="/apply/:id" element={<PropertyDetail />} />
-                  <Route path="/payment-success" element={<RouteGuard><PaymentSuccess /></RouteGuard>} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </>
-            } />
+
+            {/* Routes with Navbar */}
+            <Route
+              element={
+                <>
+                  <Navbar />
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/properties" element={<RouteGuard><Properties /></RouteGuard>} />
+                    <Route path="/how-it-works" element={<HowItWorks />} />
+                    <Route path="/about" element={<About />} />
+                  </Routes>
+                </>
+              }
+            >
+              <Route path="/" />
+              <Route path="/properties" />
+              <Route path="/how-it-works" />
+              <Route path="/about" />
+            </Route>
+
+            {/* Routes without Navbar */}
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/dashboard" element={<RouteGuard><Dashboard /></RouteGuard>} />
+            <Route path="/tenant-dashboard" element={<RouteGuard><TenantDashboard /></RouteGuard>} />
+            <Route path="/lease-signing/:tenancyId" element={<RouteGuard><LeaseSigningPage /></RouteGuard>} />
+            <Route path="/landlord-lease-signing/:tenancyId" element={<RouteGuard><LandlordLeaseSigningPage /></RouteGuard>} />
+            <Route path="/dashboard/add-property" element={<RouteGuard><AddProperty /></RouteGuard>} />
+            <Route path="/list-property" element={<RouteGuard><ListProperty /></RouteGuard>} />
+            <Route path="/property/:id" element={<PropertyDetail />} />
+            <Route path="/manage-property/:id" element={<RouteGuard><PropertyManagement /></RouteGuard>} />
+            <Route path="/messages" element={<RouteGuard><Messages /></RouteGuard>} />
+            <Route path="/apply/invite/:token" element={<RouteGuard><ApplyInvite /></RouteGuard>} />
+            <Route path="/application/:id" element={<RouteGuard><ApplicationDetail /></RouteGuard>} />
+            <Route path="/rental-application/:propertyId" element={<RouteGuard><RentalApplication /></RouteGuard>} />
+            <Route path="/tenant/messages" element={<RouteGuard><TenantMessages /></RouteGuard>} />
+            <Route path="/apply/:id" element={<PropertyDetail />} />
+            <Route path="/payment-success" element={<RouteGuard><PaymentSuccess /></RouteGuard>} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
