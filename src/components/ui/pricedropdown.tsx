@@ -60,6 +60,8 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ filters, onFiltersChange, price
             <PopoverTrigger asChild>
                 <Button
                   variant="outline"
+                  // prevent default / stop propagation when opening the popover
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                   className={`h-10 px-3 flex-1 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${((filters.minPrice && filters.minPrice !== "") || (filters.maxPrice && filters.maxPrice !== "")) ? 'bg-primary text-white' : 'text-foreground'}`}
                 >
                     <span className="truncate w-full">{getPriceLabel()}</span>
