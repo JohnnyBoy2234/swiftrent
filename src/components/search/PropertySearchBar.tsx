@@ -246,7 +246,7 @@ const getPriceLabel = (): ReactNode => {
                   </div>
                 </div>
 
-                {/* Price (reuse PriceDropdown inside sheet) */}
+                {/* Price */}
                 <div>
                   <div className="text-xs text-slate-400 mb-2">Price</div>
                   <PriceDropdown
@@ -275,7 +275,6 @@ const getPriceLabel = (): ReactNode => {
                   </div>
                 </div>
 
-                {/* More Filters placeholder (keeps original handler) */}
                 <div>
                   <Button variant="outline" className="w-full py-3" onClick={() => { setFiltersSheetOpen(false); onMoreFiltersClick(); }}>
                     More Filters
