@@ -221,36 +221,37 @@ export default function PropertyManagement() {
 
       {/* Tabs Navigation */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7 bg-gradient-to-r from-earth-light/40 to-ocean-blue/10 border border-ocean-blue/20 shadow-soft">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <Home className="h-4 w-4" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="listing" className="flex items-center gap-2">
-            <List className="h-4 w-4" />
-            Listings
-          </TabsTrigger>
-          <TabsTrigger value="viewings" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Viewing
-          </TabsTrigger>
-          <TabsTrigger value="applications" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Applications
-          </TabsTrigger>
-          <TabsTrigger value="leases" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Leases
-          </TabsTrigger>
-          <TabsTrigger value="payments" className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
-            Payments
-          </TabsTrigger>
-          <TabsTrigger value="maintenance" className="flex items-center gap-2">
-            <Wrench className="h-4 w-4" />
-            Maintenance
-          </TabsTrigger>
-        </TabsList>
+
+  <TabsList className="grid w-full grid-cols-7 bg-gradient-to-r from-earth-light/40 to-ocean-blue/10 border border-ocean-blue/20 shadow-soft sm:grid-cols-1 sm:overflow-x-auto sm:whitespace-nowrap sm:space-x-2">
+    <TabsTrigger value="overview" className="flex items-center gap-2 px-2 py-1 text-sm sm:text-base">
+      <Home className="h-4 w-4" />
+      Overview
+    </TabsTrigger>
+    <TabsTrigger value="listing" className="flex items-center gap-2 px-2 py-1 text-sm sm:text-base">
+      <List className="h-4 w-4" />
+      Listings
+    </TabsTrigger>
+    <TabsTrigger value="viewings" className="flex items-center gap-2 px-2 py-1 text-sm sm:text-base">
+      <Calendar className="h-4 w-4" />
+      Viewing
+    </TabsTrigger>
+    <TabsTrigger value="applications" className="flex items-center gap-2 px-2 py-1 text-sm sm:text-base">
+      <Users className="h-4 w-4" />
+      Applications
+    </TabsTrigger>
+    <TabsTrigger value="leases" className="flex items-center gap-2 px-2 py-1 text-sm sm:text-base">
+      <FileText className="h-4 w-4" />
+      Leases
+    </TabsTrigger>
+    <TabsTrigger value="payments" className="flex items-center gap-2 px-2 py-1 text-sm sm:text-base">
+      <CreditCard className="h-4 w-4" />
+      Payments
+    </TabsTrigger>
+    <TabsTrigger value="maintenance" className="flex items-center gap-2 px-2 py-1 text-sm sm:text-base">
+      <Wrench className="h-4 w-4" />
+      Maintenance
+    </TabsTrigger>
+  </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
