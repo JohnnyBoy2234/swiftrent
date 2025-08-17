@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import  PriceDropdown  from "@/components/ui/pricedropdown";
+import PriceDropdown from "../ui/pricedropdown";
 import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 import { ChevronDown, SlidersHorizontal, Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -88,6 +88,19 @@ export const PropertySearchBar = ({
     value: "4",
     label: "4+"
   }];
+  // Mobile-friendly price options (string values match pricedropdown)
+  const priceOptions = [
+    { value: "", label: "Any" },
+    { value: "5000", label: "R 5 000" },
+    { value: "10000", label: "R 10 000" },
+    { value: "25000", label: "R 25 000" },
+    { value: "50000", label: "R 50 000" },
+    { value: "100000", label: "R 100 000" },
+    { value: "250000", label: "R 250 000" },
+    { value: "500000", label: "R 500 000" },
+    { value: "750000", label: "R 750 000" },
+    { value: "1000000", label: "R 1 000 000" },
+  ];
   const getPropertyTypeLabel = () => {
     const selectedTypes = filters.propertyType ? filters.propertyType.split(',').filter(type => type !== "Any" && type.trim() !== "") : [];
     if (selectedTypes.length > 0) {
@@ -111,10 +124,11 @@ const formatPrice = (value?: string | null): string => {
   if (!value) return "";
 
   const numberValue = parseInt(value, 10);
-  
+  if (Number.isNaN(numberValue) || numberValue === 0) return "";
+
   // Use Intl.NumberFormat for reliable, locale-aware formatting.
   const formattedNumber = new Intl.NumberFormat('en-ZA').format(numberValue);
-  
+
   return `R ${formattedNumber}`;
 };
 
@@ -245,38 +259,82 @@ const getPriceLabel = (): ReactNode => {
                     })}
                   </div>
                 </div>
-
-                {/* Price */}
+ 
+                {/* Price - mobile: use native selects to avoid popover issues */}
                 <div>
                   <div className="text-xs text-slate-400 mb-2">Price</div>
-                  <PriceDropdown
-                    filters={filters}
-                    onFiltersChange={onFiltersChange}
-                    priceOpen={priceOpen}
-                    setPriceOpen={setPriceOpen}
-                    getPriceLabel={getPriceLabel}
-                  />
-                </div>
-
-                {/* Bedrooms */}
-                <div>
-                  <div className="text-xs text-slate-400 mb-2">Bedrooms</div>
-                  <div className="flex gap-2">
-                    {bedroomOptions.map(option => (
-                      <Button
-                        key={option.value}
-                        variant={filters.bedrooms === option.value ? "secondary" : "outline"}
-                        className={`flex-1 py-3 ${filters.bedrooms === option.value ? 'bg-primary text-white' : ''}`}
-                        onClick={() => onFiltersChange({ bedrooms: option.value })}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Min</label>
+                      <select
+                        value={filters.minPrice ?? ""}
+                        onChange={(e) => {
+                          const newMin = e.target.value;
+                          const currentMax = filters.maxPrice || "";
+                          const newMinNum = Number.parseInt(newMin || "0", 10) || 0;
+                          const currentMaxNum = Number.parseInt(currentMax || "0", 10) || 0;
+                          if (currentMax && newMinNum > currentMaxNum) {
+                            // if min > max, keep them equal
+                            onFiltersChange({ minPrice: newMin, maxPrice: newMin });
+                          } else {
+                            onFiltersChange({ minPrice: newMin });
+                          }
+                        }}
+                        className="w-full h-10 rounded-md border border-input px-3 text-sm"
                       >
-                        {option.label === 'Any' ? 'Any' : `${option.label}+`}
-                      </Button>
-                    ))}
+                        {priceOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                    </div>
+ 
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Max</label>
+                      <select
+                        value={filters.maxPrice ?? ""}
+                        onChange={(e) => {
+                          const newMax = e.target.value;
+                          // ensure max is not below min
+                          const minNum = Number.parseInt(filters.minPrice || "0", 10) || 0;
+                          const newMaxNum = Number.parseInt(newMax || "0", 10) || 0;
+                          if (newMax && newMaxNum < minNum) {
+                            onFiltersChange({ minPrice: newMax, maxPrice: newMax });
+                          } else {
+                            onFiltersChange({ maxPrice: newMax });
+                          }
+                        }}
+                        className="w-full h-10 rounded-md border border-input px-3 text-sm"
+                      >
+                        {/* only show options >= current min */}
+                        {priceOptions
+                          .filter(opt => {
+                            if (!filters.minPrice || filters.minPrice === "") return true;
+                            if (!opt.value) return true;
+                            return Number.parseInt(opt.value, 10) >= (Number.parseInt(filters.minPrice || "0", 10) || 0);
+                          })
+                          .map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                    </div>
                   </div>
                 </div>
+ 
+                 {/* Bedrooms */}
+                 <div>
+                   <div className="text-xs text-slate-400 mb-2">Bedrooms</div>
+                   <div className="flex gap-2">
+                     {bedroomOptions.map(option => (
+                       <Button
+                         key={option.value}
+                         variant={filters.bedrooms === option.value ? "secondary" : "outline"}
+                         className={`flex-1 py-3 ${filters.bedrooms === option.value ? 'bg-primary text-white' : ''}`}
+                         onClick={() => onFiltersChange({ bedrooms: option.value })}
+                       >
+                         {option.label === 'Any' ? 'Any' : `${option.label}+`}
+                       </Button>
+                     ))}
+                   </div>
+                 </div>
 
                 <div>
-                  <Button variant="outline" className="w-full py-3" onClick={() => { setFiltersSheetOpen(false); onMoreFiltersClick(); }}>
+                  <Button variant="outline" className="w-full py-3" onClick={(e) => { e.stopPropagation(); setFiltersSheetOpen(false); onMoreFiltersClick(); }}>
                     More Filters
                   </Button>
                 </div>

@@ -14,14 +14,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 
 const Index = () => {
-  const [searchLocation, setSearchLocation] = useState("");
   const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const [userType, setUserType] = useState('tenant'); // 'tenant' or 'landlord'
   const navigate = useNavigate();
 
-  const [propertyType, setPropertyType] = useState("Any");
-  const [bedrooms, setBedrooms] = useState("Any");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
+  // Unified filters object used by PropertySearchBar and the rest of the page
+  const [filters, setFilters] = useState({
+    location: "",
+    propertyType: "Any",
+    minPrice: "",
+    maxPrice: "",
+    bedrooms: "Any",
+  });
 
   // Advanced filters state
   const [advancedFilters, setAdvancedFilters] = useState({
@@ -33,36 +37,32 @@ const Index = () => {
 
   const isTenant = userType === 'tenant';
 
+  // merge partial updates coming from PropertySearchBar
+  const onFiltersChange = (patch: Partial<typeof filters>) => {
+    setFilters(prev => ({ ...prev, ...patch }));
+  };
+
+  // build query and navigate to /properties so the Properties page can read filters from the URL
   const applyFilters = () => {
     const params = new URLSearchParams();
-    if (searchLocation.trim()) params.set('search', searchLocation.trim());
-    if (bedrooms !== 'Any') params.set('bedrooms', bedrooms);
-    if (priceRange[0] > 0) params.set('minPrice', String(priceRange[0]));
-    if (priceRange[1] < 100000) params.set('maxPrice', String(priceRange[1]));
-    
-    // Add advanced filters
-    if (advancedFilters.propertyTypes.length > 0) {
-      params.set('propertyTypes', advancedFilters.propertyTypes.join(','));
-    }
-    if (advancedFilters.amenities.length > 0) {
-      params.set('amenities', advancedFilters.amenities.join(','));
-    }
-    if (advancedFilters.bathrooms !== 'Any') {
-      params.set('bathrooms', advancedFilters.bathrooms);
-    }
-    if (advancedFilters.availableFrom) {
-      params.set('availableFrom', advancedFilters.availableFrom.toISOString().split('T')[0]);
-    }
-    
-    navigate(`/properties?${params.toString()}`);
+
+    // include location if set (trimmed)
+    const loc = filters.location?.trim();
+    if (loc) params.set("location", loc);
+
+    if (filters.propertyType && filters.propertyType !== "Any") params.set("propertyType", filters.propertyType);
+    if (filters.minPrice && filters.minPrice !== "") params.set("minPrice", filters.minPrice);
+    if (filters.maxPrice && filters.maxPrice !== "") params.set("maxPrice", filters.maxPrice);
+    if (filters.bedrooms && filters.bedrooms !== "Any") params.set("bedrooms", filters.bedrooms);
+
+    const query = params.toString();
+    console.debug("navigate /properties with query:", query, "filters:", filters);
+    navigate(`/properties${query ? `?${query}` : ""}`);
   };
 
   const handleSearch = () => {
-    if (searchLocation.trim()) {
-      navigate(`/properties?search=${encodeURIComponent(searchLocation.trim())}`);
-    } else {
-      navigate('/properties');
-    }
+    // ensure latest filters (including location) are used
+    applyFilters();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -131,23 +131,8 @@ const Index = () => {
             
             {/* Property24-style Search Bar */}
             <PropertySearchBar
-              filters={{
-                location: searchLocation,
-                propertyType: propertyType,
-                minPrice: priceRange[0] > 0 ? priceRange[0].toString() : "",
-                maxPrice: priceRange[1] < 100000 ? priceRange[1].toString() : "",
-                bedrooms: bedrooms
-              }}
-              onFiltersChange={(newFilters) => {
-                if (newFilters.location !== undefined) setSearchLocation(newFilters.location);
-                if (newFilters.propertyType !== undefined) setPropertyType(newFilters.propertyType);
-                if (newFilters.minPrice !== undefined || newFilters.maxPrice !== undefined) {
-                  const minPrice = newFilters.minPrice ? parseInt(newFilters.minPrice) : (priceRange[0] > 0 ? priceRange[0] : 0);
-                  const maxPrice = newFilters.maxPrice ? parseInt(newFilters.maxPrice) : (priceRange[1] < 100000 ? priceRange[1] : 100000);
-                  setPriceRange([minPrice, maxPrice]);
-                }
-                if (newFilters.bedrooms !== undefined) setBedrooms(newFilters.bedrooms);
-              }}
+              filters={filters}
+              onFiltersChange={onFiltersChange}
               onMoreFiltersClick={() => setMoreFiltersOpen(true)}
               onSearch={handleSearch}
             />
@@ -167,10 +152,13 @@ const Index = () => {
                   bathrooms: "Any",
                   availableFrom: null
                 });
-                setSearchLocation("");
-                setPropertyType("Any");
-                setBedrooms("Any");
-                setPriceRange([0, 100000]);
+                setFilters({
+                  location: "",
+                  propertyType: "Any",
+                  minPrice: "",
+                  maxPrice: "",
+                  bedrooms: "Any",
+                });
               }}
             />
             
