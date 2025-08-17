@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 
 // Assumed to be defined elsewhere in your project
 const propertyPrice = [
-    { value: "", label: "Any" },
+    { value: "any", label: "Any" },
     { value: "5000", label: "R 5 000" },
     { value: "10000", label: "R 10 000" },
     { value: "25000", label: "R 25 000" },
