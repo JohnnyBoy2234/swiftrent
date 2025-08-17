@@ -146,9 +146,9 @@ const Navbar = () => {
               {user ? (
                 <>
                   {isLandlord ? (
-                    <Button variant="outline" className="w-full" asChild><Link to="/dashboard">Rental Manager</Link></Button>
+                    <Button variant="outline" className="w-full" asChild onClick={() =>setIsMobileMenuOpen(false)}><Link to="/dashboard">Rental Manager</Link></Button>
                   ) : (
-                    <Button variant="outline" className="w-full" asChild><Link to="/tenant-dashboard">My Dashboard</Link></Button>
+                    <Button variant="outline" className="w-full" asChild onClick={() =>setIsMobileMenuOpen(false)}><Link to="/tenant-dashboard">My Dashboard</Link></Button>
                   )}
                   <Button className="w-full" onClick={signOut}><LogOut className="h-4 w-4 mr-2"/>Sign Out</Button>
                 </>
