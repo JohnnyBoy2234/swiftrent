@@ -173,7 +173,7 @@ export default function AddProperty() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto p-6 max-w-4xl">
-        <div className="flex flex-col items-center gap-4 mb-8">
+        <div className="flex flex-col items-left gap-4 mb-8">
           <Button variant="outline" onClick={() => navigate('/dashboard')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
