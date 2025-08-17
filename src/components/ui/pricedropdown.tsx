@@ -5,7 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronDown } from "lucide-react";
 import type { SearchFilters } from "@/types/filters";
 
-// Assumed to be defined elsewhere in your project
 const propertyPrice = [
     { value: "", label: "Any" },
     { value: "5000", label: "R 5 000" },
@@ -27,66 +26,72 @@ interface PriceDropdownProps {
   getPriceLabel: () => React.ReactNode;
 }
 
-// The main component
 const PriceDropdown: FC<PriceDropdownProps> = ({ filters, onFiltersChange, priceOpen, setPriceOpen, getPriceLabel }) => {
 
-    // Memoize the filtered max price options for better performance
     const maxPriceOptions = useMemo(() => {
-        const minPriceValue = parseInt(filters.minPrice || "0", 10);
+        const minPriceValue = Number.parseInt(filters.minPrice || "0", 10) || 0;
         return propertyPrice.filter(option => {
-            // "Any" is always a valid option
             if (option.value === "") return true;
-            const optionValue = parseInt(option.value, 10);
+            const optionValue = Number.parseInt(option.value, 10) || 0;
             return optionValue >= minPriceValue;
         });
     }, [filters.minPrice]);
 
-    // Handler for the Min Price dropdown
-    const handleMinPriceChange = (value) => {
-        const newMinPrice = value;
-        const currentMaxPrice = filters.maxPrice;
-        
-        const newMinNumber = parseInt(newMinPrice || "0", 10);
-        const currentMaxNumber = parseInt(currentMaxPrice || "0", 10);
+    const handleMinPriceChange = (value: string) => {
+        const newMinPrice = value || "";
+        const currentMaxPrice = filters.maxPrice || "";
 
-        // If a max price is set and the new min price is higher,
-        // update the max price to be the same as the new min price.
+        const newMinNumber = Number.parseInt(newMinPrice || "0", 10) || 0;
+        const currentMaxNumber = Number.parseInt(currentMaxPrice || "0", 10) || 0;
+
         if (currentMaxPrice && newMinNumber > currentMaxNumber) {
             onFiltersChange({ minPrice: newMinPrice, maxPrice: newMinPrice });
         } else {
             onFiltersChange({ minPrice: newMinPrice });
         }
     };
-    
-    // Handler for the Max Price dropdown
-    const handleMaxPriceChange = (value) => {
-        onFiltersChange({ maxPrice: value });
-    };
 
+    const handleMaxPriceChange = (value: string) => {
+        onFiltersChange({ maxPrice: value || "" });
+    };
 
     return (
         <Popover open={priceOpen} onOpenChange={setPriceOpen}>
             <PopoverTrigger asChild>
-                <Button variant="outline" className={`h-10 px-3 flex-1 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${((filters.minPrice && filters.minPrice !== "") || (filters.maxPrice && filters.maxPrice !== "")) ? 'bg-primary text-white' : 'text-foreground'}`}>
+                <Button
+                  variant="outline"
+                  className={`h-10 px-3 flex-1 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${((filters.minPrice && filters.minPrice !== "") || (filters.maxPrice && filters.maxPrice !== "")) ? 'bg-primary text-white' : 'text-foreground'}`}
+                >
                     <span className="truncate w-full">{getPriceLabel()}</span>
                     <ChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-4 bg-white border border-border z-50" align="start">
-                <div className="space-y-4">
+
+            {/* stop propagation on the popover content so selects don't trigger outer clicks */}
+            <PopoverContent
+              className="w-80 p-4 bg-white border border-border z-50"
+              align="start"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
+                <div className="space-y-4" onPointerDown={(e) => e.stopPropagation()}>
                     <h4 className="font-medium text-foreground">Price Range</h4>
                     <div className="grid grid-cols-2 gap-3">
-                        
+
                         {/* --- Min Price Select --- */}
                         <div>
                             <label className="text-sm text-muted-foreground mb-1 block">Min Price</label>
-                            <Select value={filters.minPrice || ""} onValueChange={handleMinPriceChange}>
-                                <SelectTrigger className="h-9 text-sm">
+                            <Select value={filters.minPrice || ""} onValueChange={(v) => { /* prevent bubbling */ handleMinPriceChange(v); }}>
+                                <SelectTrigger className="h-9 text-sm" onPointerDown={(e) => e.stopPropagation()}>
                                     <SelectValue placeholder="Any" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent onPointerDown={(e) => e.stopPropagation()}>
                                     {propertyPrice.map(option => (
-                                        <SelectItem key={`min-${option.value}`} value={option.value}>
+                                        <SelectItem
+                                          key={`min-${option.value}`}
+                                          value={option.value}
+                                          onClick={(e) => { e.stopPropagation(); }} // extra guard
+                                        >
                                             {option.label}
                                         </SelectItem>
                                     ))}
@@ -97,13 +102,17 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ filters, onFiltersChange, price
                         {/* --- Max Price Select --- */}
                         <div>
                             <label className="text-sm text-muted-foreground mb-1 block">Max Price</label>
-                            <Select value={filters.maxPrice || ""} onValueChange={handleMaxPriceChange}>
-                                <SelectTrigger className="h-9 text-sm">
+                            <Select value={filters.maxPrice || ""} onValueChange={(v) => { handleMaxPriceChange(v); }}>
+                                <SelectTrigger className="h-9 text-sm" onPointerDown={(e) => e.stopPropagation()}>
                                     <SelectValue placeholder="Any" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent onPointerDown={(e) => e.stopPropagation()}>
                                     {maxPriceOptions.map(option => (
-                                        <SelectItem key={`max-${option.value}`} value={option.value}>
+                                        <SelectItem
+                                          key={`max-${option.value}`}
+                                          value={option.value}
+                                          onClick={(e) => { e.stopPropagation(); }}
+                                        >
                                             {option.label}
                                         </SelectItem>
                                     ))}
