@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -30,6 +30,7 @@ export const PropertySearchBar = ({
   const [priceOpen, setPriceOpen] = useState(false);
   const [bedroomsOpen, setBedroomsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [filtersSheetOpen, setFiltersSheetOpen] = useState(false);
   
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -105,7 +106,7 @@ export const PropertySearchBar = ({
  * @param {string} value The numeric string to format.
  * @returns {string} The formatted currency string.
  */
-const formatPrice = (value) => {
+const formatPrice = (value?: string | null): string => {
   // Return empty if the value is null, undefined, or an empty string.
   if (!value) return "";
 
@@ -123,7 +124,7 @@ const formatPrice = (value) => {
  * the current min and max price filters.
  * @returns {React.ReactNode} JSX for the label or a plain string.
  */
-const getPriceLabel = () => {
+const getPriceLabel = (): ReactNode => {
   // Get the formatted min and max price strings.
   const min = formatPrice(filters.minPrice);
   const max = formatPrice(filters.maxPrice);
@@ -185,173 +186,203 @@ const getPriceLabel = () => {
         </div>
       </div>
 
-      {/* Filters - Bottom Section */}
-      <div className="p-3 sm:p-4">
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 items-stretch sm:items-center">
-          {/* Property Type Dropdown */}
-          <Popover open={propertyTypeOpen} onOpenChange={setPropertyTypeOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={`h-10 px-3 flex-1 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${filters.propertyType !== "Any" && filters.propertyType ? 'bg-primary text-white' : 'text-foreground'}`}>
-                <span className="truncate w-full">{getPropertyTypeLabel()}</span>
-                <ChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-2 bg-white border border-border z-50" align="start">
-              <div className="space-y-1">
-                {propertyTypeOptions.map(option => {
-                  const selectedTypes = filters.propertyType ? filters.propertyType.split(',').filter(type => type.trim() !== "") : [];
-                  const isSelected = selectedTypes.includes(option.value);
-                  
-                  return <Button 
-                    key={option.value} 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => {
-                      if (option.value === "Any") {
-                        onFiltersChange({ propertyType: "Any" });
-                      } else {
-                        let newSelectedTypes;
-                        if (isSelected) {
-                          newSelectedTypes = selectedTypes.filter(type => type !== option.value);
-                        } else {
-                          newSelectedTypes = [...selectedTypes.filter(type => type !== "Any"), option.value];
-                        }
-                        onFiltersChange({ 
-                          propertyType: newSelectedTypes.length === 0 ? "Any" : newSelectedTypes.join(',')
-                        });
-                      }
-                    }} 
-                    className={`w-full justify-start hover:bg-primary hover:text-white text-sm text-gray-950 ${isSelected ? 'bg-primary/10 text-primary' : ''}`}>
-                    {option.label}
-                  </Button>;
-                })}
-              </div>
-            </PopoverContent>
-          </Popover>
+      {/* Filters - Bottom Section (responsive) */}
+      {isMobile ? (
+        <>
+          <div className="p-3 sm:p-4 flex gap-2 items-center">
+            <Button variant="outline" className="flex-1 h-12 justify-center" onClick={() => setFiltersSheetOpen(true)}>
+              <SlidersHorizontal className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+            <Button size="sm" className="h-12 px-4 bg-primary hover:bg-primary/90 text-primary-foreground text-sm" onClick={onSearch}>
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+          </div>
 
-                <PriceDropdown 
-  filters={filters} 
-  onFiltersChange={onFiltersChange} 
-  priceOpen={priceOpen} 
-  setPriceOpen={setPriceOpen} 
-  getPriceLabel={getPriceLabel}
-/>
-          {/* Price Range Dropdown
-          <Popover open={priceOpen} onOpenChange={setPriceOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={`h-10 px-3 flex-1 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${((filters.minPrice && filters.minPrice !== "0") || (filters.maxPrice && filters.maxPrice !== "0")) ? 'bg-primary text-white' : 'text-foreground'}`}>
-                <span className="truncate w-full">{getPriceLabel()}</span>
-                <ChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-4 bg-white border border-border z-50" align="start">
-              <div className="space-y-4">
-                <h4 className="font-medium text-foreground">Price Range</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-sm text-muted-foreground mb-1 block">Min Price</label>
-                    <Input 
-                      type="number" 
-                      placeholder="Any" 
-                      value={filters.minPrice || ""} 
-                      onChange={e => {
-                        const value = e.target.value;
-                        const maxPrice = filters.maxPrice ? parseInt(filters.maxPrice) : null;
-                        const newMinPrice = value ? parseInt(value) : null;
-                        
-                        // If max price exists and new min is higher, adjust max
-                        if (maxPrice && newMinPrice && newMinPrice > maxPrice) {
-                          onFiltersChange({
-                            minPrice: value,
-                            maxPrice: value
-                          });
-                        } else {
-                          onFiltersChange({
-                            minPrice: value
-                          });
-                        }
-                      }} 
-                      className="h-9 text-sm" 
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground mb-1 block">Max Price</label>
-                    <Input 
-                      type="number" 
-                      placeholder="Any" 
-                      value={filters.maxPrice || ""} 
-                      onChange={e => {
-                        const value = e.target.value;
-                        const minPrice = filters.minPrice ? parseInt(filters.minPrice) : null;
-                        const newMaxPrice = value ? parseInt(value) : null;
-                        
-                        // If value is empty, allow it (means "any" max price)
-                        if (!value) {
-                          onFiltersChange({
-                            maxPrice: ""
-                          });
-                          return;
-                        }
-                        
-                        // If min price exists and new max is lower, adjust min
-                        if (minPrice && newMaxPrice && newMaxPrice < minPrice) {
-                          onFiltersChange({
-                            minPrice: value,
-                            maxPrice: value
-                          });
-                        } else {
-                          onFiltersChange({
-                            maxPrice: value
-                          });
-                        }
-                      }} 
-                      className="h-9 text-sm" 
-                    />
+          <Sheet open={filtersSheetOpen} onOpenChange={setFiltersSheetOpen}>
+            <SheetContent className="w-full h-full p-6 bg-white">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <div className="text-lg font-medium">Filters</div>
+                  <div className="text-sm text-slate-400">Refine your search</div>
+                </div>
+                <Button variant="ghost" onClick={() => setFiltersSheetOpen(false)}>
+                  <X />
+                </Button>
+              </div>
+
+              <div className="space-y-4 overflow-auto pr-2">
+                {/* Property Type - large buttons */}
+                <div>
+                  <div className="text-xs text-slate-400 mb-2">Property Type</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {propertyTypeOptions.map(option => {
+                      const selectedTypes = filters.propertyType ? filters.propertyType.split(',').filter(type => type.trim() !== "") : [];
+                      const isSelected = selectedTypes.includes(option.value);
+                      return <Button
+                        key={option.value}
+                        variant={isSelected ? "secondary" : "outline"}
+                        className={`w-full py-3 text-left ${isSelected ? 'bg-primary text-white' : ''}`}
+                        onClick={() => {
+                          if (option.value === "Any") {
+                            onFiltersChange({ propertyType: "Any" });
+                          } else {
+                            let newSelectedTypes;
+                            if (isSelected) {
+                              newSelectedTypes = selectedTypes.filter(type => type !== option.value);
+                            } else {
+                              newSelectedTypes = [...selectedTypes.filter(type => type !== "Any"), option.value];
+                            }
+                            onFiltersChange({
+                              propertyType: newSelectedTypes.length === 0 ? "Any" : newSelectedTypes.join(',')
+                            });
+                          }
+                        }}
+                      >
+                        {option.label}
+                      </Button>;
+                    })}
                   </div>
                 </div>
-                <div className="flex justify-end">
-                  <Button size="sm" onClick={() => setPriceOpen(false)} className="bg-primary hover:bg-primary/90 text-sm">
-                    Apply
+
+                {/* Price (reuse PriceDropdown inside sheet) */}
+                <div>
+                  <div className="text-xs text-slate-400 mb-2">Price</div>
+                  <PriceDropdown
+                    filters={filters}
+                    onFiltersChange={onFiltersChange}
+                    priceOpen={priceOpen}
+                    setPriceOpen={setPriceOpen}
+                    getPriceLabel={getPriceLabel}
+                  />
+                </div>
+
+                {/* Bedrooms */}
+                <div>
+                  <div className="text-xs text-slate-400 mb-2">Bedrooms</div>
+                  <div className="flex gap-2">
+                    {bedroomOptions.map(option => (
+                      <Button
+                        key={option.value}
+                        variant={filters.bedrooms === option.value ? "secondary" : "outline"}
+                        className={`flex-1 py-3 ${filters.bedrooms === option.value ? 'bg-primary text-white' : ''}`}
+                        onClick={() => onFiltersChange({ bedrooms: option.value })}
+                      >
+                        {option.label === 'Any' ? 'Any' : `${option.label}+`}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* More Filters placeholder (keeps original handler) */}
+                <div>
+                  <Button variant="outline" className="w-full py-3" onClick={() => { setFiltersSheetOpen(false); onMoreFiltersClick(); }}>
+                    More Filters
                   </Button>
                 </div>
               </div>
-            </PopoverContent>
-          </Popover> */}
 
-          {/* Bedrooms Dropdown */}
-          <Popover open={bedroomsOpen} onOpenChange={setBedroomsOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={`h-10 px-3 flex-1 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${filters.bedrooms !== "Any" && filters.bedrooms ? 'bg-primary text-white' : 'text-foreground'}`}>
-                <span className="truncate w-full">{getBedroomsLabel()}</span>
-                <ChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-2 bg-white border border-border z-50" align="start">
-              <div className="space-y-1">
-                {bedroomOptions.map(option => <Button key={option.value} variant="ghost" size="sm" className="w-full justify-start hover:bg-primary hover:text-white text-sm" onClick={() => {
-                onFiltersChange({
-                  bedrooms: option.value
-                });
-                setBedroomsOpen(false);
-              }}>
+              <div className="mt-6 flex gap-2">
+                <Button className="flex-1" onClick={() => {
+                  onFiltersChange({ propertyType: "Any", minPrice: "", maxPrice: "", bedrooms: "Any" });
+                }}>
+                  Reset
+                </Button>
+                <Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => { setFiltersSheetOpen(false); onSearch(); }}>
+                  Apply
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </>
+      ) : (
+        <div className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 items-stretch sm:items-center">
+            {/* Property Type Dropdown */}
+            <Popover open={propertyTypeOpen} onOpenChange={setPropertyTypeOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={`h-10 px-3 flex-1 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${filters.propertyType !== "Any" && filters.propertyType ? 'bg-primary text-white' : 'text-foreground'}`}>
+                  <span className="truncate w-full">{getPropertyTypeLabel()}</span>
+                  <ChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-2 bg-white border border-border z-50" align="start">
+                <div className="space-y-1">
+                  {propertyTypeOptions.map(option => {
+                    const selectedTypes = filters.propertyType ? filters.propertyType.split(',').filter(type => type.trim() !== "") : [];
+                    const isSelected = selectedTypes.includes(option.value);
+                    
+                    return <Button 
+                      key={option.value} 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => {
+                        if (option.value === "Any") {
+                          onFiltersChange({ propertyType: "Any" });
+                        } else {
+                          let newSelectedTypes;
+                          if (isSelected) {
+                            newSelectedTypes = selectedTypes.filter(type => type !== option.value);
+                          } else {
+                            newSelectedTypes = [...selectedTypes.filter(type => type !== "Any"), option.value];
+                          }
+                          onFiltersChange({ 
+                            propertyType: newSelectedTypes.length === 0 ? "Any" : newSelectedTypes.join(',')
+                          });
+                        }
+                      }} 
+                      className={`w-full justify-start hover:bg-primary hover:text-white text-sm text-gray-950 ${isSelected ? 'bg-primary/10 text-primary' : ''}`}>
+                      {option.label}
+                    </Button>;
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <PriceDropdown 
+              filters={filters} 
+              onFiltersChange={onFiltersChange} 
+              priceOpen={priceOpen} 
+              setPriceOpen={setPriceOpen} 
+              getPriceLabel={getPriceLabel}
+            />
+
+            {/* Bedrooms Dropdown */}
+            <Popover open={bedroomsOpen} onOpenChange={setBedroomsOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={`h-10 px-3 flex-1 min-w-[130px] justify-start text-left bg-white hover:bg-primary hover:text-white border-input text-sm ${filters.bedrooms !== "Any" && filters.bedrooms ? 'bg-primary text-white' : 'text-foreground'}`}>
+                  <span className="truncate w-full">{getBedroomsLabel()}</span>
+                  <ChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-2 bg-white border border-border z-50" align="start">
+                <div className="space-y-1">
+                  {bedroomOptions.map(option => <Button key={option.value} variant="ghost" size="sm" className="w-full justify-start hover:bg-primary hover:text-white text-sm" onClick={() => {
+                    onFiltersChange({
+                      bedrooms: option.value
+                    });
+                    setBedroomsOpen(false);
+                  }}>
                     {option.label} {option.label !== 'Any' ? 'Bedroom' + (option.label !== '1+' ? 's' : '') : ''}
                   </Button>)}
-              </div>
-            </PopoverContent>
-          </Popover>
+                </div>
+              </PopoverContent>
+            </Popover>
 
-          {/* More Filters Button */}
-          <Button variant="outline" className="h-10 px-3 flex-1 min-w-[130px] bg-white hover:bg-primary hover:text-white text-foreground border-input text-sm" onClick={onMoreFiltersClick}>
-            <SlidersHorizontal className="h-3 w-3 mr-1" />
-            More Filters
-          </Button>
+            {/* More Filters Button */}
+            <Button variant="outline" className="h-10 px-3 flex-1 min-w-[130px] bg-white hover:bg-primary hover:text-white text-foreground border-input text-sm" onClick={onMoreFiltersClick}>
+              <SlidersHorizontal className="h-3 w-3 mr-1" />
+              More Filters
+            </Button>
 
-          {/* Search Button */}
-          <Button size="sm" className="h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground text-sm sm:ml-auto" onClick={onSearch}>
-            <Search className="h-4 w-4 mr-1" />
-            Search
-          </Button>
+            {/* Search Button */}
+            <Button size="sm" className="h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground text-sm sm:ml-auto" onClick={onSearch}>
+              <Search className="h-4 w-4 mr-1" />
+              Search
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>;
 };
